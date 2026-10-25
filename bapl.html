@@ -1,0 +1,148 @@
+<title>바플 구매관리 데모</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="demo.css">
+<style>
+/* 실제 앱(바플) 폰 폭 캡처를 무대 안에. 캡처는 390px 폭 → 무대 316px 폭이라 0.81배 */
+.screen { position: relative; flex: 1; min-height: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line);
+  background: #fff; box-shadow: 0 8px 22px rgba(23,33,43,.10) }
+.screen .pan, .crop .pan { position: relative }
+.screen img, .crop img { display: block; width: 100% }
+.on .screen .pan { animation: pan var(--pt, 4s) var(--pd, 1.2s) ease-in-out both }
+@keyframes pan { to { transform: translateY(var(--py, 0px)) } }
+.crop { position: relative; overflow: hidden; border-radius: 12px; border: 1px solid var(--line); background: #fff;
+  box-shadow: 0 6px 16px rgba(23,33,43,.08); height: var(--h) }
+.crop .pan { transform: translateY(var(--y)) }
+.ring { position: absolute; border: 2.5px solid var(--fail); border-radius: 10px; box-shadow: 0 0 0 4px rgba(194,64,44,.15) }
+/* 히어로: 책상(.desk) 위로 작은 창이 하나씩 — 접기(min)는 아래 단계 칩으로 빨려 들어가고, 닫기(cls)는 × 눌린 뒤 사라짐 */
+.desk { position: relative; flex: 1; min-height: 0; border-radius: 14px; overflow: hidden; background: #E9ECE6; border: 1px solid var(--line) }
+.backdrop { position: absolute; left: 0; top: 0; width: 100%; opacity: .35; filter: saturate(.6) }
+.win { position: absolute; left: 15px; right: 15px; bottom: 46px; border-radius: 10px; overflow: hidden; background: #fff;
+  box-shadow: 0 14px 34px rgba(23,33,43,.28), 0 0 0 1px rgba(23,33,43,.12); opacity: 0 }
+.on .win.min { animation: winMin 2.3s var(--t) both }
+.on .win.cls { animation: winCls 2.3s var(--t) both }
+.on .win.stay { animation: winOpen .45s var(--t) both }
+@keyframes winOpen { from { opacity: 0; transform: translateY(26px) scale(.9) } to { opacity: 1; transform: none } }
+@keyframes winMin { 0% { opacity: 0; transform: translateY(26px) scale(.9) } 16%, 78% { opacity: 1; transform: none }
+  100% { opacity: 0; transform: translate(var(--dx), 170px) scale(.12) } }
+@keyframes winCls { 0% { opacity: 0; transform: translateY(26px) scale(.9) } 16%, 82% { opacity: 1; transform: none }
+  100% { opacity: 0; transform: translateY(-10px) scale(.92) } }
+.wbar { display: flex; align-items: center; gap: 6px; height: 26px; padding: 0 6px 0 8px; background: var(--ink); color: #fff; font-size: 10.5px; font-weight: 700 }
+.wbar i { font-style: normal; width: 15px; height: 15px; border-radius: 4px; background: #C8202F; display: grid; place-items: center; font-size: 9px }
+.wbar span { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.wbar b { width: 18px; height: 16px; border-radius: 3px; display: grid; place-items: center; font-weight: 400; color: #B7C2CD }
+.on .win.min .mn { animation: hit .25s calc(var(--t) + 1.55s) both }
+.on .win.cls .x { animation: hit .25s calc(var(--t) + 1.65s) both }
+@keyframes hit { to { background: #C2402C; color: #fff } }
+.wbody { height: 250px; overflow: hidden }
+.wimg { display: block; width: 100%; transform: translateY(var(--y)) }
+.on .wimg { animation: wpan 1.4s calc(var(--t) + .45s) ease-in-out both }
+@keyframes wpan { from { transform: translateY(var(--y)) } to { transform: translateY(calc(var(--y) - 28px)) } }
+.dock { position: absolute; left: 0; right: 0; bottom: 0; height: 36px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;
+  padding: 6px; background: rgba(255,255,255,.92); border-top: 1px solid var(--line); box-sizing: border-box }
+.dock span { display: grid; place-items: center; border-radius: 6px; font-size: 10.5px; font-weight: 700; color: var(--sub); background: #EEF0EA }
+.on .dock span { animation: chipOn .3s var(--c) both }
+@keyframes chipOn { from { background: #EEF0EA; color: var(--sub) } to { background: var(--marker); color: var(--ink) } }
+.tech { display: flex; gap: 6px; flex-wrap: wrap }
+.tech span { font: 500 11px var(--f-mono); padding: 3px 8px; border-radius: 5px; background: var(--navy); color: #fff }
+</style>
+
+<div class="phone" id="phone">
+<div class="stage" id="stage">
+  <div class="bars" id="bars"></div>
+
+  <!-- 표지: 히어로 — 작은 창이 열리고 접히고 닫히며 업무 흐름 -->
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 구매관리 웹앱</span><span>바플</span></div>
+    <h1 class="cap">입력부터 계산서까지<br><mark>한 앱에서</mark></h1>
+    <div class="desk in" style="--d:.4s">
+      <img class="backdrop" src="img/bapl_flow.jpg" alt="">
+      <div class="win min" style="--t:0.90s;--dx:-128px;z-index:1"><div class="wbar"><i>B</i><span>발주서 작성 · 강변몰 키오스크</span><b class="mn">–</b><b class="x">×</b></div><div class="wbody"><img class="wimg" style="--y:-44px" src="img/bapl_w_order.jpg" alt="발주서 작성 · 강변몰 키오스크"></div></div>
+      <div class="win cls" style="--t:2.65s;--dx:-76px;z-index:2"><div class="wbar"><i>B</i><span>구매서 · 새솔디스플레이</span><b class="mn">–</b><b class="x">×</b></div><div class="wbody"><img class="wimg" style="--y:-33px" src="img/bapl_w_purchase.jpg" alt="구매서 · 새솔디스플레이"></div></div>
+      <div class="win min" style="--t:4.40s;--dx:-26px;z-index:3"><div class="wbar"><i>B</i><span>입고 · 본사 창고</span><b class="mn">–</b><b class="x">×</b></div><div class="wbody"><img class="wimg" style="--y:-73px" src="img/bapl_w_in.jpg" alt="입고 · 본사 창고"></div></div>
+      <div class="win cls" style="--t:6.15s;--dx:26px;z-index:4"><div class="wbar"><i>B</i><span>출고 · 강변몰 1차 설치</span><b class="mn">–</b><b class="x">×</b></div><div class="wbody"><img class="wimg" style="--y:-220px" src="img/bapl_w_out.jpg" alt="출고 · 강변몰 1차 설치"></div></div>
+      <div class="win min" style="--t:7.90s;--dx:76px;z-index:5"><div class="wbar"><i>B</i><span>프로젝트 · 예산 집행</span><b class="mn">–</b><b class="x">×</b></div><div class="wbody"><img class="wimg" style="--y:-242px" src="img/bapl_w_proj.jpg" alt="프로젝트 · 예산 집행"></div></div>
+      <div class="win stay" style="--t:9.65s;--dx:128px;z-index:6"><div class="wbar"><i>B</i><span>세금계산서 대조</span><b class="mn">–</b><b class="x">×</b></div><div class="wbody"><img class="wimg" style="--y:-238px" src="img/bapl_w_tax.jpg" alt="세금계산서 대조"></div></div>
+      <div class="dock"><span style="--c:2.65s">발주</span><span style="--c:4.40s">구매</span><span style="--c:6.15s">입고</span><span style="--c:7.90s">출고</span><span style="--c:9.65s">사업</span><span style="--c:10.85s">계산서</span></div>
+    </div>
+    <div class="foot"><span>화면은 실제 앱 · 회사·거래처·품목은 가상</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 흐름 -->
+  <section class="scene">
+    <div class="eyebrow"><span>구매관리 웹앱 · 바플</span><span>흐름</span></div>
+    <h2 class="cap">발주부터 입고까지<br><mark>단계가 한눈에</mark></h2>
+    <div class="screen in" style="--d:.5s">
+      <div class="pan" style="--py:-170px;--pd:2.4s;--pt:2.6s">
+        <img src="img/bapl_flow.jpg" alt="흐름 화면: 납기 지난 발주 2건과 7일 안 납기 1건">
+        <div class="ring pop" style="--d:1.4s;top:200px;left:9px;width:298px;height:180px"></div>
+      </div>
+    </div>
+    <div class="foot"><span>납기 지난 발주는 맨 위에 빨갛게</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 남은 일 -->
+  <section class="scene">
+    <div class="eyebrow"><span>구매관리 웹앱 · 바플</span><span>남은 일</span></div>
+    <h2 class="cap">사업마다<br><mark>뭘 더 사야 하는지</mark></h2>
+    <div class="screen in" style="--d:.5s">
+      <div class="pan" style="--py:-486px;--pd:1.4s;--pt:5s"><img src="img/bapl_todo.jpg" alt="남은 일 화면: 사업별로 정할 것·발주할 것·견적 기다리는 것"></div>
+    </div>
+    <div class="foot"><span>사업별 필요 수량과 발주서를 이어서 계산</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 진행 이력 -->
+  <section class="scene">
+    <div class="eyebrow"><span>구매관리 웹앱 · 바플</span><span>연동</span></div>
+    <h2 class="cap">업체 소식은<br><mark>발주서에 자동 기록</mark></h2>
+    <div class="crop in" style="--d:.6s;--h:109px"><div class="pan" style="--y:-121px"><img src="img/bapl_order.jpg" alt="발주서 진행 단계"></div></div>
+    <div class="chat fit">
+      <div class="msg bot in" style="--d:1.5s"><span class="who">받는 봇</span>업체 회신 받음: LED 표시기 10/28 출고 예정. 발주서에 적어 둘게요.</div>
+    </div>
+    <div class="crop in" style="--d:2.3s;--h:143px"><div class="pan" style="--y:-797px">
+      <img src="img/bapl_order.jpg" alt="발주서 진행 이력: 업체 회신 한 줄">
+      <div class="ring pop" style="--d:3s;top:872px;left:8px;width:300px;height:58px"></div>
+    </div></div>
+    <div class="foot"><span>메신저 봇이 바플에 바로 씀</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 대시보드 -->
+  <section class="scene">
+    <div class="eyebrow"><span>구매관리 웹앱 · 바플</span><span>대시보드</span></div>
+    <h2 class="cap">급한 것부터<br><mark>대시보드 한 장</mark></h2>
+    <div class="screen in" style="--d:.5s">
+      <div class="pan" style="--py:-470px;--pd:3s;--pt:4s">
+        <img src="img/bapl_dash.jpg" alt="대시보드: 결재 대기·입고 대기·납기 지남·기안 누락">
+        <div class="ring pop" style="--d:1.3s;top:213px;left:158px;width:140px;height:74px"></div>
+      </div>
+    </div>
+    <div class="foot"><span>결재 대기 · 입고 대기 · 납기 지남</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 정리 -->
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 구매관리 웹앱</span><span>정리</span></div>
+    <h2 class="cap">혼자 만들어<br><mark>매일 쓰는 웹앱</mark></h2>
+    <ul class="offers">
+      <li class="card in" style="--d:.7s"><b>발주서 · 구매서 · 입출고 · 재고</b><small>ERP에서 하던 기록을 그대로, 화면은 더 간단하게</small></li>
+      <li class="card in" style="--d:1s"><b>사업별 물량 계획</b><small>필요 수량 대비 발주·입고가 얼마나 됐는지</small></li>
+      <li class="card in" style="--d:1.3s"><b>ERP 자동 수집</b><small>30분마다 ERP 전표를 가져와 맞춤</small></li>
+      <li class="card in" style="--d:1.6s"><b>메신저 봇 연동</b><small>사진·말로 입력, 업체 소식은 발주서 이력으로</small></li>
+    </ul>
+    <div class="tech in" style="--d:2.2s"><span>Python</span><span>FastAPI</span><span>SQLite</span><span>사내 PC 서버</span></div>
+    <div class="foot"><span>화면은 실제 앱 · 데이터는 가상</span><span class="pg"></span></div>
+  </section>
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+</div>
+<p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<script src="demo.js"></script>

@@ -6,3 +6,7 @@ _probe_*.html
 # 작업 기록(대시보드용) — 공개 안 함
 STATUS.md
 update.md
+bapl/data/
+bapl/empty/
+bapl/shots/
+bapl/server.log
