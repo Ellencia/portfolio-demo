@@ -9,7 +9,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 OUT = HERE / "out"
 # (페이지, 디자인) — 디자인은 harness-themes.css 의 theme-* 이름, None 이면 기본
-JOBS = [("excel", None), ("harness", None), ("bapl", None), ("tabrip", None), ("harness", "dark"), ("harness", "phone"), ("harness", "memo"), ("harness", "brand")]
+JOBS = [("excel", None), ("harness", None), ("bapl", None), ("tabrip", None), ("cad", None), ("harness", "dark"), ("harness", "phone"), ("harness", "memo"), ("harness", "brand")]
 CHROME = next(p for p in (
     Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
     Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),

@@ -82,7 +82,9 @@ if (params.has('video')) {
   // 클래스별 기본 소리 + 요소의 data-sfx="소리"(덮어쓰기, "none" 이면 끔) + data-sfx-at="초:소리 ..."(CSS 지연과 같은 단위)
   const SFX = { '.pop': 'pop', '.rip': 'click', '.bat': 'click', '.qbtns .go': 'click', '.mini .go': 'click', '.toast': 'menu', '.dock span': 'tick',
     // 바플 전·후 상자: 알림 · 접히는 띠 · 펼쳐지는 띠 · 넘어가는 숫자 · 숫자에 그리는 동그라미 · ↻ 흐름 갱신
-    '.note': 'menu', '.seg.shrink': 'swish', '.seg.grow': 'pop', '.flip i:first-child': 'roll', '.mark ellipse': 'swish', '.upd': 'tick' };
+    '.note': 'menu', '.seg.shrink': 'swish', '.seg.grow': 'pop', '.flip i:first-child': 'roll', '.mark ellipse': 'swish', '.upd': 'tick',
+    // 도면 검색: 훑는 선 · 빨간 근거 상자 · 순위 내려감 · 검색어 입력
+    '.scan': 'swish', '.ov.red': 'click', '.slot': 'swish', '.sbox .q': 'roll' };
   window.demoSfx = () => {
     const s = scenes[cur], hits = new Map(), out = [];
     for (const [sel, n] of Object.entries(SFX)) s.querySelectorAll(sel).forEach(e => hits.set(e, n));

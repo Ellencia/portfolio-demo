@@ -14,7 +14,7 @@ from playwright.sync_api import sync_playwright
 
 HERE = Path(__file__).parent
 ap = argparse.ArgumentParser()
-ap.add_argument("page", choices=["excel", "harness", "bapl", "tabrip"])
+ap.add_argument("page", choices=["excel", "harness", "bapl", "tabrip", "cad"])
 ap.add_argument("--theme", default="", help="harness 디자인: dark / phone / memo / brand")
 ap.add_argument("--fps", type=int, default=30)
 ap.add_argument("--sfx", action="store_true", help="효과음 트랙 넣기")
