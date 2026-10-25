@@ -6,6 +6,9 @@
 """
 import argparse
 import io
+import os
+import subprocess
+import tempfile
 from fractions import Fraction
 from pathlib import Path
 
@@ -14,12 +17,12 @@ from playwright.sync_api import sync_playwright
 
 HERE = Path(__file__).parent
 ap = argparse.ArgumentParser()
-ap.add_argument("page", choices=["excel", "harness", "bapl", "tabrip", "cad", "dl", "forms", "imp"])
+ap.add_argument("page", choices=["excel", "harness", "bapl", "tabrip", "cad", "dl", "forms", "imp", "b2b"])
 ap.add_argument("--theme", default="", help="harness 디자인: dark / phone / memo / brand")
 ap.add_argument("--fps", type=int, default=30)
 ap.add_argument("--sfx", action="store_true", help="효과음 트랙 넣기")
 ap.add_argument("--bgm", nargs="?", const="waltz",
-                help="배경음: waltz·arp = 합성 기타 반주(기본 waltz), 그 밖엔 음악 파일 경로(music/ 에 두고 커밋 안 함)")
+                help="배경음: waltz·arp = 합성 기타 반주(기본 waltz), bgm/*.mid = 직접 쓴 곡(FluidSynth 렌더), 그 밖엔 음악 파일 경로(music/ 에 두고 커밋 안 함)")
 a = ap.parse_args()
 
 name = f"{a.page}-{a.theme}" if a.theme else a.page
@@ -64,6 +67,13 @@ try:
             out.mux(pkt)
         if a.sfx or a.bgm:
             music = a.bgm
+            if music and music.endswith(".mid"):  # 직접 쓴 곡(bgm/) → FluidSynth 로 wav
+                wav = Path(tempfile.gettempdir()) / "portfolio_bgm.wav"
+                subprocess.run([os.environ.get("FLUIDSYNTH_EXE", r"C:\Programming\tools\fluidsynth\bin\fluidsynth.exe"),
+                                "-ni", "-q", "-g", "0.55", "-r", str(sfx.SR), "-F", str(wav),
+                                os.environ.get("BGM_SF2", r"C:\Programming\Projects\guitar-transcriber\assets\FluidR3 GM2-2.SF2"), music],
+                               check=True)
+                music = str(wav)
             if music and music not in sfx.STYLES:  # 음악 파일 → SR 모노
                 rs, chunks = av.AudioResampler(format="flt", layout="mono", rate=sfx.SR), []
                 with av.open(music) as f:

@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>현장 IP 관리 앱 데모</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="demo.css">
+<style>
+/* 실제 앱(my-b2b-apps) 폰 폭 캡처(390px)를 무대 안에 — b2b/capture.py. 상자 좌표는 img/b2b_boxes.json
+   채팅 말풍선의 내 말은 Gemini CLI 대화 기록(~/.gemini/tmp/.../chats) 원문 발췌, 시각은 한국 시간 */
+.vp { position: relative; flex: 1; min-height: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #fff;
+  box-shadow: 0 8px 22px rgba(23,33,43,.10) }
+.vp > img { position: absolute; left: 0; top: 30px; width: 100% }
+.vp.plain > img { top: 0 }
+.vp:not(.plain)::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 30px; z-index: 1; background: #F2F4EF; border-bottom: 1px solid var(--line) }
+.vp > img.after, .vp > img.fr { opacity: 0 }
+.on .vp > img.after { animation: fadeIn .45s var(--sw) both }
+.on .vp > img.fr { animation: fadeIn .12s var(--t) both }
+/* 타이핑: 다음 캡처의 그 칸 글자 자리만 왼쪽부터 한 글자씩 드러냄 (--c0 → --c1 은 스크립트가 data-ty 로) */
+.vp > img.ty { opacity: 0 }
+.on .vp > img.ty { animation: type var(--dur) steps(var(--n), end) var(--t) both }
+@keyframes type { from { opacity: 1; clip-path: var(--c0) } to { opacity: 1; clip-path: var(--c1) } }
+@keyframes fadeIn { to { opacity: 1 } }
+.ba { position: absolute; z-index: 2; left: 8px; top: 6px; display: flex; border-radius: 6px; overflow: hidden; font-size: 10px; font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,.15) }
+.ba b { padding: 3px 8px; background: #fff; color: var(--sub) }
+.ba b:first-child { background: var(--fail); color: #fff }
+.on .ba b:first-child { animation: baOff .3s var(--sw) both }
+.on .ba b:last-child { animation: baOn .3s var(--sw) both }
+@keyframes baOff { to { background: #fff; color: var(--sub) } }
+@keyframes baOn { to { background: var(--pass); color: #fff } }
+.tag { position: absolute; z-index: 2; left: 8px; top: 6px; padding: 3px 8px; border-radius: 6px; background: var(--ink); color: #fff; font-size: 10px; font-weight: 700 }
+.note { position: absolute; z-index: 3; left: 8px; right: 8px; bottom: 8px; padding: 8px 10px; border-radius: 8px; background: var(--ink); color: #fff;
+  font-size: 11.5px; font-weight: 700; line-height: 1.45; box-shadow: 0 6px 16px rgba(0,0,0,.25); opacity: 0 }
+.note.bad { background: var(--fail) }
+.on .note { animation: toastIn .3s var(--d) both }
+.on .note.out { animation: toastIn .3s var(--d) both, fadeOut .25s var(--sw) forwards }
+@keyframes toastIn { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+.ring { position: absolute; z-index: 2; border: 2.5px solid var(--fail); border-radius: 10px; box-shadow: 0 0 0 4px rgba(194,64,44,.15) }
+.ring.ok { border-color: var(--pass); box-shadow: 0 0 0 4px rgba(30,133,81,.15) }
+.ring.warn { border-color: #D9A800; box-shadow: 0 0 0 4px rgba(217,168,0,.18) }
+/* 커서·끌리는 자리: data-path 를 스크립트가 키프레임으로 (--anim) */
+.cur, .chip { position: absolute; left: 0; top: 0; opacity: 0 }
+.on [data-path] { animation: var(--anim) }
+.cur { z-index: 6; width: 17px; height: 21px; fill: #fff; stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round; filter: drop-shadow(0 1px 1.5px rgba(0,0,0,.35)) }
+.chip { z-index: 5; border-radius: 6px; background-repeat: no-repeat; box-shadow: 0 8px 18px rgba(0,0,0,.3) }
+.vp .rip { position: absolute; z-index: 5; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: rgba(22,119,255,.35); opacity: 0 }
+.on .vp .rip { animation: rip .45s var(--t) ease-out forwards }
+@keyframes rip { from { opacity: 1; transform: scale(.2) } to { opacity: 0; transform: scale(1.6) } }
+.on .ring.out { animation: pop .35s cubic-bezier(.3,1.6,.5,1) var(--d) both, fadeOut .25s var(--sw) forwards }
+@keyframes fadeOut { to { opacity: 0 } }
+/* 1 내 일: 단계 카드에 문제 포스트잇이 붙음 */
+.job li { position: relative }
+.pin { position: absolute; right: -8px; top: 50%; width: 104px; padding: 6px 8px; margin-top: -24px; background: #FFF3A6; border: 1px solid #E9D66B;
+  font: 700 10.5px/1.4 var(--f-body); font-style: normal; color: var(--fail); box-shadow: 0 5px 12px rgba(23,33,43,.18); opacity: 0 }
+.pin s { color: var(--sub) }
+.on .pin { animation: stick .35s cubic-bezier(.3,1.5,.5,1) var(--d) both }
+@keyframes stick { from { opacity: 0; transform: scale(1.5) rotate(calc(var(--r) * 4)) } to { opacity: 1; transform: rotate(var(--r)) } }
+/* Gemini CLI 와의 채팅 */
+.chat.dense { gap: 6px; padding: 10px }
+.chat.dense .msg { font-size: 11.5px; padding: 7px 10px; max-width: 86% }
+.msg time { display: block; font: 500 9px var(--f-mono); color: var(--sub); margin-bottom: 2px }
+.msg.me time { color: #AFC0D2 }
+.msg.bot { font-weight: 700 }
+.sys { align-self: center; font: 500 10px var(--f-mono); color: var(--sub); background: rgba(23,33,43,.07); padding: 3px 10px; border-radius: 999px }
+.state3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px }
+.state3 div { padding: 7px 9px; font-size: 10px; color: var(--sub); border-left: 4px solid var(--c) }
+.state3 b { display: block; font: 500 17px var(--f-mono); color: var(--ink) }
+.tech { display: flex; gap: 6px; flex-wrap: wrap }
+.tech span { font: 500 11px var(--f-mono); padding: 3px 8px; border-radius: 5px; background: var(--navy); color: #fff }
+.since { font-size: 11px; color: var(--sub); margin: -4px 0 0 }
+</style>
+
+</head>
+<body>
+<div class="phone" id="phone">
+<div class="stage" id="stage" data-hold="2500">
+  <div class="bars" id="bars"></div>
+
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 첫 AI 에이전트 작품</span><span>내 일</span></div>
+    <h1 class="cap">PC 설치 · 교체 현장<br><mark>단계마다 쌓이는 메모</mark></h1>
+    <ol class="steps job">
+      <li class="card in" style="--d:.6s"><div><b>고객사 방문</b><small>사내망 쓰는 관공서 · 은행</small></div></li>
+      <li class="card in" style="--d:.8s"><div><b>기존 PC 확인</b><small>IP · 프린터 · 자리</small></div><i class="pin" data-sfx="pop" style="--d:2.2s;--r:4deg">22번 누구?<br>당사자 부재</i></li>
+      <li class="card in" style="--d:1s"><div><b>백업 후 교체</b><small>사용자 데이터</small></div><i class="pin" data-sfx="pop" style="--d:2.7s;--r:-3deg">백업 했나?<br>X?</i></li>
+      <li class="card in" style="--d:1.2s"><div><b>원래대로 설정</b><small>고정 IP · LAN 프린터</small></div><i class="pin" data-sfx="pop" style="--d:3.2s;--r:3deg">드라이버 버전?<br><s>12.2?</s> 다시 확인</i></li>
+      <li class="card in" style="--d:1.4s"><div><b>다음 자리로</b><small>고객사 한 곳에 850–1,000대 (팀)</small></div><i class="pin" data-sfx="pop" style="--d:3.7s;--r:-4deg">적은 종이<br>어디 갔지?</i></li>
+    </ol>
+    <div class="foot"><span>그때그때 있는 종이에 매번 새로 적었습니다</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>2025-09-23 · Gemini CLI 첫날</span><span>시작</span></div>
+    <h2 class="cap">IP 자동 설정을 묻다가<br><mark>기록 앱으로</mark></h2>
+    <div class="chat dense">
+      <div class="msg me in" data-sfx="tick" style="--d:.6s"><time>18:09</time>매번 제어판에 들어가서 IP를 … 새로 잡아주는 과정이 꽤 번거롭고 귀찮은데 이걸 자동화 할만한 프로그램을 …</div>
+      <div class="msg bot in" data-sfx="pop" style="--d:2.2s"><span class="who">Gemini CLI</span>→ IP 설정을 저장했다 되살리는 Python 스크립트</div>
+      <div class="msg me in" data-sfx="tick" style="--d:3.7s"><time>18:13</time>현장에서는 py 스크립트를 실행할만한 여유가 없어.</div>
+      <div class="msg me in" data-sfx="tick" style="--d:5.2s"><time>19:29</time>고객들의 IP 이름 등을 기록하는 APK를 만들어서 내 핸드폰으로 관리하는 … 어떻게 생각해?</div>
+      <div class="msg bot in" data-sfx="pop" style="--d:6.9s"><span class="who">Gemini CLI</span>직접 .apk 파일을 만드는 것은 … 복잡한 개발 환경이 필요합니다. 대신 … '웹 앱'을 만드는 것입니다.</div>
+      <div class="msg me in" data-sfx="tick" style="--d:8.8s"><time>19:31</time>좋아 진행해보자</div>
+      <div class="sys in" data-sfx="chime" style="--d:9.9s">→ 고객 IP 관리 웹앱</div>
+    </div>
+    <div class="foot"><span>말풍선은 대화 기록 원문입니다 (…는 줄임, →는 결과)</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>2025-09-23 · 첫 버전</span><span>손으로</span></div>
+    <h2 class="cap">첫 버전은<br><mark>칸마다 손으로</mark></h2>
+    <div class="vp in" data-crop="262" style="--d:.3s">
+      <img src="img/b2b_hand0.jpg" alt="빈 입력 폼">
+      <img class="fr" src="img/b2b_hand1c.jpg" alt="" style="--t:.65s">
+      <img class="ty" src="img/b2b_hand1.jpg" alt="" data-sfx="tick" data-ty="203,265,147,43,216,285,5" style="--t:.8s"><img class="fr" src="img/b2b_hand1.jpg" alt="" style="--t:1.15s">
+      <img class="fr" src="img/b2b_hand2c.jpg" alt="" style="--t:1.32s">
+      <img class="ty" src="img/b2b_hand2.jpg" alt="" data-sfx="tick" data-ty="40,499,147,43,53,121,11" style="--t:1.45s"><img class="fr" src="img/b2b_hand2.jpg" alt="" style="--t:2.22s">
+      <img class="fr" src="img/b2b_hand3c.jpg" alt="" style="--t:2.38s">
+      <img class="ty" src="img/b2b_hand3.jpg" alt="" data-sfx="tick" data-ty="203,499,147,43,216,277,10" style="--t:2.52s"><img class="fr" src="img/b2b_hand3.jpg" alt="" style="--t:3.22s">
+      <img class="fr" src="img/b2b_hand4c.jpg" alt="" style="--t:3.38s">
+      <img class="ty" src="img/b2b_hand4.jpg" alt="" data-sfx="tick" data-ty="40,587,147,43,53,114,10" style="--t:3.52s"><img class="fr" src="img/b2b_hand4.jpg" alt="" style="--t:4.22s">
+      <img class="fr" src="img/b2b_hand5c.jpg" alt="" style="--t:4.38s">
+      <img class="ty" src="img/b2b_hand5.jpg" alt="" data-sfx="tick" data-ty="203,587,147,43,216,291,12" style="--t:4.52s"><img class="fr" src="img/b2b_hand5.jpg" alt="" style="--t:5.36s">
+      <img class="fr" src="img/b2b_hand6c.jpg" alt="" style="--t:5.52s">
+      <img class="ty" src="img/b2b_hand6.jpg" alt="" data-sfx="tick" data-ty="40,675,310,43,53,136,13" style="--t:5.66s"><img class="fr" src="img/b2b_hand6.jpg" alt="" style="--t:6.57s">
+      <img class="fr" src="img/b2b_hand7c.jpg" alt="" style="--t:7.2s">
+      <img class="ty" src="img/b2b_hand7.jpg" alt="" data-sfx="tick" data-ty="203,265,147,43,216,258,3" style="--t:7.45s"><img class="fr" src="img/b2b_hand7.jpg" alt="" style="--t:7.75s">
+      <img class="fr" src="img/b2b_hand8c.jpg" alt="" style="--t:8.6s">
+      <img class="ty" src="img/b2b_hand8.jpg" alt="" data-sfx="tick" data-ty="40,499,147,43,53,121,11" style="--t:8.85s"><img class="fr" src="img/b2b_hand8.jpg" alt="" style="--t:9.62s">
+      <img class="fr" src="img/b2b_hand9c.jpg" alt="" style="--t:9.92s">
+      <img class="ty" src="img/b2b_hand9.jpg" alt="" data-sfx="tick" data-ty="203,499,147,43,216,277,10" style="--t:10.15s"><img class="fr" src="img/b2b_hand9.jpg" alt="손으로 다 친 폼" style="--t:10.85s">
+      <span class="tag">첫 버전 · 손으로 입력</span>
+      <i class="ring pop" data-box="40,470,310,80" style="--d:7.95s"></i>
+      <div class="note bad" data-sfx="buzz" style="--d:7.95s">부서가 바뀌면 IP와 게이트웨이를 또 쳐야 합니다</div>
+    </div>
+    <div class="foot"><span>PC 한 대마다 칸 여섯 개를 채웠습니다</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>9-23 프린터 · 10-27 부서</span><span>프리셋</span></div>
+    <h2 class="cap">같은 값을 또 치니까<br><mark>프리셋으로</mark></h2>
+    <div class="chat dense">
+      <div class="msg me in" data-sfx="tick" style="--d:.6s"><time>09-23 19:42</time>프린터 같은 경우엔 … 한두대를 여러 PC가 쓰기 때문에, IP나 포트 설정이 비슷한 경우가 많아.</div>
+      <div class="msg bot in" data-sfx="pop" style="--d:2.3s"><span class="who">Gemini CLI</span>→ 프린터 프리셋</div>
+      <div class="sys in" style="--d:3.4s">한 달 뒤</div>
+      <div class="msg me in" data-sfx="tick" style="--d:4.3s"><time>10-27 09:11</time>부서를 목록에서 불러올 수 있으면 좋겠어. … 부서마다 보통 게이트웨이와 DNS 등이 통일되기 때문이지.</div>
+      <div class="msg bot in" data-sfx="pop" style="--d:6s"><span class="who">Gemini CLI</span>→ 부서 프리셋</div>
+    </div>
+    <div class="foot"><span>말풍선은 대화 기록 원문입니다 (…는 줄임, →는 결과)</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>부서 · 프린터 프리셋</span><span>시연</span></div>
+    <h2 class="cap">고르기만 하면<br><mark>칸이 한 번에</mark></h2>
+    <div class="vp in" data-crop="262" style="--d:.3s;--sw:2.4s">
+      <img src="img/b2b_hand0.jpg" alt="빈 입력 폼">
+      <img class="fr" src="img/b2b_form_a.jpg" alt="부서 고르기" style="--t:1.05s">
+      <img class="fr" src="img/b2b_form_b0.jpg" alt="부서 고른 뒤" style="--t:2.45s">
+      <img class="fr" src="img/b2b_form_bf.jpg" alt="" style="--t:3.45s">
+      <img class="ty" src="img/b2b_form_b.jpg" alt="" data-sfx="tick" data-ty="40,499,147,43,105,121,2" style="--t:3.65s"><img class="fr" src="img/b2b_form_b.jpg" alt="IP 끝자리 입력" style="--t:3.95s">
+      <img class="fr" src="img/b2b_pr0.jpg" alt="프린터 칸" style="--t:5.8s">
+      <img class="fr" src="img/b2b_pr1.jpg" alt="프린터 프리셋 고르기" style="--t:6.75s">
+      <img class="fr" src="img/b2b_pr2.jpg" alt="프린터 프리셋으로 채운 칸" style="--t:7.5s">
+      <span class="tag">부서 · 프린터 프리셋</span>
+      <i class="ring ok out pop" data-box="40,470,310,248" style="--d:2.6s;--sw:5.6s"></i>
+      <div class="note out" data-sfx="tick" style="--d:4.2s;--sw:5.6s">✓ 네트워크 칸이 채워지고 IP는 끝자리만 칩니다</div>
+      <i class="ring ok pop" data-box="40,382,310,214" style="--d:7.7s"></i>
+      <div class="note" data-sfx="tick" style="--d:8.1s">✓ 프린터도 프리셋을 고르면 모델 · IP · 포트가 들어갑니다</div>
+      <i class="rip" data-at="1:276,288"></i><i class="rip" data-at="2.4:262,377"></i><i class="rip" data-at="3.4:113,521"></i>
+      <i class="rip" data-at="6.7:122,405"></i><i class="rip" data-at="7.4:106,395"></i>
+      <svg class="cur" viewBox="0 0 16 20" aria-hidden="true" data-path="0.4:340,740,0 0.9:276,288 1.35:276,288 2.2:262,377 2.55:262,377 3.25:113,521 4.4:113,521 5.1:368,600 5.9:368,600 6.55:122,405 7.0:122,405 7.3:106,395 7.8:106,395 8.4:368,560"><path d="M1.5 1.5v14l3.6-3.4 2.6 6 2.4-1-2.6-5.8h5z"/></svg>
+    </div>
+    <div class="foot"><span>부서 프리셋은 10-27, 프린터 프리셋은 첫날 9-23에 만들었습니다</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>2025-09-23 · 첫날 밤</span><span>자리</span></div>
+    <h2 class="cap">책상 배치를<br><mark>그대로 화면에</mark></h2>
+    <div class="chat dense fit">
+      <div class="msg me in" data-sfx="tick" style="--d:.6s"><time>20:58</time>사무실 책상 배치를 화면에 그대로 그려서, 어디가 누구 PC인지 한눈에 보고 싶어</div>
+      <div class="msg bot in" data-sfx="pop" style="--d:2.1s"><span class="who">Gemini CLI</span>→ 좌석 배치도</div>
+    </div>
+    <div class="vp in" data-crop="280" style="--d:2.8s"><img src="img/b2b_layout.jpg" alt="좌석 배치도 화면"><span class="tag">좌석 배치도 · 예시구청 민원여권과</span><i class="ring warn pop" data-box="154,324,57,57" style="--d:3.6s"></i><i class="ring pop" data-box="78,476,57,57" style="--d:3.8s"></i><div class="note" data-sfx="tick" style="--d:4.3s">자리마다 이름 · IP 끝자리 · 상태 색이 보입니다</div></div>
+    <div class="foot"><span>21:57 "토큰이 너무 많아서 환각 상태에 있어" → quit · 22:20 첫 커밋</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>9-24 · 9-25 · 폰에서 쓰려고</span><span>자리</span></div>
+    <h2 class="cap">끌어서 옮기고<br><mark>누르면 그 PC로</mark></h2>
+    <div class="chat dense fit">
+      <div class="msg me in" data-sfx="tick" style="--d:.6s"><time>09-24 23:14</time>핸드폰으로 접속할경우, 터치로는 드래그가 불가능해서 배치가 불가능하다는 점이지</div>
+      <div class="msg me in" data-sfx="tick" style="--d:2s"><time>09-25 18:24</time>특정 좌석을 짧게 터치하거나 클릭하는 경우, 바로 ipmanager의 상세 내역을 볼 수 있으면 더 좋을거 같아</div>
+    </div>
+    <div class="vp in" data-crop="345" style="--d:3.4s">
+      <img src="img/b2b_layout.jpg" alt="좌석 배치도 화면">
+      <img class="fr" src="img/b2b_drag0.jpg" alt="" style="--t:4.6s"><img class="fr" src="img/b2b_drag2.jpg" alt="자리를 옮긴 배치도" style="--t:5.95s">
+      <img class="fr" src="img/b2b_detail.jpg" alt="눌러서 연 상세 화면" data-crop="440" style="--t:6.95s">
+      <span class="tag">좌석 배치도 → 상세</span>
+      <div class="chip" data-src="img/b2b_layout.jpg" data-box="254,476,57,57" data-anchor="28.5,28.5" data-path="4.55:282.5,504.5,0 4.6:282.5,504.5 4.8:282.5,504.5,1,1.08 5.8:202.5,624.5,1,1.08 5.95:202.5,624.5 6:202.5,624.5,0"></div>
+      <i class="rip" data-at="4.6:282,504"></i><i class="rip" data-at="6.75:202,624"></i>
+      <svg class="cur" viewBox="0 0 16 20" aria-hidden="true" data-path="3.8:340,660,0 4.4:282,504 4.8:282,504 5.8:202,624 6.75:202,624 7.5:137,574 9:137,574"><path d="M1.5 1.5v14l3.6-3.4 2.6 6 2.4-1-2.6-5.8h5z"/></svg>
+      <i class="ring pop" data-box="97,646,80,45" data-crop="440" style="--d:7.6s"></i>
+      <div class="note" data-sfx="tick" style="--d:8s">✓ 끌어서 자리를 옮기고, 누르면 상세에서 바로 수정합니다</div>
+    </div>
+    <div class="foot"><span>말풍선은 대화 기록 원문입니다</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>2025-09-25 · 실무 첫날</span><span>투입</span></div>
+    <h2 class="cap">당장 못 하는 PC를<br><mark>표시할 곳이 없다</mark></h2>
+    <div class="chat dense fit">
+      <div class="msg me in" data-sfx="tick" style="--d:.6s"><time>18:32</time>내가 업무를 보다보니, PC 업데이트를 하지 못하고 넘어가야 할 경우가 생겨.</div>
+      <div class="msg me in" data-sfx="tick" style="--d:2.1s"><time>18:32</time>지금은 내가 임시로 IP기입란에 "보류"라고 적고 있는데, 다른 기능이 필요할거 같아</div>
+      <div class="msg me in" data-sfx="tick" style="--d:3.6s"><time>18:36</time>색깔을 노란색으로 변경해줄래? 빨간색은 "오류 발생으로 인해 진행 불가능"한 경우에 할당하고 싶거든</div>
+    </div>
+    <div class="vp plain in" data-crop="400" style="--d:4.8s"><img src="img/b2b_list.jpg" alt="고객 목록 화면"><i class="ring warn pop" data-box="40,422,310,150" style="--d:5.4s"></i><div class="note" data-sfx="tick" style="--d:5.9s">보류는 노랑, 불가는 빨강으로 목록과 배치도에 보입니다</div></div>
+    <div class="foot"><span>말풍선은 대화 기록 원문입니다</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>2025-09-28</span><span>보고 · 백업</span></div>
+    <h2 class="cap">상부 보고는<br><mark>폰에서 내보내기</mark></h2>
+    <div class="chat dense fit">
+      <div class="msg me in" data-sfx="tick" style="--d:.6s"><time>06:08</time>이제 내가 상부에 보고할 용도의 외부출력 기능이 있으면 좋겠어</div>
+      <div class="msg me in" data-sfx="tick" style="--d:2s"><time>06:13</time>핸드폰으로 파일을 관리할거라 "인쇄" 버튼은 필요없고, "내보내기" 기능으로 …</div>
+      <div class="msg bot in" data-sfx="pop" style="--d:3.4s"><span class="who">Gemini CLI</span>→ 06:21 커밋 · 부서별 보고서 내보내기</div>
+      <div class="msg me in" data-sfx="tick" style="--d:5.6s"><time>16:14</time>전체 데이터에 대한 공유 기능이 필요해. 로컬에 저장되니까. 백업기능이라고도 할 수 있지.</div>
+      <div class="msg bot in" data-sfx="pop" style="--d:7s"><span class="who">Gemini CLI</span>→ 16:25 커밋 · 백업 · 가져오기</div>
+    </div>
+    <div class="state3">
+      <div class="card pop" style="--d:4.1s;--c:var(--navy)">그날 보고서<b>79대</b></div>
+      <div class="card pop" style="--d:4.3s;--c:var(--navy)">부서<b>8곳</b></div>
+      <div class="card pop" style="--d:4.5s;--c:#FADB14">보류<b>10</b></div>
+    </div>
+    <div class="foot"><span>숫자는 당시 공유 시트 그대로입니다</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>2025-10-29 – 11-03 · 다른 현장</span><span>팀</span></div>
+    <h2 class="cap">팀이 같이 쓰면서<br><mark>보고서 양식이 자랐다</mark></h2>
+    <ol class="timeline">
+      <li class="in" style="--d:.6s"><time>10-29</time><div class="card"><b>11대</b>부서 · 이름 · PC ID · IP · 상태</div></li>
+      <li class="in" style="--d:1s"><time>10-30</time><div class="card"><b>37대</b><span class="hl" style="--d:1.6s">+ 작업일 · 작업자</span> ← 전날 밤 커밋</div></li>
+      <li class="in" style="--d:1.4s"><time>10-31</time><div class="card"><b>31대</b><span class="hl" style="--d:2s">날짜로 걸러 내보내기</span> ← 전날 커밋 11개</div></li>
+      <li class="in" style="--d:1.8s"><time>11-03</time><div class="card"><b>51대</b>작업자 6명이 한 앱을 썼습니다</div></li>
+    </ol>
+    <div class="vp plain in" data-crop="0" style="--d:2.4s"><img src="img/b2b_report_menu.jpg" alt="보고서 화면"><i class="ring pop" data-box="193,55,180,43" style="--d:3.2s"></i><div class="note" data-sfx="tick" style="--d:3.6s">앱 보고서를 공유 시트 날짜별 탭에 옮겼고, 결산은 130대 · 작업자 7명입니다</div></div>
+    <div class="foot"><span>숫자는 당시 공유 시트 · 보고서 CSV 그대로입니다</span><span class="pg"></span></div>
+  </section>
+
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 첫 AI 에이전트 작품</span><span>정리</span></div>
+    <h2 class="cap">코딩 공부 없이<br><mark>AI와 만든 첫 앱</mark></h2>
+    <p class="since in" style="--d:.5s">2025-09-23 첫 질문부터 6주 · 커밋 67 · Gemini CLI → 지금은 Claude Code · Codex</p>
+    <ul class="offers">
+      <li class="card in" style="--d:.7s"><b>PC마다 IP · 프린터 · 백업 기록</b><small>고객사마다 프로필 따로, 상태 색으로 남은 일</small></li>
+      <li class="card in" style="--d:1s"><b>부서 · 프린터 프리셋</b><small>고르면 네트워크 칸이 한 번에</small></li>
+      <li class="card in" style="--d:1.3s"><b>좌석 배치도</b><small>부서 자리 그대로 진행 현황, 이미지로 저장</small></li>
+      <li class="card in" style="--d:1.6s"><b>보고서 CSV · 백업</b><small>날짜로 걸러 내보내기, 파일 하나로 백업</small></li>
+    </ul>
+    <div class="tech in" style="--d:2.2s"><span>HTML·CSS·JS</span><span>localStorage</span><span>서버 없음</span><span>GitHub Pages</span></div>
+    <div class="foot"><span>화면은 실제 앱이고, 데이터는 가상입니다</span><span class="pg"></span></div>
+  </section>
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+</div>
+<p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<script>
+// 캡처(폰 폭 390px) 좌표 → 상자 배율로. data-crop = 보이는 시작 y (그림·상자마다 data-crop 으로 따로 줄 수 있음)
+const keyframes = [];
+document.querySelectorAll('.vp[data-crop]').forEach(vp => {
+  const k = vp.clientWidth / 390, pad = vp.matches('.vp:not(.plain)') ? 30 : 0, cropOf = e => +(e.dataset.crop ?? vp.dataset.crop);
+  vp.querySelectorAll(':scope > img').forEach(i => { i.style.transform = `translateY(${-cropOf(i) * k}px)`; });
+  vp.querySelectorAll('img.ty').forEach(i => {
+    const [, y, , h, x0, x1, n] = i.dataset.ty.split(',').map(Number), t = (y + 3) * k, b = (y + h - 3) * k;
+    i.style.setProperty('--c0', `polygon(${x0 * k}px ${t}px, ${x0 * k}px ${t}px, ${x0 * k}px ${b}px, ${x0 * k}px ${b}px)`);
+    i.style.setProperty('--c1', `polygon(${x0 * k}px ${t}px, ${x1 * k}px ${t}px, ${x1 * k}px ${b}px, ${x0 * k}px ${b}px)`);
+    i.style.setProperty('--n', n);
+    i.style.setProperty('--dur', `${Math.max(.3, n * .07).toFixed(2)}s`);
+  });
+  vp.querySelectorAll('.ring[data-box]').forEach(r => {
+    const [x, y, w, h] = r.dataset.box.split(',').map(Number);
+    Object.assign(r.style, { left: `${x * k - 3}px`, top: `${(y - cropOf(r)) * k + pad - 3}px`, width: `${w * k + 6}px`, height: `${h * k + 6}px` });
+  });
+  // 커서·자리 조각: data-path="초:x,y[,불투명도][,배율] …" (캡처 좌표, data-anchor 는 요소 안 기준점)
+  const at = (e, x, y) => [x * k, (y - cropOf(e)) * k + pad];
+  vp.querySelectorAll('[data-path]').forEach(e => {
+    const [ax, ay] = (e.dataset.anchor || '0,0').split(',').map(Number);
+    const pts = e.dataset.path.trim().split(/\s+/).map(s => {
+      const [t, v] = s.split(':'), [x, y, o = 1, sc = 1] = v.split(',').map(Number);
+      return { t: +t, x, y, o, sc };
+    });
+    const t0 = pts[0].t, dur = pts.at(-1).t - t0, name = `path${keyframes.length}`;
+    keyframes.push(`@keyframes ${name} {` + pts.map(p => {
+      const [X, Y] = at(e, p.x - ax, p.y - ay);
+      return `${((p.t - t0) / dur * 100).toFixed(2)}% { transform: translate(${X}px, ${Y}px) scale(${p.sc}); opacity: ${p.o}; animation-timing-function: cubic-bezier(.45,0,.25,1) }`;
+    }).join(' ') + '}');
+    e.style.setProperty('--anim', `${name} ${dur}s linear ${t0}s both`);
+  });
+  vp.querySelectorAll('.chip[data-box]').forEach(c => {
+    const [x, y, w, h] = c.dataset.box.split(',').map(Number);
+    Object.assign(c.style, { width: `${w * k}px`, height: `${h * k}px`, backgroundImage: `url(${c.dataset.src})`,
+      backgroundSize: `${390 * k}px auto`, backgroundPosition: `${-x * k}px ${-y * k}px` });
+  });
+  vp.querySelectorAll('.rip[data-at]').forEach(r => {
+    const [t, v] = r.dataset.at.split(':'), [X, Y] = at(r, ...v.split(',').map(Number));
+    Object.assign(r.style, { left: `${X}px`, top: `${Y}px` });
+    r.style.setProperty('--t', `${t}s`);
+  });
+});
+document.head.append(Object.assign(document.createElement('style'), { textContent: keyframes.join('\n') }));
+</script>
+<script src="demo.js"></script>
+
+</body>
+</html>

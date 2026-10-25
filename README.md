@@ -12,8 +12,10 @@
 - `imp.html` — 해외 수입 서류 사전 점검 웹앱. 실제 앱이 폰 폭에 맞지 않아 같은 색으로 다시 그렸고 수입 건은 가상
 - `dl.html` — 다운로드 파일 자동 이름·폴더 정리 크롬 확장. 파일·업체명은 가상
 - `tabrip.html` — 유튜브 기타 탭 영상을 Guitar Pro 악보로 바꾸는 tab-ripper(개인 프로젝트). 첫 장면의 링크 붙여넣기 앱은 구상안, 숫자는 실제 산출
+- `b2b.html` — PC 교체 현장의 IP·프린터·백업을 기록하는 my-b2b-apps(AI 에이전트와 만든 첫 앱)의 실제 화면. `b2b/seed.js` 가 가상 고객사를 localStorage 에 넣고 `b2b/capture.py` 가 폰 폭으로 찍음(폰 폭에서 꺾이는 곳만 캡처용 CSS 로 덮음, 앱 코드는 그대로)
 - `demo.css` · `demo.js` — 공용 스타일과 재생 (장면 길이 = 애니메이션이 끝나는 시각 + 3.5초)
 - `sfx.py` — 영상 효과음(numpy 합성, 음원 파일 없음). 소리 시각은 `demo.js` 의 클래스별 기본표, 요소의 `data-sfx="소리"`·`data-sfx-at="초:소리 ..."`
+- `bgm/` — 직접 쓴 배경음 후보(MIDI). `bgm/compose.py` 가 멜로디·코드로 `uke_whistle`(우쿨렐레+휘파람)·`marimba_shuffle`(마림바 셔플)·`musicbox_waltz`(오르골 왈츠) 전곡(약 95–107초)을 만듦. 저작권 걱정 없음
 
 ## 만들기
 
@@ -22,7 +24,11 @@ python render_cards.py                      # out/ 에 장면별 1080x1920 PNG (
 .venv\Scripts\python make_video.py harness  # out/harness.mp4 (pip install playwright av)
 .venv\Scripts\python make_video.py tabrip --sfx  # 효과음 트랙까지 (pip install numpy)
 .venv\Scripts\python make_video.py tabrip --sfx --bgm music/pixabay-600484-kids-ukulele.mp3  # 배경음 (waltz·arp 는 합성 기타)
+.venv\Scripts\python make_video.py b2b --sfx --bgm bgm/musicbox_waltz.mid  # 직접 쓴 곡 (FluidSynth + GM 사운드폰트)
+python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들어 보기용 wav, 커밋 안 함)
 ```
+
+`.mid` 렌더에는 FluidSynth 와 GM 사운드폰트가 필요합니다. 경로는 환경변수 `FLUIDSYNTH_EXE`·`BGM_SF2` 로 바꿉니다(기본값은 작업 PC 경로, 사운드폰트는 FluidR3 GM).
 
 배경음 원본은 `music/` 에 받아 두고 커밋하지 않습니다(Pixabay 라이선스: 음원 단독 배포 금지).
 `out/tabrip.mp4` 배경음: [Kids Ukulele Music — 331music](https://pixabay.com/music/happy-childrens-tunes-kids-ukulele-music-600484/) (Pixabay Content License, 2026-10-25 기준 Content ID 미등록).
