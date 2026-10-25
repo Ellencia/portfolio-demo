@@ -144,7 +144,7 @@ def render(m, name):
     subprocess.run([FS, "-ni", "-q", "-g", "0.55", "-r", "44100", "-F", str(wav), SF2, str(mid)], check=True)
     with wave.open(str(wav)) as w:  # 들어 보기 좋게 RMS −20 dB (영상에선 make_video 가 다시 맞춤)
         prm, a = w.getparams(), np.frombuffer(w.readframes(w.getnframes()), np.int16).astype(float)
-    a *= 10 ** (-20 / 20) / (np.sqrt((a ** 2).mean()) / 32768)
+    a *= min(10 ** (-20 / 20) / (np.sqrt((a ** 2).mean()) / 32768), .95 * 32768 / abs(a).max())  # 최고점은 0.95 아래
     with wave.open(str(wav), "wb") as w:
         w.setparams(prm)
         w.writeframes(np.clip(a, -32767, 32767).astype(np.int16).tobytes())
@@ -166,22 +166,149 @@ def pop_song(name, bpm, mel, chords, intro, lead, comp, style, bass, double, swi
     render(m, name)
 
 
-# 우쿨렐레: 휘파람(GM 은 혼처럼 들림) + 나일론 스트럼 + 베이스 + 셰이커, 짝수 번째에 글로켄슈필 겹침
-pop_song("uke_whistle", 112, MEL_C, CH_C, "C G", lead=78, comp=24, style="strum", bass=32, double=9, seed=1)
-# 마림바: 휘파람 + 마림바 아르페지오 + 베이스, 셔플, 짝수 번째에 비브라폰 겹침
-pop_song("marimba_shuffle", 100, MEL_F, CH_F, "F C", lead=78, comp=12, style="arp", bass=32, double=11, swing=.16, seed=3)
+def musicbox_waltz():
+    """오르골 왈츠: 전주 4 · A · A'(첼레스타 옥타브 겹침) · B(하프 더함) · A' · 끝 2 + 마지막 화음"""
+    bpm = 140
+    m = pm.PrettyMIDI(initial_tempo=bpm)
+    w = dict(comp=45, style="waltz", seed=11)
+    b = part(m, 0, bpm, chords=bars("G C D D", 3), **w)
+    for sec, (mel, ch) in enumerate([(W_G, WC_G), (W_G, WC_G), (W_G_B, WC_G_B), (W_G, WC_G)]):
+        if sec in (1, 3):
+            part(m, b, bpm, mel=mel, lead=8, lead_oct=1, lead_vel=.62, seed=21)
+        if sec == 2:
+            part(m, b, bpm, chords=ch, comp=46, style="arp3", seed=31)
+        b = part(m, b, bpm, mel=mel, chords=ch, lead=10, **w)
+    b = part(m, b, bpm, chords=bars("C D", 3), **w)
+    ring(m, b, bpm, [(45, ["G2", "D3", "G3", "B3"]), (10, ["G5", "B5"]), (46, ["G3", "D4", "G4", "B4"])])
+    render(m, "musicbox_waltz")
 
-# 오르골 왈츠: 전주 4 · A · A'(첼레스타 옥타브 겹침) · B(하프 더함) · A' · 끝 2 + 마지막 화음
-BPM = 140
-m = pm.PrettyMIDI(initial_tempo=BPM)
-w = dict(comp=45, style="waltz", seed=11)
-b = part(m, 0, BPM, chords=bars("G C D D", 3), **w)
-for sec, (mel, ch) in enumerate([(W_G, WC_G), (W_G, WC_G), (W_G_B, WC_G_B), (W_G, WC_G)]):
-    if sec in (1, 3):
-        part(m, b, BPM, mel=mel, lead=8, lead_oct=1, lead_vel=.62, seed=21)
-    if sec == 2:
-        part(m, b, BPM, chords=ch, comp=46, style="arp3", seed=31)
-    b = part(m, b, BPM, mel=mel, chords=ch, lead=10, **w)
-b = part(m, b, BPM, chords=bars("C D", 3), **w)
-ring(m, b, BPM, [(45, ["G2", "D3", "G3", "B3"]), (10, ["G5", "B5"]), (46, ["G3", "D4", "G4", "B4"])])
-render(m, "musicbox_waltz")
+
+# ── 4/4 장르 곡 (7화음 · 반주·베이스·드럼 패턴) ──
+QUAL = {"": (0, 4, 7), "m": (0, 3, 7), "maj7": (0, 4, 7, 11), "m7": (0, 3, 7, 10), "7": (0, 4, 7, 10)}
+
+
+def chord(sym):
+    """"Bbmaj7" → ("Bb", (0, 4, 7, 11))"""
+    root = sym[:2] if len(sym) > 1 and sym[1] in "#b" else sym[:1]
+    return root, QUAL[sym[len(root):]]
+
+
+COMP = {  # 한 화음 구간(박 off 부터 d 박)에 반주를 놓는 법 → [(박, 음들, 길이, 세기)]
+    "bossa": lambda bar, off, d, v: [(o, v, .35, 60) for o in ((0, 1.5, 3) if bar % 2 == 0 else (1, 2.5)) if off <= o < off + d],
+    "ep": lambda bar, off, d, v: [(off, v, d - .1, 58)] + ([(off + 2.5, v, 1.3, 40)] if d == 4 else []),
+    "funk": lambda bar, off, d, v: [(off + s / 4, [n + 12 for n in v], .09, 72 if s % 4 == 0 else 50)
+                                    for s in range(int(d * 4)) if (1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0)[(int(off * 4) + s) % 16]],
+    "pulse": lambda bar, off, d, v: [(off + i / 2, [(v + [n + 12 for n in v])[(0, 2, 1, 3, 2, 4, 3, 5)[i % 8] % (2 * len(v))]], .45, 56 if i % 2 else 64)
+                                     for i in range(int(d * 2))],
+}
+BASS = {  # 근음 기준 (박, 반음, 길이)
+    "root5": [(0, 0, 1.5), (2, 7, 1.5)],
+    "funk": [(0, 0, .4), (.75, 0, .3), (1.5, 12, .4), (2.5, 7, .4), (3.25, 0, .3)],
+    "lofi": [(0, 0, 1.2), (2.5, 0, .8), (3.5, 7, .4)],
+}
+DRUMS = {  # 마디 하나 (박, GM 드럼 음, 세기)
+    "bossa": lambda bar: [(h / 2, 70, 34 + 6 * (h % 2)) for h in range(8)] + [(0, 36, 48), (2, 36, 44)]
+                         + [(o, 37, 50) for o in ((0, 1.5, 3) if bar % 2 == 0 else (1, 2))],
+    "lofi": lambda bar: [(0, 36, 72), (2.5, 36, 60), (1, 38, 56), (3, 38, 56)] + [(h / 2, 42, 32 + 10 * (h % 2 == 0)) for h in range(8)],
+    "funk": lambda bar: [(0, 36, 74), (.75, 36, 56), (2.5, 36, 66), (1, 38, 70), (3, 38, 70)] + [(s / 4, 42, 50 if s % 2 == 0 else 30) for s in range(16)],
+    "pulse": lambda bar: [(b, 36, 46) for b in range(4)] + [(b + .5, 46, 32) for b in range(4)] + [(1, 39, 36), (3, 39, 36)],
+}
+
+
+def groove(name, bpm, mel, end_mel, prog, intro, target, lead, comp, style, bass, bass_style, drums,
+           double=None, pad=None, swing=0.0, seed=1):
+    """전주 → 8마디 × (target 초를 넘을 만큼) → 끝 마디 → 마지막 화음. 짝수 번째 돌 때 double 이 옥타브 위 겹침.
+    prog·intro = "Dmaj7 Em7,A7 …" (빈칸 = 마디, 쉼표 = 마디 반씩)"""
+    random.seed(seed)
+    beat, bar_s = 60 / bpm, 240 / bpm
+    t = lambda b: (b + (swing if (b * 2) % 2 == 1 else 0)) * beat + random.uniform(-.008, .008)
+    note = lambda prog_, vel, n, s, e: inst(m, prog_).notes.append(pm.Note(max(1, min(127, vel + random.randint(-6, 6))), n, t(s), t(e)))
+    m = pm.PrettyMIDI(initial_tempo=bpm)
+    body, intro = [b.split(",") for b in prog.split()], [b.split(",") for b in intro.split()]
+    passes = max(1, -(-(target - (len(intro) + 1) * bar_s - 2.5) // (8 * bar_s)))  # 끝 화음 울림까지 target 을 넘는 최소
+    plan = [(c, None, 0) for c in intro]
+    for p in range(int(passes)):
+        plan += [(c, mel[i], p) for i, c in enumerate(body)]
+    plan.append(([body[0][0]], end_mel, -1))
+    for bi, (chs, ml, p) in enumerate(plan):
+        B = bi * 4
+        d = 4 / len(chs)
+        for ci, sym in enumerate(chs):
+            root, ivs = chord(sym)
+            tones = [N(f"{root}3") + i for i in ivs]
+            voic = tones[1:] + [tones[0] + 12]
+            if p == -1:  # 끝 마디는 한 번 치고 울림
+                note(comp, 60, tones[0] + 12, B, B + 4)
+                continue
+            for o, ns, ln, vel in COMP[style](bi, ci * d, d, voic):
+                for n in (ns if isinstance(ns, list) else [ns]):
+                    note(comp, vel, n, B + o, B + o + ln)
+            if pad is not None:
+                for n in voic:
+                    note(pad, 42, n + 12, B + ci * d, B + ci * d + d)
+            for o, semi, ln in BASS[bass_style]:
+                if ci * d <= o < ci * d + d:
+                    note(bass, 78, N(f"{root}2") + semi, B + o, B + o + ln)
+        if p != -1:
+            for o, dn, vel in DRUMS[drums](bi):
+                inst(m, 0, True).notes.append(pm.Note(max(1, vel + random.randint(-5, 5)), dn, t(B + o), t(B + o) + .1))
+        if ml:
+            b = B
+            for pn, dur in ml:
+                if pn:
+                    note(lead, random.randint(80, 94), N(pn), b, b + dur - .05)
+                    if double is not None and p % 2 == 1:
+                        note(double, 52, N(pn) + 12, b, b + dur - .05)
+                b += dur
+    end = len(plan) * 4 * beat
+    root, ivs = chord(body[0][0])
+    for prog_, ns in [(comp, [N(f"{root}3") + i for i in ivs]), (bass, [N(f"{root}2")])] + ([(pad, [N(f"{root}4") + i for i in ivs])] if pad is not None else []):
+        for n in ns:
+            inst(m, prog_).notes.append(pm.Note(64, n, end - 4 * beat, end + 2.5))
+    render(m, name)
+
+
+# 바플(구매관리): 보사노바 — 플루트 + 나일론 기타 + 브러시 느낌 퍼커션, D장조
+BOSSA = [[("F#5", 1.5), ("E5", .5), ("F#5", 1), ("A5", 1)], [("G5", 1.5), ("F#5", .5), ("E5", 2)],
+         [("C#6", 1), ("A5", .5), ("F#5", .5), ("E5", 1), ("C#5", 1)], [("D5", 1.5), ("F#5", .5), ("B5", 2)],
+         [("B5", 1), ("A5", .5), ("G5", .5), ("F#5", 1), ("D5", 1)], [("E5", 1.5), ("G5", .5), ("C#6", 1), ("B5", 1)],
+         [("A5", 3), (None, 1)], [("C#5", .5), ("E5", .5), ("G5", .5), ("B5", .5), ("A5", 2)]]
+# 업무 자동화: 로파이 — 일렉 피아노 7화음 + 비브라폰 + 스윙, F장조
+LOFI = [[("A5", 1.5), ("G5", .5), ("E5", 1), ("C5", 1)], [("D5", .5), ("E5", .5), ("G5", 1), ("E5", 1), (None, 1)],
+        [("F5", 1), ("A5", 1), ("C6", 1.5), ("A5", .5)], [("A#5", 1), ("A5", .5), ("G5", .5), ("E5", 2)],
+        [("C5", .5), ("F5", .5), ("A5", 1), ("G5", .5), ("F5", .5), ("E5", 1)], [("D5", 1.5), ("F5", .5), ("A5", 2)],
+        [("A#5", .5), ("A5", .5), ("G5", .5), ("F5", .5), ("D5", 2)], [("E5", 1), ("G5", 1), ("A#5", 1), (None, 1)]]
+# 엑셀 정리기: 가벼운 펑크 — 뮤트 기타 16분 + 통통 베이스 + 피아노 스타카토, A단조
+FUNK = [[("E5", .5), ("G5", .5), ("A5", .5), (None, .5), ("C6", .5), ("A5", .5), ("G5", 1)],
+        [("F#5", .5), ("A5", .5), (None, .5), ("F#5", .5), ("E5", 1), ("D5", 1)],
+        [("C5", .5), ("F5", .5), ("A5", .5), ("C6", .5), ("E6", 1), ("C6", 1)],
+        [("B5", .5), ("G#5", .5), ("E5", 1), ("D5", .5), ("E5", .5), (None, 1)],
+        [("A5", .5), ("C6", .5), ("E6", .5), (None, .5), ("D6", .5), ("C6", .5), ("A5", 1)],
+        [("F#5", 1), ("A5", .5), ("C6", .5), ("B5", 1), ("A5", 1)],
+        [("A5", .5), ("G5", .5), ("F5", 1), ("G#5", 1), ("B5", 1)], [("A5", 2), (None, 2)]]
+# 도면 검색기: 미니멀 펄스 — 피아노 8분 아르페지오 + 현악 패드 + 칼림바, E단조
+PULSE = [[("B4", 1), ("E5", 1), ("G5", 1), ("F#5", 1)], [("E5", 2), ("G5", 1), ("C6", 1)],
+         [("B5", 1.5), ("A5", .5), ("G5", 1), ("D5", 1)], [("F#5", 3), (None, 1)],
+         [("G5", 1), ("B5", 1), ("E6", 1), ("D6", 1)], [("C6", 1.5), ("B5", .5), ("G5", 2)],
+         [("A5", 1), ("F#5", 1), ("D5", 1), ("F#5", 1)], [("A5", 3), (None, 1)]]
+
+SONGS = {
+    # 우쿨렐레: 휘파람(GM 은 혼처럼 들림) + 나일론 스트럼 + 베이스 + 셰이커, 짝수 번째에 글로켄슈필 겹침
+    "uke_whistle": lambda: pop_song("uke_whistle", 112, MEL_C, CH_C, "C G", lead=78, comp=24, style="strum", bass=32, double=9, seed=1),
+    # 마림바: 휘파람 + 마림바 아르페지오 + 베이스, 셔플, 짝수 번째에 비브라폰 겹침
+    "marimba_shuffle": lambda: pop_song("marimba_shuffle", 100, MEL_F, CH_F, "F C", lead=78, comp=12, style="arp", bass=32, double=11, swing=.16, seed=3),
+    "musicbox_waltz": musicbox_waltz,
+    "bossa_flute": lambda: groove("bossa_flute", 124, BOSSA, [("D6", 3), (None, 1)], "Dmaj7 Em7 F#m7 Bm7 Gmaj7 A7 Dmaj7 A7", "Dmaj7 A7",
+                                  target=38.1, lead=73, comp=24, style="bossa", bass=32, bass_style="root5", drums="bossa", double=9, seed=41),
+    "lofi_keys": lambda: groove("lofi_keys", 84, LOFI, [("A5", 3), (None, 1)], "Fmaj7 Em7,A7 Dm7 Gm7,C7 Fmaj7 Bbmaj7 Gm7 C7", "Fmaj7 C7",
+                                target=50.6, lead=11, comp=4, style="ep", bass=33, bass_style="lofi", drums="lofi", swing=.18, seed=42),
+    "funk_clean": lambda: groove("funk_clean", 104, FUNK, [("C6", .5), ("B5", .5), ("A5", 3)], "Am7 D7 Fmaj7 E7 Am7 D7 Fmaj7,E7 Am7", "Am7 E7",
+                                 target=51.4, lead=0, comp=28, style="funk", bass=33, bass_style="funk", drums="funk", double=11, seed=43),
+    "pulse_kalimba": lambda: groove("pulse_kalimba", 112, PULSE, [("E5", 4)], "Em C G D Em C D D", "Em C",
+                                    target=51.0, lead=108, comp=0, style="pulse", bass=33, bass_style="root5", drums="pulse", pad=49, seed=44),
+}
+
+if __name__ == "__main__":
+    import sys
+    for name in sys.argv[1:] or SONGS:
+        SONGS[name]()
