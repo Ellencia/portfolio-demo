@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>제출 서류 자동 작성 데모</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Nanum+Myeongjo:wght@400;700&display=swap">
+<link rel="stylesheet" href="demo.css">
+<style>
+/* 장비 카드 (D-day) */
+.counts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px }
+.counts div { padding: 7px 8px; font-size: 9.5px; color: var(--sub); border-left: 3px solid var(--c) }
+.counts b { display: block; font: 500 17px var(--f-mono); color: var(--ink) }
+.eqs { display: grid; gap: 6px }
+.eq { display: grid; grid-template-columns: 1fr auto; gap: 1px 8px; align-items: center; padding: 8px 11px; border-left: 3px solid var(--c) }
+.eq b { font-size: 12.5px } .eq small { grid-column: 1; font-size: 10px; color: var(--sub) }
+.eq .dd { grid-row: 1 / 3; grid-column: 2; font: 500 13px var(--f-mono); color: var(--c); text-align: right }
+.eq .dd small { display: block; font: 400 9.5px var(--f-body); color: var(--sub) }
+.c-exp { --c: var(--fail) } .c-soon { --c: #D98A00 } .c-warn { --c: #C9A000 } .c-ok { --c: var(--pass) }
+
+/* 한글 양식 (명조) */
+.hwp { padding: 12px 12px 10px; font-family: "Nanum Myeongjo", serif; box-shadow: 0 6px 18px rgba(23,33,43,.10); position: relative }
+.hwp h3 { margin: 0 0 8px; text-align: center; font-size: 15px; letter-spacing: .1em }
+.hwp h3 small { display: block; font: 500 9px var(--f-body); letter-spacing: 0; color: var(--sub); margin-top: 2px }
+.ht { display: grid; grid-template-columns: 28px 1.4fr 1.1fr .9fr .6fr; border-top: 1.5px solid var(--ink); border-left: 1px solid #9AA3A0; font-size: 9.5px }
+.ht span { border-right: 1px solid #9AA3A0; border-bottom: 1px solid #9AA3A0; padding: 4px 3px; text-align: center; min-height: 13px; white-space: nowrap; overflow: hidden }
+.ht .h { background: #EEF0EA; font-weight: 700 }
+.ht .g { writing-mode: vertical-rl; display: flex; align-items: center; justify-content: center; letter-spacing: .2em; font-weight: 700 }
+.ht .v { font-family: var(--f-body); color: var(--navy); font-weight: 500 }
+.on .ht .v { animation: fillc .3s var(--d) both }
+@keyframes fillc { 0% { opacity: 0; background: transparent } 30% { opacity: 1; background: #FFE98A } 100% { opacity: 1; background: transparent } }
+.sign { margin-top: 10px; font-size: 10.5px; line-height: 1.8; text-align: right; position: relative }
+.sign .v { font-family: var(--f-body); font-weight: 500; color: var(--navy) }
+.seal { position: absolute; right: -8px; bottom: -4px; width: 28px; height: 28px; border: 2px solid #C8372D; border-radius: 50%; color: #C8372D; font: 700 7.5px/1.05 "Nanum Myeongjo", serif; display: grid; place-items: center; text-align: center; transform: rotate(-12deg); opacity: 0 }
+.on .seal { animation: stamp .35s var(--d) cubic-bezier(.3,1.6,.5,1) both }
+@keyframes stamp { from { opacity: 0; transform: rotate(-12deg) scale(2.2) } to { opacity: .85; transform: rotate(-12deg) scale(1) } }
+
+/* 사진 대지 */
+.photos { display: grid; grid-template-columns: 1fr 1fr; border-top: 1.5px solid var(--ink); border-left: 1px solid #9AA3A0; font-size: 9.5px; margin-top: 6px }
+.photos > div { border-right: 1px solid #9AA3A0; border-bottom: 1px solid #9AA3A0 }
+.photos .nm { padding: 3px; text-align: center; background: #EEF0EA; font-weight: 700 }
+.photos .ph { height: 62px; margin: 5px; border-radius: 3px; background: linear-gradient(160deg, #C9D3DA, #8E9DA8); position: relative; overflow: hidden }
+.photos .ph::before { content: ""; position: absolute; left: 22%; right: 22%; top: 24%; bottom: 18%; border-radius: 4px; background: #42515E; box-shadow: inset 0 0 0 4px #5A6A77 }
+.photos .ph::after { content: ""; position: absolute; left: 34%; right: 34%; top: 36%; height: 16%; border-radius: 2px; background: #9FE0B8 }
+.photos .ph.none { background: repeating-linear-gradient(45deg, #FBFCFA 0 6px, #F0F2EC 6px 12px); border: 1.5px dashed var(--fail); display: grid; place-items: center; color: var(--fail); font: 700 10px var(--f-body) }
+.photos .ph.none::before, .photos .ph.none::after { display: none }
+
+/* 여러 품목 → ZIP */
+.picks { padding: 6px 11px; display: grid; gap: 0; font-size: 11.5px }
+.picks div { display: flex; align-items: center; gap: 9px; padding: 6px 0; border-bottom: 1px solid #ECEEE8 }
+.picks div:last-child { border: 0 }
+.cb { width: 14px; height: 14px; border: 1.5px solid var(--ink); border-radius: 3px; position: relative; flex: none }
+.cb::after { content: ""; position: absolute; left: 3.5px; top: 0; width: 4px; height: 8px; border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg); opacity: 0 }
+.on .cb.ck { animation: ck .2s var(--d) both } .on .cb.ck::after { animation: show .2s var(--d) both }
+@keyframes ck { to { background: var(--navy); border-color: var(--navy) } }
+@keyframes show { to { opacity: 1 } }
+.picks small { margin-left: auto; color: var(--sub); font-size: 10px }
+.go2 { text-align: center; font: 700 12.5px var(--f-body); background: var(--ink); color: var(--paper); border-radius: 8px; padding: 9px }
+.on .go2 { animation: rise .45s var(--d) both, press .5s calc(var(--d) + .6s) both }
+@keyframes press { 40% { transform: scale(.95) } 100% { background: var(--pass) } }
+.zip { padding: 9px 11px; display: grid; grid-template-columns: 34px 1fr; gap: 3px 10px; align-items: center; font-size: 11px }
+.zip .zi { grid-row: 1 / 3; width: 30px; height: 36px; border-radius: 4px; background: var(--marker); position: relative }
+.zip .zi::after { content: "ZIP"; position: absolute; bottom: 4px; left: 0; right: 0; text-align: center; font: 700 8px var(--f-mono) }
+.zip b { font-size: 12px } .zip small { color: var(--sub); font-size: 10px }
+
+/* 실물 확인 */
+.fix { padding: 9px 11px; display: grid; grid-template-columns: 1fr 14px 1fr; gap: 6px; align-items: center; font-size: 10.5px }
+.fix h4 { grid-column: 1 / -1; margin: 0; font-size: 11.5px }
+.fix .bad, .fix .good { padding: 6px 7px; border-radius: 5px; line-height: 1.4 }
+.fix .bad { background: #F7E0DA; color: #7A2A1E } .fix .good { background: #DDF0E4; color: #18603C }
+.fix i { font-style: normal; color: var(--sub); text-align: center }
+.spread { letter-spacing: .45em }
+.flow { display: flex; align-items: center; gap: 4px; padding: 9px 10px; font-size: 10.5px }
+.flow h4 { margin: 0 6px 0 0; font-size: 10.5px; flex: none }
+.flow span { flex: 1; text-align: center; background: var(--paper); border-radius: 5px; padding: 6px 2px; line-height: 1.3 }
+.flow i { font-style: normal; color: var(--sub) }
+</style>
+
+</head>
+<body>
+<div class="phone" id="phone">
+<div class="stage" id="stage">
+  <div class="bars" id="bars"></div>
+
+  <!-- 1 표지 -->
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 업무 자동화</span><span>장비·서류</span></div>
+    <h1 class="cap">장비 대장 하나로<br><mark>제출 서류까지</mark></h1>
+    <p class="sub in" style="--d:.9s">교정 만료는 날짜 순으로 챙기고, 정부 제출 양식은 대장 값으로 채웁니다.</p>
+    <div class="counts">
+      <div class="card in c-exp" style="--d:1.3s">만료<b>3</b></div>
+      <div class="card in c-soon" style="--d:1.45s">30일 안<b>5</b></div>
+      <div class="card in c-warn" style="--d:1.6s">90일 안<b>9</b></div>
+      <div class="card in c-ok" style="--d:1.75s">유효<b>41</b></div>
+    </div>
+    <div class="card hwp in" style="--d:2.3s">
+      <h3>보유 설비 확인서<small>[LED 안내판] · 자동 작성</small></h3>
+      <div class="ht">
+        <span class="h">구분</span><span class="h">시설명</span><span class="h">모델</span><span class="h">일련번호</span><span class="h">구입</span>
+        <span class="g" style="grid-row: span 3">생산</span>
+        <span class="v" style="--d:2.8s">자동 납땜기</span><span class="v" style="--d:2.9s">SL-420</span><span class="v" style="--d:3s">A2207131</span><span class="v" style="--d:3.1s">2019</span>
+        <span class="v" style="--d:3.3s">절곡기</span><span class="v" style="--d:3.4s">HB-1250</span><span class="v" style="--d:3.5s">B0918442</span><span class="v" style="--d:3.6s">2017</span>
+        <span class="v" style="--d:3.8s">조립 작업대</span><span class="v" style="--d:3.9s">-</span><span class="v" style="--d:4s">-</span><span class="v" style="--d:4.1s">2021</span>
+      </div>
+      <div class="sign">업체명 <span class="v">(주)새솔테크</span> &nbsp; 대표 <span class="v">박하늘</span> (인)<span class="seal" style="--d:4.5s">새솔<br>테크</span></div>
+    </div>
+    <div class="tags in" style="--d:4.9s"><span class="chip pass">표 칸 자동</span><span class="chip pass">도장 자리까지</span><span class="chip ask">만료 3대 먼저 교정</span></div>
+    <div class="foot"><span>예시 데이터 · 회사명 가상</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 2 만료 D-day -->
+  <section class="scene">
+    <div class="eyebrow"><span>장비·서류</span><span>1 · 만료 챙기기</span></div>
+    <h2 class="cap">교정 만료를<br><mark>날짜 순으로</mark></h2>
+    <div class="eqs">
+      <div class="card eq c-exp in" style="--d:.8s"><b>절연저항계</b><small>검사 · 교정 · 2공장</small><span class="dd">만료<small>9일 지남</small></span></div>
+      <div class="card eq c-soon in" style="--d:1s"><b>디지털 오실로스코프</b><small>검사 · 교정 · 1공장</small><span class="dd">D-12<small>11/06</small></span></div>
+      <div class="card eq c-soon in" style="--d:1.2s"><b>토크 렌치</b><small>생산 · 교정 · 1공장</small><span class="dd">D-27<small>11/21</small></span></div>
+      <div class="card eq c-warn in" style="--d:1.4s"><b>디지털 멀티미터</b><small>검사 · 교정 · 2공장</small><span class="dd">D-63<small>12/27</small></span></div>
+      <div class="card eq c-ok in" style="--d:1.6s"><b>휘도계</b><small>검사 · 교정 · 1공장</small><span class="dd">D-214<small>내년 5/27</small></span></div>
+    </div>
+    <div class="tags in" style="--d:2.2s"><span class="chip fail">만료 3</span><span class="chip ask">30일 안 5</span><span class="chip pass">사진·성적서 첨부</span></div>
+    <p class="sub in" style="--d:2.6s">교정일만 넣으면 남은 날을 계산해 카드 색이 바뀝니다. 엑셀로도 내보냄.</p>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 3 양식 채우기 -->
+  <section class="scene">
+    <div class="eyebrow"><span>장비·서류</span><span>2 · 양식 채우기</span></div>
+    <h2 class="cap">한글 양식에<br><mark>대장 값이 그대로</mark></h2>
+    <div class="card hwp in" style="--d:.6s">
+      <h3>보유 설비 확인서<small>[LED 안내판]</small></h3>
+      <div class="ht">
+        <span class="h">구분</span><span class="h">시설명</span><span class="h">모델</span><span class="h">일련번호</span><span class="h">구입</span>
+        <span class="g" style="grid-row: span 3">생산</span>
+        <span class="v" style="--d:1.2s">자동 납땜기</span><span class="v" style="--d:1.3s">SL-420</span><span class="v" style="--d:1.4s">A2207131</span><span class="v" style="--d:1.5s">2019</span>
+        <span class="v" style="--d:1.7s">절곡기</span><span class="v" style="--d:1.8s">HB-1250</span><span class="v" style="--d:1.9s">B0918442</span><span class="v" style="--d:2s">2017</span>
+        <span class="v" style="--d:2.2s">조립 작업대</span><span class="v" style="--d:2.3s">-</span><span class="v" style="--d:2.4s">-</span><span class="v" style="--d:2.5s">2021</span>
+        <span class="g" style="grid-row: span 2">검사</span>
+        <span class="v" style="--d:2.8s">절연저항계</span><span class="v" style="--d:2.9s">IR-4057</span><span class="v" style="--d:3s">K1630925</span><span class="v" style="--d:3.1s">2020</span>
+        <span class="v" style="--d:3.3s">휘도계</span><span class="v" style="--d:3.4s">LM-110</span><span class="v" style="--d:3.5s">7413068</span><span class="v" style="--d:3.6s">2022</span>
+      </div>
+      <div class="sign">2026년 10월 25일<br>업체명 <span class="v">(주)새솔테크</span> &nbsp; 대표 <span class="v">박하늘</span> (인)
+        <span class="seal" style="--d:4.1s">새솔<br>테크</span></div>
+    </div>
+    <p class="sub in" style="--d:4.6s">한글 프로그램 없이 양식 파일(HWPX) 속 표 칸만 채웁니다. 줄이 모자라면 늘리고, 도장은 (인) 자리에.</p>
+    <div class="card flow in" style="--d:5s"><h4>작업 공정도</h4><span>자재 입고</span><i>→</i><span>가공</span><i>→</i><span>조립</span><i>→</i><span>검사</span></div>
+    <div class="foot"><span>예시 데이터 · 회사명 가상</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 4 사진 대지 -->
+  <section class="scene">
+    <div class="eyebrow"><span>장비·서류</span><span>3 · 사진 대지</span></div>
+    <h2 class="cap">설비 사진도<br><mark>칸에 맞춰서</mark></h2>
+    <div class="card hwp in" style="--d:.6s">
+      <h3>생산 설비 사진<small>[LED 안내판]</small></h3>
+      <div class="photos">
+        <div class="in" style="--d:1s"><div class="nm">자동 납땜기</div><div class="ph"></div></div>
+        <div class="in" style="--d:1.3s"><div class="nm">절곡기</div><div class="ph"></div></div>
+        <div class="in" style="--d:1.6s"><div class="nm">조립 작업대</div><div class="ph"></div></div>
+        <div class="in" style="--d:1.9s"><div class="nm">절연저항계</div><div class="ph none">사진 없음</div></div>
+      </div>
+    </div>
+    <div class="card alert pop" style="--d:2.6s"><b>사진이 없는 설비도 칸은 만듦</b><p>무엇이 빠졌는지 서류에서 바로 보이게. 대장 화면에서 사진을 올리면 다음 생성 때 들어갑니다.</p></div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 5 여러 품목 → ZIP -->
+  <section class="scene">
+    <div class="eyebrow"><span>장비·서류</span><span>4 · 한 번에</span></div>
+    <h2 class="cap">품목 여러 개도<br><mark>한 번에 묶음</mark></h2>
+    <div class="card picks in" style="--d:.6s">
+      <div><span class="cb ck" style="--d:1.1s"></span>LED 안내판<small>설비 5</small></div>
+      <div><span class="cb ck" style="--d:1.4s"></span>조명 제어반<small>설비 7</small></div>
+      <div><span class="cb ck" style="--d:1.7s"></span>금속 함체<small>설비 4</small></div>
+      <div><span class="cb ck" style="--d:2s"></span>옥외 조명등<small>설비 6</small></div>
+      <div><span class="cb"></span>배전반<small>설비 8</small></div>
+    </div>
+    <div class="go2" style="--d:2.4s">선택한 4개 품목 서류 만들기</div>
+    <div class="card zip in" style="--d:3.4s"><span class="zi"></span><b>제출서류_2026-10-25.zip</b><small>보유 설비 확인서 4 · 작업 공정도 4 · 한글 파일</small></div>
+    <p class="sub in" style="--d:3.8s">공정도는 고시에 적힌 공정을 기본값으로 쓰고, 품목마다 고쳐 둘 수 있습니다.</p>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 6 실물 확인 + 정리 -->
+  <section class="scene">
+    <div class="eyebrow"><span>장비·서류</span><span>정리</span></div>
+    <h2 class="cap">만든 서류는<br><mark>열어서 확인</mark></h2>
+    <div class="card fix in" style="--d:.7s">
+      <h4>한글로 열어 PDF로 찍어 보고 고친 것</h4>
+      <span class="bad">빈 줄 때문에 서명란이 다음 쪽으로</span><i>→</i><span class="good">서명란까지 한 쪽에</span>
+      <span class="bad">모델명이 <span class="spread">SL-42</span> 처럼 벌어짐</span><i>→</i><span class="good">모델명 칸 정렬 수정</span>
+    </div>
+    <div class="card checks in" style="--d:1.5s">
+      <div>원본 양식 파일은 그대로 <span class="chip pass">수정 0</span></div>
+      <div>교정 만료 날짜 순 카드 <span class="chip pass">자동</span></div>
+      <div>보유 설비 확인서 · 작업 공정도 <span class="chip pass">자동 작성</span></div>
+      <div>고시가 바뀌면 알림 <span class="chip ask">예약 점검</span></div>
+      <div>대장은 엑셀로도 내보내기 <span class="chip pass">지원</span></div>
+    </div>
+    <div class="card flow in" style="--d:2.2s"><span>장비 대장</span><i>→</i><span>양식 채우기</span><i>→</i><span>사진 대지</span><i>→</i><span>ZIP</span></div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+</div>
+<p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<script src="demo.js"></script>
+
+</body>
+</html>

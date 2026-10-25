@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>다운로드 자동 분류 데모</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="demo.css">
+<style>
+/* 1 다운로드 목록: 옛 이름이 그어지고 → 규칙 이름 + 폴더 칩으로 바뀜 (둘을 같은 자리에 겹침) */
+.dlw { padding: 8px 10px }
+.dlw h4 { margin: 0 0 4px; font-size: 11px; display: flex; justify-content: space-between; color: var(--sub); font-weight: 500 }
+.row { position: relative; height: 44px; border-top: 1px solid #ECEEE8; font-size: 10.5px }
+.row > span { position: absolute; left: 0; right: 0; top: 0; bottom: 0; display: flex; align-items: center; gap: 6px }
+.row .old { color: var(--sub); font: 500 11px var(--f-mono) }
+.row .old s { text-decoration: none; background: linear-gradient(var(--fail), var(--fail)) no-repeat 0 55% / 0% 1.5px }
+.on .row .old s { animation: cross .35s var(--d) both }
+@keyframes cross { to { background-size: 100% 1.5px } }
+.on .row .old { animation: hide .25s calc(var(--d) + .5s) both }
+@keyframes hide { to { opacity: 0 } }
+.row .new { opacity: 0; justify-content: space-between }
+.on .row .new { animation: rise .4s calc(var(--d) + .7s) cubic-bezier(.2,.7,.3,1) both }
+.row .new b { font-weight: 500; font-variant-numeric: tabular-nums; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.row .new b em { font-style: normal; font-weight: 700; color: var(--navy) }
+.fd { font: 700 10px var(--f-body); padding: 2px 6px; border-radius: 4px; background: #E2E9F1; color: var(--navy); white-space: nowrap; flex: none }
+.fd.miss { background: #F7E0DA; color: var(--fail) }
+
+/* 2 이름 규칙 + 폴더 */
+.parts { display: flex; flex-wrap: wrap; gap: 3px; font: 500 11px var(--f-body); padding: 10px 11px; align-items: flex-start }
+.parts > i { font-style: normal; font-weight: 700; padding-top: 3px }
+.parts span { display: flex; flex-direction: column; align-items: center; gap: 3px }
+.parts b { font-weight: 700; padding: 3px 4px; border-radius: 4px; background: var(--paper); font-variant-numeric: tabular-nums }
+.parts small { font-size: 9px; color: var(--sub) }
+.parts .k b { background: #FFE98A }
+.ftree { padding: 9px 12px; font-size: 11.5px; line-height: 2.05 }
+.ftree div { display: flex; justify-content: space-between; padding-left: calc(var(--lv) * 14px) }
+.ftree div i { font-style: normal; font: 500 10.5px var(--f-mono); color: var(--sub) }
+.ftree .top { font-weight: 700 }
+
+/* 3 판단 순서 */
+.file1 { display: flex; align-items: center; gap: 8px; padding: 8px 11px; font: 500 12px var(--f-mono) }
+.file1 small { font: 400 10.5px var(--f-body); color: var(--sub); margin-left: auto }
+.ladder { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; counter-reset: s }
+.ladder li { display: grid; grid-template-columns: 22px 1fr auto; gap: 8px; align-items: center; padding: 9px 10px; counter-increment: s; font-size: 11px }
+.ladder li::before { content: counter(s); font: 400 16px var(--f-display); color: var(--navy) }
+.ladder b { display: block; font-size: 12px }
+.ladder small { color: var(--sub); font-size: 10px }
+.on .ladder .l-skip { animation: rise .45s cubic-bezier(.2,.7,.3,1) var(--d) both, skip .3s calc(var(--d) + .7s) both }
+@keyframes skip { to { opacity: .45 } }
+.on .ladder .l-hit { animation: rise .45s cubic-bezier(.2,.7,.3,1) var(--d) both, hitl .4s calc(var(--d) + .7s) both }
+@keyframes hitl { to { box-shadow: 0 0 0 2px var(--pass); background: #EDF7F1 } }
+.ladder .rest { opacity: .45 }
+
+/* 4 규칙 사전 */
+.code { padding: 10px 11px; font: 500 10px/1.7 var(--f-mono); background: #1C2630; color: #DDE3DA; border-color: #1C2630; white-space: pre; overflow: hidden }
+.code .c { color: #8FA0AE; font-family: var(--f-body) }
+.code .s { color: #FFD84A }
+.code .add { display: block; background: rgba(30,133,81,.35); border-radius: 3px; margin: 0 -4px; padding: 0 4px; clip-path: inset(0 100% 0 0) }
+.on .code .add { animation: type 1.1s var(--d) steps(26) both }
+@keyframes type { to { clip-path: inset(0 0 0 0) } }
+.toast2 { padding: 9px 11px; font-size: 11.5px; display: flex; gap: 8px; align-items: center; border-left: 3px solid var(--marker) }
+.flow { display: flex; align-items: center; gap: 4px; padding: 9px 10px; font-size: 10.5px }
+.flow span { flex: 1; text-align: center; background: var(--paper); border-radius: 5px; padding: 6px 2px; line-height: 1.3 }
+.flow i { font-style: normal; color: var(--sub) }
+</style>
+
+</head>
+<body>
+<div class="phone" id="phone">
+<div class="stage" id="stage">
+  <div class="bars" id="bars"></div>
+
+  <!-- 1 표지 -->
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 업무 자동화</span><span>다운로드 정리</span></div>
+    <h1 class="cap">받는 순간<br><mark>이름·폴더 정리</mark></h1>
+    <p class="sub in" style="--d:.9s">ERP·메일·그룹웨어에서 받은 파일이 이렇게 쌓이던 다운로드 폴더.</p>
+    <div class="card dlw in" style="--d:1.2s">
+      <h4><span>다운로드</span><span>크롬 확장이 받는 즉시 처리</span></h4>
+      <div id="rows"></div>
+    </div>
+    <div class="tags in" style="--d:5.4s"><span class="chip pass">6개 → 폴더 6곳</span><span class="chip pass">이름 규칙대로</span><span class="chip fail">못 맞힘 1 → _미분류</span></div>
+    <div class="foot"><span>예시 파일 · 업체명은 가상</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 2 이름 규칙 + 폴더 -->
+  <section class="scene">
+    <div class="eyebrow"><span>다운로드 정리</span><span>규칙</span></div>
+    <h2 class="cap">이름만 봐도<br><mark>무슨 파일인지</mark></h2>
+    <div class="card parts in" style="--d:.7s">
+      <span class="pop" style="--d:1s"><b>2026-10-25</b><small>받은 날</small></span><i>-</i>
+      <span class="pop k" style="--d:1.3s"><b>견적서</b><small>종류</small></span><i>-</i>
+      <span class="pop k" style="--d:1.6s"><b>누리전자</b><small>업체</small></span><i>-</i>
+      <span class="pop" style="--d:1.9s"><b>31208</b><small>번호</small></span><i>-</i>
+      <span class="pop" style="--d:2.2s"><b>메일</b><small>받은 곳</small></span>
+    </div>
+    <div class="card ftree in" style="--d:2.6s">
+      <div class="top" style="--lv:0">다운로드 / 분류</div>
+      <div class="in" style="--lv:1;--d:2.9s">발주서 <i>14</i></div>
+      <div class="in" style="--lv:1;--d:3s">견적서 <i>9</i></div>
+      <div class="in" style="--lv:1;--d:3.1s">거래명세표 <i>7</i></div>
+      <div class="in" style="--lv:1;--d:3.2s">세금계산서 <i>5</i></div>
+      <div class="in" style="--lv:1;--d:3.3s">도면·시방 <i>4</i></div>
+      <div class="in" style="--lv:1;--d:3.4s">설치파일 <i>3</i></div>
+      <div class="in" style="--lv:1;--d:3.5s">_미분류 <i>2</i></div>
+    </div>
+    <p class="sub in" style="--d:3.9s">폴더는 17가지. 어느 규칙에도 안 걸린 파일만 _미분류로 갑니다.</p>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 3 판단 순서 -->
+  <section class="scene">
+    <div class="eyebrow"><span>다운로드 정리</span><span>판단 순서</span></div>
+    <h2 class="cap">파일 이름이 엉망이어도<br><mark>단서를 찾음</mark></h2>
+    <div class="card file1 in" style="--d:.6s">첨부1.pdf <small>메일에서 받음</small></div>
+    <ol class="ladder">
+      <li class="card l-skip" style="--d:1s"><div><b>받은 화면</b><small>ERP 발주·구매 메뉴인가?</small></div><span class="chip">아님</span></li>
+      <li class="card l-skip" style="--d:1.8s"><div><b>받은 사이트</b><small>ERP·국세청 사이트인가?</small></div><span class="chip">아님</span></li>
+      <li class="card l-hit" style="--d:2.6s"><div><b>메일 보낸 사람·제목</b><small>"[누리전자] 견적 송부"</small></div><span class="chip pass">견적서 · 누리전자</span></li>
+      <li class="card in rest" style="--d:3.4s"><div><b>파일 이름의 단어</b><small>"발주", "견적", "영수증" ...</small></div><span class="chip">건너뜀</span></li>
+      <li class="card in rest" style="--d:3.5s"><div><b>못 찾으면</b><small>_미분류 폴더</small></div><span class="chip">건너뜀</span></li>
+    </ol>
+    <p class="sub in" style="--d:4s">위에서부터 확인해서, 처음 맞는 단서로 정합니다.</p>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 4 규칙 사전 -->
+  <section class="scene">
+    <div class="eyebrow"><span>다운로드 정리</span><span>고치기</span></div>
+    <h2 class="cap">규칙은<br><mark>사전 한 장</mark></h2>
+    <div class="card code in" style="--d:.6s"><span class="c">// 파일 이름에 이 단어가 있으면 이 폴더로</span>
+{ folder: <span class="s">"견적서"</span>, keywords: [<span class="s">"견적"</span>] },
+{ folder: <span class="s">"세금계산서"</span>, keywords: [<span class="s">"세금계산서"</span>] },
+<span class="add" style="--d:1.6s">{ folder: <span class="s">"카탈로그"</span>, keywords: [<span class="s">"catalog"</span>] },</span>
+<span class="c">// 메일 주소 → 업체 이름</span>
+<span class="s">"nuri-elec.co.kr"</span>: <span class="s">"누리전자"</span>,
+<span class="add" style="--d:3s"><span class="s">"hanbit-mc.com"</span>: <span class="s">"한빛기계"</span>,</span></div>
+    <div class="card dlw in" style="--d:3.6s"><h4><span>방금 받은 파일</span><span>추가한 규칙 적용</span></h4><div class="row" style="--d:3.9s"><span class="old"><s>catalog_2026.pdf</s></span><span class="new"><b>2026-10-25-<em>카탈로그</em>-31230-메일.pdf</b><i class="fd">카탈로그</i></span></div></div>
+    <p class="sub in" style="--d:5.2s">코드를 몰라도 따옴표 안 글자만 고치면 분류가 바뀝니다.</p>
+    <div class="card toast2 in" style="--d:5.5s"><span class="fd miss">_미분류</span>여기 쌓인 파일을 보고 단어를 하나씩 보강</div>
+    <div class="foot"><span>예시 규칙</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 5 정리 -->
+  <section class="scene">
+    <div class="eyebrow"><span>다운로드 정리</span><span>정리</span></div>
+    <h2 class="cap">설치하면<br><mark>잊어도 됨</mark></h2>
+    <div class="card checks in" style="--d:.7s">
+      <div>크롬 확장으로 동작 <span class="chip pass">설치형</span></div>
+      <div>업무 화면까지 읽음 (ERP 메뉴·메일·결재 제목) <span class="chip pass">단서</span></div>
+      <div>파일은 PC 밖으로 안 나감 <span class="chip pass">외부 전송 0</span></div>
+      <div>규칙은 사전 파일 하나 <span class="chip ask">직접 수정</span></div>
+      <div>못 맞힌 파일은 _미분류로 <span class="chip ask">버리지 않음</span></div>
+    </div>
+    <div class="card result in" style="--d:1.6s"><b>폴더 17종 · 이름 규칙 1개</b><span>자동</span></div>
+    <div class="card flow in" style="--d:1.9s"><span>받기</span><i>→</i><span>단서 찾기</span><i>→</i><span>이름 바꾸기</span><i>→</i><span>폴더로</span></div>
+    <p class="sub in" style="--d:2.3s">업체·사업 이름을 사전에 넣어 두면 파일 이름에 함께 붙습니다.</p>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+</div>
+<p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<script>
+// 표지: [옛 이름, 새 이름(강조할 종류 부분), 폴더]
+const rows = [
+  ['851O6FDR3AU53AI.PDF', '2026-10-25-<em>발주서</em>-한빛기계-31207-ERP.pdf', '발주서'],
+  ['첨부1.pdf', '2026-10-25-<em>견적서</em>-누리전자-31208-메일.pdf', '견적서'],
+  ['download (3).xlsx', '2026-10-25-<em>발주현황</em>-31209-ERP.xlsx', '발주현황'],
+  ['문서.pdf', '2026-10-25-<em>지출</em>-31210-그룹웨어.pdf', '지출'],
+  ['setup_v2.1.exe', '2026-10-25-<em>설치파일</em>-31211-tools.exe', '설치파일'],
+  ['image (7).png', '2026-10-25-<em>미분류</em>-31212-메일.png', '_미분류'],
+];
+document.getElementById('rows').innerHTML = rows.map(([o, n, f], i) =>
+  `<div class="row" style="--d:${(1.8 + i * .55).toFixed(2)}s"><span class="old"><s>${o}</s></span>` +
+  `<span class="new"><b>${n}</b><i class="fd${f === '_미분류' ? ' miss' : ''}">${f}</i></span></div>`).join('');
+</script>
+<script src="demo.js"></script>
+
+</body>
+</html>
