@@ -1,5 +1,7 @@
 .venv/
 __pycache__/
+# 받은 배경음악 원본(Pixabay 등) — 음원을 그대로 단독 배포하면 라이선스 위반이라 저장소에 안 올림
+music/
 _render_*.html
 _video_*.html
 _probe_*.html

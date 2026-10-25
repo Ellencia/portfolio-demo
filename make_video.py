@@ -18,6 +18,8 @@ ap.add_argument("page", choices=["excel", "harness", "bapl", "tabrip"])
 ap.add_argument("--theme", default="", help="harness 디자인: dark / phone / memo / brand")
 ap.add_argument("--fps", type=int, default=30)
 ap.add_argument("--sfx", action="store_true", help="효과음 트랙 넣기")
+ap.add_argument("--bgm", nargs="?", const="waltz",
+                help="배경음: waltz·arp = 합성 기타 반주(기본 waltz), 그 밖엔 음악 파일 경로(music/ 에 두고 커밋 안 함)")
 a = ap.parse_args()
 
 name = f"{a.page}-{a.theme}" if a.theme else a.page
@@ -36,7 +38,7 @@ try:
         st = out.add_stream("libx264", rate=a.fps)
         st.width, st.height, st.pix_fmt = 1080, 1920, "yuv420p"
         st.options = {"crf": "21", "preset": "medium"}
-        if a.sfx:
+        if a.sfx or a.bgm:
             import numpy as np
             import sfx
             ast = out.add_stream("aac", rate=sfx.SR, layout="stereo")
@@ -60,8 +62,16 @@ try:
             print(f"장면 {i + 1} {dur / 1000:.1f}초", flush=True)
         for pkt in st.encode():
             out.mux(pkt)
-        if a.sfx:
-            pcm = sfx.mix(events, frames / a.fps)
+        if a.sfx or a.bgm:
+            music = a.bgm
+            if music and music not in sfx.STYLES:  # 음악 파일 → SR 모노
+                rs, chunks = av.AudioResampler(format="flt", layout="mono", rate=sfx.SR), []
+                with av.open(music) as f:
+                    for fr in f.decode(audio=0):
+                        chunks += [o.to_ndarray().ravel() for o in rs.resample(fr)]
+                chunks += [o.to_ndarray().ravel() for o in rs.resample(None)]
+                music = np.concatenate(chunks)
+            pcm = sfx.mix(events, frames / a.fps, music=music)
             for k in range(0, pcm.shape[1], 1024):
                 fr = av.AudioFrame.from_ndarray(np.ascontiguousarray(pcm[:, k:k + 1024]), format="fltp", layout="stereo")
                 fr.sample_rate, fr.pts, fr.time_base = sfx.SR, k, Fraction(1, sfx.SR)
