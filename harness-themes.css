@@ -1,0 +1,80 @@
+/* 하네스 디자인 시안 4종 — body.theme-dark / theme-phone / theme-memo / theme-brand. 기본 모습은 demo.css 그대로 */
+.statusbar, .island, .homebar { display: none }
+.themes { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; width: 100% }
+.themes button[aria-pressed="true"] { background: var(--page-fg); color: var(--page) }
+
+/* ---------- 1 다크 앱 ---------- */
+.theme-dark { --paper: #0E1217; --ink: #E7ECF2; --sub: #8C98A6; --line: #252F3A; --cell: #161D25;
+  --marker: #4C7DFF; --navy: #3A5BD9; --pass: #4ADE95; --fail: #FF7A66 }
+.theme-dark .cap mark { background-image: linear-gradient(transparent 62%, rgba(76,125,255,.6) 62%) }
+.theme-dark .hl, .theme-dark .daily .new { background-image: linear-gradient(transparent 55%, rgba(76,125,255,.5) 55%) }
+.theme-dark .chip.pass { background: rgba(74,222,149,.14) }
+.theme-dark .chip.fail { background: rgba(255,122,102,.15) }
+.theme-dark .chip.ask { background: rgba(255,200,80,.15); color: #FFC850 }
+.theme-dark .bars i { background: rgba(255,255,255,.14) }
+.theme-dark .chat { background: #11171E }
+.theme-dark .photo { background: #1E2731 } .theme-dark .photo i { background: #3A4654 } .theme-dark .photo i:first-child { background: #8C98A6 }
+.theme-dark .msg.me { background: #3A5BD9 }
+.theme-dark .checks div, .theme-dark .dline { border-color: #212A34 }
+.theme-dark .result { background: #1B2430; border-color: #1B2430; color: var(--ink) }
+.theme-dark .result span { color: #7FA2FF }
+.theme-dark .kpis-run { background: #18233A; border-color: #18233A }
+.theme-dark .map .n.hub rect { fill: #2A4396; stroke: #2A4396 }
+.theme-dark .on .qbtns .go, .theme-dark .on .mini .go { color: #fff }
+
+/* ---------- 2 폰 목업 (노치·상태바·홈 바) ---------- */
+.theme-phone .phone { border-radius: 46px; box-shadow: 0 0 0 10px #0B0D10, 0 0 0 12px #3A3F46, 0 24px 60px rgba(0,0,0,.35) }
+.theme-phone .statusbar { display: flex; position: absolute; top: 0; left: 0; right: 0; height: 36px; padding: 0 28px;
+  align-items: center; justify-content: space-between; font: 700 12.5px var(--f-body); color: var(--ink); z-index: 6 }
+.theme-phone .statusbar .icons { display: flex; align-items: center; gap: 6px; font-size: 11px }
+.batt { display: inline-block; width: 22px; height: 11px; border: 1.5px solid currentColor; border-radius: 3px; position: relative; box-sizing: border-box }
+.batt::after { content: ""; position: absolute; left: 1.5px; top: 1.5px; bottom: 1.5px; width: 70%; background: currentColor; border-radius: 1px }
+.theme-phone .island { display: block; position: absolute; top: 10px; left: 50%; width: 92px; height: 26px; margin-left: -46px; background: #000; border-radius: 14px; z-index: 7 }
+.theme-phone .homebar { display: block; position: absolute; bottom: 7px; left: 50%; width: 118px; height: 4px; margin-left: -59px; background: var(--ink); opacity: .75; border-radius: 3px; z-index: 6 }
+.theme-phone .bars { top: 40px }
+.theme-phone .scene { padding-top: 54px; padding-bottom: 24px }
+body.shot.theme-phone { background: linear-gradient(160deg, #DCE3EA, #AEB9C5) }
+body.shot.theme-phone .phone { transform: scale(.84) }
+
+/* ---------- 3 손글씨 메모장 ---------- */
+/* 손글씨는 큰 글씨(제목·굵은 글씨·칩)에만, 작은 본문은 읽기 쉬운 고운돋움 */
+.theme-memo { --paper: #FBF8EF; --ink: #24232B; --sub: #55525C; --line: #CFC6B0; --cell: #FFFDF6;
+  --marker: #FF9DB8; --navy: #3550A0; --pass: #2F7D4F; --fail: #C2402C;
+  --f-display: "Nanum Pen Script", "Gaegu", cursive; --f-hand: "Gaegu", "Gowun Dodum", sans-serif;
+  --f-body: "Gowun Dodum", "IBM Plex Sans KR", "Malgun Gothic", sans-serif; --f-mono: "Gowun Dodum", monospace }
+.theme-memo .stage { background:
+  linear-gradient(90deg, transparent 26px, rgba(220,90,90,.28) 26px 27.5px, transparent 27.5px),
+  repeating-linear-gradient(var(--paper) 0 25px, #E8EDF3 25px 26px) }
+.theme-memo .cap { font-size: 46px; line-height: .98; letter-spacing: 0 }
+.theme-memo .eyebrow { font: 700 15px var(--f-hand) }
+.theme-memo h4 { font-size: 13.5px !important }
+.theme-memo b, .theme-memo .msg .who, .theme-memo h4, .theme-memo .map .n text:not(.s) { font-family: var(--f-hand) !important; font-weight: 700 }
+.theme-memo .timeline b, .theme-memo .legend b { font-size: 15px }
+.theme-memo .map .n text:not(.s) { font-size: 13px }
+.theme-memo .card { border: 1.5px solid #3B3A44; border-radius: 14px 4px 12px 5px / 5px 12px 4px 14px; box-shadow: 2px 3px 0 rgba(43,42,51,.10) }
+.theme-memo .msg.bot, .theme-memo .daily, .theme-memo .summary { background: #FFF3A8 }
+.theme-memo .chat { background: transparent; border: 1.5px dashed var(--line) }
+.theme-memo .msg { border: 1.5px solid #3B3A44 }
+.theme-memo .chip { background: transparent !important; border: 1.5px solid currentColor; border-radius: 10px 4px 10px 4px; font: 700 12.5px var(--f-hand) }
+.theme-memo .map .n rect { stroke: #3B3A44; stroke-width: 1.3 }
+.theme-memo .result b { font-size: 15px } .theme-memo .result span { color: var(--marker) }
+
+/* ---------- 4 브랜드 색 하나 (회사 소개) ---------- */
+.theme-brand { --paper: #FFFFFF; --ink: #0F1B2D; --sub: #5A6577; --line: #E3E8F0; --cell: #FFFFFF;
+  --marker: #1F4FD8; --navy: #1F4FD8; --pass: #1F4FD8; --fail: #0F2F8A;
+  --f-display: "Noto Sans KR", "IBM Plex Sans KR", sans-serif }
+.theme-brand .stage { background: linear-gradient(180deg, #F2F6FE 0, #FFFFFF 230px) }
+.theme-brand .cap { font-weight: 800; font-size: 30px; letter-spacing: -.035em; line-height: 1.25 }
+.theme-brand .cap mark { color: var(--marker); background-image: linear-gradient(transparent 86%, rgba(31,79,216,.22) 86%) }
+.theme-brand .eyebrow span:first-child { color: var(--marker); font-weight: 700 }
+.theme-brand .card { border-color: var(--line); border-radius: 12px; box-shadow: 0 1px 2px rgba(15,27,45,.05), 0 6px 16px rgba(15,27,45,.06) }
+.theme-brand .chip.pass { background: #E8EEFC; color: var(--marker) }
+.theme-brand .chip.ask { background: #F1F4FA; color: #3B4A63 }
+.theme-brand .chip.fail { background: var(--marker); color: #fff }
+.theme-brand .chat { background: #F1F5FC }
+.theme-brand .hl, .theme-brand .daily .new { background-image: linear-gradient(transparent 55%, #D6E1FB 55%) }
+.theme-brand .result { background: var(--marker); border-color: var(--marker); color: #fff }
+.theme-brand .result span { color: #fff }
+.theme-brand .kpis-run { background: #0F1B2D; border-color: #0F1B2D }
+.theme-brand .map .dot { fill: var(--marker) }
+.theme-brand .on .qbtns .go, .theme-brand .on .mini .go { color: #fff }

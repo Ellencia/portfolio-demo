@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+_render_*.html
+_video_*.html
+_probe_*.html
+# 작업 기록(대시보드용) — 공개 안 함
+STATUS.md
+update.md
