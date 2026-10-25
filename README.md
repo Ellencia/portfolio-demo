@@ -34,3 +34,11 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 `out/video/tabrip.mp4` 배경음: [Kids Ukulele Music — 331music](https://pixabay.com/music/happy-childrens-tunes-kids-ukulele-music-600484/) (Pixabay Content License, 2026-10-25 기준 Content ID 미등록).
 
 `python build_site.py` 는 GitHub Pages 용 `docs/` 를 만듭니다. `make_video.py` 는 화면녹화가 아니라 프레임마다 애니메이션 시각을 맞춰 찍어 H.264 로 묶습니다.
+
+## 상태 (2026-10-26)
+
+- **글쓰기 기준**: 화면 글은 처음 보는 사람이 화면만 보고 이해해야 합니다. 장면마다 무슨 문제인지 먼저 말하고, 업계 약어·검사 용어(PASS 등)·설명 없는 점수는 빼거나 일상어로 바꿉니다. 숫자는 장면당 와닿는 것 하나만 씁니다.
+- **다시 쓸 편**(압축이 심한 순): `imp` → `harness` → `bapl` → `forms` → `cad` → `excel`. `tabrip`·`b2b`·`dl` 은 양호합니다.
+- **검사 방안**(아직 안 함): 맥락 없는 에이전트에게 `out/cards/*.png` 만 보여 주고 장면마다 뜻을 설명하게 해서, 못 알아듣는 장면을 찾습니다.
+- **다음 새 편**: 3D 조립 검사기(cad-lab, 미스미 inCAD 공개 예제만). three.js 장면 + 가짜 커서로 돌려 보는 연출, 주인공은 검사기입니다. AI가 빼는 길을 제안하고 검사기가 "여기서 걸립니다"라고 거부하는 과정(창문 빼기), 문을 젖히다 볼트 머리에 걸리는 장면을 씁니다. 첫 작업은 헤드리스 크롬에서 WebGL 화면이 찍히는지 확인하는 것입니다.
+- **금지**: 회사 도면·실제 고객·매물 데이터. 예시 데이터로 바꿉니다.
