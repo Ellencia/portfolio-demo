@@ -1,13 +1,13 @@
 """excel.html·harness.html 장면을 폰 크기(1080x1920) PNG 카드로 찍는다. 설치된 크롬 헤드리스만 씀.
 
-실행: python render_cards.py [페이지 이름 ...]  ->  out/excel_1.png ..., out/harness_1.png ..., out/harness-dark_1.png ...
+실행: python render_cards.py [페이지 이름 ...]  ->  out/cards/excel_1.png ..., out/cards/harness-dark_1.png ...
 """
 import subprocess
 import sys
 from pathlib import Path
 
 HERE = Path(__file__).parent
-OUT = HERE / "out"
+OUT = HERE / "out" / "cards"
 # (페이지, 디자인) — 디자인은 harness-themes.css 의 theme-* 이름, None 이면 기본
 JOBS = [("excel", None), ("harness", None), ("bapl", None), ("tabrip", None), ("cad", None), ("dl", None), ("forms", None), ("imp", None), ("b2b", None), ("harness", "dark"), ("harness", "phone"), ("harness", "memo"), ("harness", "brand")]
 CHROME = next(p for p in (

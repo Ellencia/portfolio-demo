@@ -31,7 +31,7 @@ for page, *_ in PAGES:
     body = src.index('<div class="phone"')  # 그 앞(제목·글꼴·스타일)은 머리로
     (DOCS / f"{page}.html").write_text(HEAD + src[:body] + "</head>\n<body>\n" + src[body:] + "\n</body>\n</html>\n",
                                        encoding="utf-8")
-    shutil.copy(HERE / "out" / f"{page}.mp4", DOCS / "video" / f"{page}.mp4")
+    shutil.copy(HERE / "out" / "video" / f"{page}.mp4", DOCS / "video" / f"{page}.mp4")
 
 cards = "\n".join(f'''    <li><b>{name}</b><span>{desc}</span>
       <p><a href="{page}.html">데모 보기</a><a href="video/{page}.mp4">영상 (MP4)</a></p></li>''' for page, name, desc in PAGES)

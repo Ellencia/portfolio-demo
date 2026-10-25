@@ -20,8 +20,8 @@
 ## 만들기
 
 ```
-python render_cards.py                      # out/ 에 장면별 1080x1920 PNG (설치된 크롬 헤드리스)
-.venv\Scripts\python make_video.py harness  # out/harness.mp4 (pip install playwright av)
+python render_cards.py                      # out/cards/ 에 장면별 1080x1920 PNG (설치된 크롬 헤드리스)
+.venv\Scripts\python make_video.py harness  # out/video/harness.mp4 (pip install playwright av)
 .venv\Scripts\python make_video.py tabrip --sfx  # 효과음 트랙까지 (pip install numpy)
 .venv\Scripts\python make_video.py tabrip --sfx --bgm music/pixabay-600484-kids-ukulele.mp3  # 배경음 (waltz·arp 는 합성 기타)
 .venv\Scripts\python make_video.py b2b --sfx --bgm bgm/musicbox_waltz.mid  # 직접 쓴 곡 (FluidSynth + GM 사운드폰트)
@@ -31,6 +31,6 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 `.mid` 렌더에는 FluidSynth 와 GM 사운드폰트가 필요합니다. 경로는 환경변수 `FLUIDSYNTH_EXE`·`BGM_SF2` 로 바꿉니다(기본값은 작업 PC 경로, 사운드폰트는 FluidR3 GM).
 
 배경음 원본은 `music/` 에 받아 두고 커밋하지 않습니다(Pixabay 라이선스: 음원 단독 배포 금지).
-`out/tabrip.mp4` 배경음: [Kids Ukulele Music — 331music](https://pixabay.com/music/happy-childrens-tunes-kids-ukulele-music-600484/) (Pixabay Content License, 2026-10-25 기준 Content ID 미등록).
+`out/video/tabrip.mp4` 배경음: [Kids Ukulele Music — 331music](https://pixabay.com/music/happy-childrens-tunes-kids-ukulele-music-600484/) (Pixabay Content License, 2026-10-25 기준 Content ID 미등록).
 
 `python build_site.py` 는 GitHub Pages 용 `docs/` 를 만듭니다. `make_video.py` 는 화면녹화가 아니라 프레임마다 애니메이션 시각을 맞춰 찍어 H.264 로 묶습니다.

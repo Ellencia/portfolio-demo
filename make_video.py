@@ -1,7 +1,7 @@
 """excel.html·harness.html 을 애니메이션 그대로 MP4(1080x1920, H.264)로 만든다.
 
 화면녹화가 아니라 프레임마다 애니메이션 시각을 맞춰 찍어 이어 붙이므로 끊김이 없다.
-실행: .venv\\Scripts\\python make_video.py harness [--theme dark] [--fps 30] [--sfx]  ->  out/harness[-dark].mp4
+실행: .venv\\Scripts\\python make_video.py harness [--theme dark] [--fps 30] [--sfx]  ->  out/video/harness[-dark].mp4
 --sfx: demo.js 의 demoSfx() 가 주는 시각에 sfx.py 합성음을 깔고, 장면이 넘어갈 때 휙 소리 (numpy 필요)
 """
 import argparse
@@ -29,7 +29,7 @@ name = f"{a.page}-{a.theme}" if a.theme else a.page
 src = (HERE / f"{a.page}.html").read_text(encoding="utf-8")
 tmp = HERE / f"_video_{a.page}.html"  # 아티팩트용 파일엔 doctype·charset 이 없어서 붙인 사본 (css·js 를 찾게 같은 폴더)
 tmp.write_text('<!doctype html><html lang="ko"><head><meta charset="utf-8"></head><body>' + src + "</body></html>", encoding="utf-8")
-mp4 = HERE / "out" / f"{name}.mp4"
+mp4 = HERE / "out" / "video" / f"{name}.mp4"
 mp4.parent.mkdir(exist_ok=True)
 
 try:
