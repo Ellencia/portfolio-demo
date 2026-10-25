@@ -19,23 +19,26 @@
 .seg.shrink::after { background: rgba(194,64,44,.28); box-shadow: inset 0 0 0 2.5px var(--fail) }
 .seg.grow::after { background: rgba(30,133,81,.22); box-shadow: inset 0 0 0 2.5px var(--pass) }
 .on .seg.shrink::after { animation: tint .5s calc(var(--at) - .5s) both }
-.on .seg.grow::after { animation: tintIn 1.4s var(--at) both }
+.on .seg.grow::after { animation: tint .3s var(--at) both }
 @keyframes tint { to { opacity: 1 } }
-@keyframes tintIn { 0%, 55% { opacity: 1 } 100% { opacity: 0 } }
+.addbox { position: absolute; z-index: 1; border-radius: 6px; background: rgba(30,133,81,.10); box-shadow: inset 0 0 0 2.5px var(--pass); opacity: 0 }
+.on .addbox { animation: show .01s var(--at) both }
 .final { opacity: 0; width: 100% }
 .on .final { animation: show .01s var(--end) both }
 .on .stack { animation: hide .01s var(--end) both }
 @keyframes show { to { opacity: 1 } }
 @keyframes hide { to { opacity: 0 } }
 .flip { position: absolute; z-index: 1; overflow: hidden; border-radius: 4px }
+.mark { position: absolute; z-index: 2; overflow: visible; pointer-events: none }
+.mark ellipse { fill: none; stroke: #F2B705; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 1 }
+.on .mark ellipse { animation: draw .5s var(--at) ease-in-out both }
+@keyframes draw { to { stroke-dashoffset: 0 } }
 .flip i { position: absolute; inset: 0; background-repeat: no-repeat; background-size: var(--bs) auto }
 .flip i + i { transform: translateY(100%) }
-.on .flip i:first-child { animation: flipOut .35s var(--at) ease-in both }
-.on .flip i + i { animation: flipIn .35s calc(var(--at) + .12s) ease-out both }
-.on .flip { animation: flash 1.2s var(--at) both }
+.on .flip i:first-child { animation: flipOut .45s calc(var(--at) + .45s) ease-in both }
+.on .flip i + i { animation: flipIn .45s calc(var(--at) + .6s) ease-out both }
 @keyframes flipOut { to { transform: translateY(-100%) } }
 @keyframes flipIn { to { transform: none } }
-@keyframes flash { 0% { box-shadow: 0 0 0 3px transparent } 8%, 60% { box-shadow: 0 0 0 3px var(--marker) } 100% { box-shadow: 0 0 0 3px transparent } }
 .ba { position: absolute; z-index: 2; left: 8px; top: 6px; display: flex; border-radius: 6px; overflow: hidden; font-size: 10px; font-weight: 700;
   box-shadow: 0 2px 6px rgba(0,0,0,.15) }
 .ba b { padding: 3px 8px; background: #fff; color: var(--sub) }
@@ -80,7 +83,7 @@
 .tgt { position: absolute; border: 2.5px solid var(--fail); border-radius: 8px; box-shadow: 0 0 0 4px rgba(194,64,44,.15); opacity: 0 }
 .on .tgt { animation: pop .3s calc(var(--t) + 1.15s) cubic-bezier(.3,1.6,.5,1) both }
 .rip { position: absolute; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%; background: rgba(194,64,44,.4); opacity: 0 }
-.on .rip { animation: rip .5s calc(var(--t) + 1.1s) ease-out both }
+.on .rip { animation: rip .5s calc(var(--t) + 1.1s) ease-out forwards }  /* both 면 클릭 전에 작은 원이 미리 보임 */
 @keyframes rip { from { opacity: 1; transform: scale(.2) } to { opacity: 0; transform: scale(1.7) } }
 .cur { position: absolute; width: 17px; height: 21px; margin: -2px 0 0 -2px; fill: #fff; stroke: var(--ink); stroke-width: 1.4; stroke-linejoin: round;
   filter: drop-shadow(0 2px 3px rgba(0,0,0,.3)); opacity: 0 }
@@ -134,14 +137,14 @@
   <section class="scene">
     <div class="eyebrow"><span>강변몰 키오스크 · 함체 발주 한 건</span><span>입고</span></div>
     <h2 class="cap">물건이 도착하면<br><mark>흐름이 바로 갱신</mark></h2>
-    <div class="vp in" data-crop="160" data-before="flow_b" data-after="flow_a" data-ops='[["out", 297, 381, 2.0], ["flip", 60, 186, 30, 28, 2.5], ["flip", 139, 186, 30, 28, 2.6], ["flip", 228, 186, 30, 28, 2.7], ["flip", 148, 262, 26, 24, 2.5]]' style="--d:.5s;--sw:2s"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><div class="note" style="--d:1.0s">✓ 입고 확인 · 키오스크 함체 12대 (구매서 → 입고)</div></div>
+    <div class="vp in" data-crop="160" data-before="flow_b" data-after="flow_a" data-ops='[["out", 297, 381, 2.0], ["flip", 60, 186, 30, 28, 2.6], ["flip", 139, 186, 30, 28, 3.3], ["flip", 228, 186, 30, 28, 4.0], ["flip", 148, 262, 26, 24, 4.7]]' style="--d:.5s;--sw:2s"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><div class="note" style="--d:1.0s">✓ 입고 확인 · 키오스크 함체 12대 (구매서 → 입고)</div></div>
     <div class="foot"><span>함체가 납기 지남에서 빠지고 단계 표시가 바뀜</span><span class="pg"></span></div>
   </section>
 
   <section class="scene">
     <div class="eyebrow"><span>강변몰 키오스크 · 함체 발주 한 건</span><span>견적</span></div>
     <h2 class="cap">견적 회신이 오면<br><mark>남은 일도 갱신</mark></h2>
-    <div class="vp in" data-crop="800" data-before="todo_b" data-after="todo_a" data-ops='[["out", 1059, 1190, 2.0], ["in", 850, 850, 999, 2.5], ["flip", 122, 812, 32, 26, 2.6]]' style="--d:.5s;--sw:2s"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><div class="note" style="--d:1.0s">받는 봇 · 맑은아크릴 견적서 메일 → 아크릴 커버 견적받음</div></div>
+    <div class="vp in" data-crop="800" data-before="todo_b" data-after="todo_a" data-ops='[["out", 1059, 1190, 2.0], ["in", 850, 850, 999, 2.5], ["flip", 122, 812, 32, 26, 3.1]]' style="--d:.5s;--sw:2s"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><div class="note" style="--d:1.0s">받는 봇 · 맑은아크릴 견적서 메일 → 아크릴 커버 견적받음</div></div>
     <div class="foot"><span>견적 기다리는 것 → 발주 넣을 것으로 이동</span><span class="pg"></span></div>
   </section>
 
@@ -204,7 +207,12 @@ document.querySelectorAll('.vp[data-ops]').forEach(vp => {
   for (const o of cuts) {
     if (o[1] > y) seg('before', y, o[1] - y, o[1] - y, 'keep');
     if (o[0] === 'out') { seg('before', o[1], o[2] - o[1], 0, 'shrink', o[3]); y = o[2]; end = Math.max(end, o[3] + .5); }
-    else { seg('after', o[2], 0, o[3] - o[2], 'grow', o[4]); y = o[1]; end = Math.max(end, o[4] + .5); }
+    else {
+      seg('after', o[2], 0, o[3] - o[2], 'grow', o[4]); y = o[1]; end = Math.max(end, o[4] + .5);
+      const g = document.createElement('div'); g.className = 'addbox';  // 생긴 곳: 끝 화면에도 초록 테두리로 남김
+      Object.assign(g.style, { left: '4px', right: '4px', top: `${(o[2] - crop) * k + pad}px`, height: px(o[3] - o[2]) });
+      g.style.setProperty('--at', (o[4] + .45) + 's'); vp.append(g);
+    }
   }
   seg('before', y, 900, 900, 'keep');
   vp.prepend(stack);
@@ -221,7 +229,13 @@ document.querySelectorAll('.vp[data-ops]').forEach(vp => {
       Object.assign(i.style, { backgroundImage: src(n), backgroundPosition: `${-x * k}px ${-fy * k}px` });
       f.append(i);
     }
-    vp.append(f); end = Math.max(end, at + .5);
+    vp.append(f); end = Math.max(end, at + 1.1);
+    // 노란 동그라미: 숫자 둘레를 그리듯 → 숫자가 넘어감. 다 그린 동그라미는 남김
+    const m = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); m.setAttribute('class', 'mark');
+    m.setAttribute('viewBox', '0 0 100 100'); m.setAttribute('preserveAspectRatio', 'none');
+    m.innerHTML = '<ellipse cx="50" cy="52" rx="47" ry="44" pathLength="1" vector-effect="non-scaling-stroke" transform="rotate(-4 50 50)"/>';
+    Object.assign(m.style, { left: `${x * k - 7}px`, top: `${(fy - crop) * k + pad - 6}px`, width: `${w * k + 14}px`, height: `${h * k + 12}px` });
+    m.style.setProperty('--at', at + 's'); vp.append(m);
   }
   vp.style.setProperty('--end', end + 's');
 });
