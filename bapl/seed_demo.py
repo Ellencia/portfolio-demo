@@ -150,10 +150,7 @@ def main():
              p, 0.97 if p else None, f"{date}T18:00:00" if p else None, f"{date}T18:00:00"))
         conn.execute("INSERT INTO tax_invoice_line (invoice_id, line_no, item_date, item_name, spec, qty, unit_price, supply_amount, vat_amount)"
                      " VALUES (?,?,?,?,?,?,?,?,?)", (cur.lastrowid, 1, date, name, spec, qty, price, sup, sup // 10))
-    for oid, when, text in ((o6, "2026-10-21 10:12", "업체 회신: LED 표시기 10/28 출고 예정"),
-                            (o3, "2026-10-23 15:40", "함체 도장 완료, 다음 주 월요일 배송")):
-        conn.execute("INSERT INTO doc_event (kind, ref_id, occurred_at, event_kind, summary, source, source_event_id, created_at) "
-                     "VALUES ('order', ?, ?, 'task.progress', ?, 'work-inbox', ?, ?)", (oid, when, text, f"demo-{oid}", when))
+    _event(conn, o6, "2026-10-21 10:12", "업체 회신: LED 표시기 10/28 출고 예정")
     conn.commit()
     n = {t: conn.execute(f"SELECT COUNT(*) FROM {t}").fetchone()[0]
          for t in ("project", "order_header", "purchase_header", "stock_header", "plan_line", "vendor", "item")}
@@ -161,5 +158,30 @@ def main():
     print(DB, n)
 
 
+def _event(conn, oid, when, text):
+    conn.execute("INSERT INTO doc_event (kind, ref_id, occurred_at, event_kind, summary, source, source_event_id, created_at) "
+                 "VALUES ('order', ?, ?, 'task.progress', ?, 'work-inbox', ?, ?)", (oid, when, text, f"demo-{oid}-{when}", when))
+
+
+# 포폴 이야기 단계 (capture.py 가 단계마다 화면을 찍음) — 강변몰 키오스크 함체 발주(3번) 한 건을 따라감
+def news():
+    """업체 소식이 메신저로 와서 발주서 진행 이력에 한 줄."""
+    conn = connect(str(DB))
+    _event(conn, 3, "2026-10-24 15:40", "업체 회신: 함체 도장 완료, 10/26 오전 배송")
+    conn.commit()
+    conn.close()
+
+
+def arrive():
+    """함체 도착 → 구매서 입고(입고 전표·흐름 기록 자동) + 아크릴 커버 견적 회신 → 물량 줄 견적받음."""
+    from buyflow.purchases import set_purchase_status
+    conn = connect(str(DB))
+    pid = conn.execute("SELECT id FROM purchase_header WHERE from_order_ids = '3'").fetchone()[0]
+    acryl = conn.execute("SELECT id FROM plan_line WHERE project_code = 'P26-011' AND item_name = ?", (IT["acryl"][0],)).fetchone()[0]
+    conn.close()
+    set_purchase_status(str(DB), pid, "입고", ME)
+    plans.update_line(str(DB), acryl, {"status": "견적받음", "quote_price": IT["acryl"][2], "note": "견적서 메일 10/24"})
+
+
 if __name__ == "__main__":
-    main()
+    {"news": news, "arrive": arrive}.get(sys.argv[1] if len(sys.argv) > 1 else "", main)()
