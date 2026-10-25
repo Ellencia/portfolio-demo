@@ -10,7 +10,8 @@ HERE = Path(__file__).parent
 DOCS = HERE / "docs"
 PAGES = [("bapl", "구매관리 웹앱", "발주부터 세금계산서까지, 직접 만든 웹앱의 실제 화면 (데이터는 가상)"),
          ("harness", "업무 자동화", "메신저 업무 봇 두 개와 기록 DB를 잇는 흐름. 디자인 5종"),
-         ("excel", "엑셀 자동 정리", "양식이 제각각인 엑셀을 한 표로, 검증과 대시보드까지")]
+         ("excel", "엑셀 자동 정리", "양식이 제각각인 엑셀을 한 표로, 검증과 대시보드까지"),
+         ("tabrip", "탭 영상 → 악보", "유튜브 기타 탭 영상을 연주할 Guitar Pro 악보로 (개인 프로젝트, 숫자는 실제 산출)")]
 HEAD = '<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n' \
        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
 
@@ -53,7 +54,7 @@ footer {{ margin-top: 28px; color: var(--sub); font-size: 13px }}
 <body>
 <main>
   <h1>반복 업무를<br><mark>자동으로</mark></h1>
-  <p class="lead">폰 화면 크기 데모 세 편. 화면의 회사·거래처·품목·금액은 모두 예시입니다.</p>
+  <p class="lead">폰 화면 크기 데모 네 편. 업무 데모 화면의 회사·거래처·품목·금액은 모두 예시입니다.</p>
   <ul>
 {cards}
   </ul>

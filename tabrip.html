@@ -1,0 +1,425 @@
+<title>tab-ripper 데모</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="demo.css">
+<style>
+/* 탭 악보 장면용 추가분. 색·글꼴은 demo.css 무대 토큰을 그대로 씀 */
+.tab { width: 100%; height: auto; display: block; overflow: visible }
+.tab .st { stroke: #B4BBB1; stroke-width: 1 }
+.tab .bl { stroke: #6E7880; stroke-width: 1 }
+.tab .fn { font: 500 10px var(--f-mono); text-anchor: middle; dominant-baseline: central; paint-order: stroke; stroke: var(--cell); stroke-width: 4px }
+.tab .cur { fill: var(--fail); opacity: .75 }
+
+/* 영상 화면 */
+.vplayer { background: #1A2027; border-radius: 8px; padding: 7px; display: grid; gap: 5px }
+.vplayer .vtop { display: flex; justify-content: space-between; font: 500 9px var(--f-mono); color: #9AA5AE }
+.vplayer .screen { background: var(--cell); border-radius: 4px; padding: 4px }
+.vplayer .plab { font: 500 8.5px var(--f-mono); color: #C5D0DC; margin-bottom: -2px }
+.vplayer .vbar { height: 3px; background: rgba(255,255,255,.18); border-radius: 2px; overflow: hidden }
+.vplayer .vbar i { display: block; height: 100%; width: 0; background: var(--fail) }
+.on .vplayer .vbar i { animation: vplay 8s .7s linear both }
+@keyframes vplay { to { width: 55% } }
+.outs { display: flex; align-items: center; gap: 6px; flex-wrap: wrap }
+.fchip { font: 500 10.5px var(--f-mono); padding: 4px 8px; border: 1px solid var(--ink); border-radius: 5px; background: var(--cell) }
+.fchip.main { background: var(--marker); border-color: var(--marker) }
+
+/* 1 표지: 영상 → 링크 복사 → 앱에 붙여넣기 → 작업 → 파일 (앱은 구상안) */
+.s1 { gap: 10px }
+.s1 > * { flex-shrink: 0 }
+.s1 .kpis div { padding: 6px 9px }
+.yt { padding: 7px; display: grid; gap: 4px }
+.addr { position: relative; display: flex; align-items: center; gap: 6px; background: #EEF1EA; border-radius: 13px; padding: 5px 10px; font: 500 10px var(--f-mono); color: var(--ink) }
+.addr .lock { width: 7px; height: 7px; border-radius: 50%; background: var(--pass); flex: none }
+.addr .u { background: linear-gradient(#BFD4F2, #BFD4F2) no-repeat 0 0 / 0% 100% }
+.on .addr .u { animation: sel .3s 2.2s both, desel .2s 5.5s forwards }
+@keyframes sel { to { background-size: 100% 100% } }
+@keyframes desel { from { background-size: 100% 100% } to { background-size: 0% 100% } }
+.vmeta { display: flex; justify-content: space-between; align-items: baseline; padding: 0 3px; font-size: 11.5px }
+.vmeta span { font-size: 10px; color: var(--sub) }
+
+.app { padding: 0 10px 10px; display: grid; gap: 7px; overflow: hidden }
+.atop { display: flex; align-items: center; gap: 5px; margin: 0 -10px; padding: 6px 10px; border-bottom: 1px solid var(--line); background: #EEF1EA; font: 500 10px var(--f-mono); color: var(--sub) }
+.atop i { width: 8px; height: 8px; border-radius: 50%; background: var(--line) }
+.atop span { margin-left: 6px }
+.url { display: flex; gap: 6px }
+.field { flex: 1; min-width: 0; position: relative; border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font: 500 10px var(--f-mono); height: 14px; overflow: hidden; white-space: nowrap }
+.field .ph { position: absolute; left: 8px; top: 6px; color: #9AA3AB; font-family: var(--f-body) }
+.field .paste { opacity: 0; background: #D7E3F4 }
+.on .field .paste { animation: pasted .2s 6.8s both, unsel .3s 7.4s forwards }
+.on .field .ph { animation: gone .1s 6.8s both }
+@keyframes pasted { from { opacity: 0 } to { opacity: 1 } }
+@keyframes unsel { from { opacity: 1 } to { opacity: 1; background: transparent } }
+@keyframes gone { to { opacity: 0 } }
+.url .go { flex: none; font: 700 11px var(--f-body); padding: 6px 10px; border-radius: 6px; background: var(--ink); color: var(--paper) }
+.on .url .go { animation: press .5s 8.1s both }
+
+/* 마우스: 링크 우클릭 → 메뉴 "복사" 클릭 → 입력칸 우클릭 → "붙여넣기" 클릭 → 버튼 클릭.
+   좌표는 스크립트가 넣음: 1 링크, 4 복사, 2 입력칸, 5 붙여넣기, 3 버튼. 7.7s 동안 1.2s → 8.9s */
+.ptr { position: absolute; left: 0; top: 0; width: 15px; height: 21px; z-index: 8; opacity: 0; pointer-events: none;
+  transform: translate(calc(var(--x1) + 70px), calc(var(--y1) + 90px)) }
+.on .ptr { animation: ptr 7.7s 1.2s both }
+@keyframes ptr {
+  0% { opacity: 0; transform: translate(calc(var(--x1) + 70px), calc(var(--y1) + 90px)) }
+  2.6% { opacity: 1; transform: translate(calc(var(--x1) + 70px), calc(var(--y1) + 90px)); animation-timing-function: ease-in-out }
+  10.4%, 18.8% { transform: translate(var(--x1), var(--y1)) }
+  19.5% { transform: translate(var(--x1), var(--y1)) scale(.85) }
+  20.8%, 23.4% { transform: translate(var(--x1), var(--y1)); animation-timing-function: ease-in-out }
+  29.9%, 33.2% { transform: translate(var(--x4), var(--y4)) }
+  33.8% { transform: translate(var(--x4), var(--y4)) scale(.85) }
+  35.1%, 39% { transform: translate(var(--x4), var(--y4)); animation-timing-function: ease-in-out }
+  52%, 55.2% { transform: translate(var(--x2), var(--y2)) }
+  55.8% { transform: translate(var(--x2), var(--y2)) scale(.85) }
+  57.1%, 61% { transform: translate(var(--x2), var(--y2)); animation-timing-function: ease-in-out }
+  67.5%, 70.8% { transform: translate(var(--x5), var(--y5)) }
+  71.4% { transform: translate(var(--x5), var(--y5)) scale(.85) }
+  72.7%, 80.5% { transform: translate(var(--x5), var(--y5)); animation-timing-function: ease-in-out }
+  89.6%, 91.6% { transform: translate(var(--x3), var(--y3)) }
+  92.2% { transform: translate(var(--x3), var(--y3)) scale(.85) }
+  93.5%, 96% { opacity: 1; transform: translate(var(--x3), var(--y3)) }
+  100% { opacity: 0; transform: translate(var(--x3), var(--y3)) }
+}
+.cmenu { position: absolute; z-index: 7; width: 112px; padding: 4px 0; background: var(--cell); border: 1px solid var(--line); border-radius: 7px;
+  box-shadow: 0 8px 22px rgba(23,33,43,.18); font-size: 11px; opacity: 0; transform-origin: 0 0 }
+.cmenu div { padding: 4px 11px; color: var(--ink) }
+.cmenu div.dim { color: #A9B1B8 }
+.m1 { left: calc(var(--x1) + 4px); top: calc(var(--y1) + 4px) }
+.m2 { left: calc(var(--x2) + 4px); top: calc(var(--y2) + 4px) }
+.on .m1 { animation: menu 1.3s 2.7s both }
+.on .m2 { animation: menu 1.3s 5.5s both }
+.on .m1 .hi { animation: hi .1s 3.45s both }
+.on .m2 .hi { animation: hi .1s 6.25s both }
+@keyframes menu { 0% { opacity: 0; transform: scale(.94) } 6% { opacity: 1; transform: none } 92% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes hi { to { background: var(--navy); color: #fff } }
+@keyframes press { 40% { transform: scale(.9) } 100% { background: var(--marker); color: var(--ink) } }
+.work { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px }
+.work li { display: grid; grid-template-columns: 14px 1fr auto; gap: 8px; align-items: center; font-size: 11.5px; padding: 1.5px 0; color: #A9B1B8 }
+.work .ic { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid currentColor; box-sizing: border-box; display: grid; place-items: center; font-size: 8px; line-height: 1 }
+.work em { font: 500 10px var(--f-mono); font-style: normal; opacity: 0 }
+.on .work li { animation: workon .3s var(--d) both }
+.on .work .ic { animation: workdone .3s calc(var(--d) + .45s) both }
+.on .work .ic::after { content: "✓"; color: #fff; animation: pasted .2s calc(var(--d) + .45s) both }
+.on .work em { animation: pasted .3s calc(var(--d) + .45s) both }
+@keyframes workon { to { color: var(--ink) } }
+@keyframes workdone { to { background: var(--pass); border-color: var(--pass) } }
+.s1 .outs { border-top: 1px dashed var(--line); padding-top: 8px }
+
+/* 기법 */
+.marks { padding: 8px 6px 4px }
+.mk { fill: none; stroke: var(--fail); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 100; stroke-dashoffset: 100 }
+.on .mk { animation: draw .55s var(--d) ease-out both }
+@keyframes draw { to { stroke-dashoffset: 0 } }
+.mkl { font: 500 8.5px var(--f-body); fill: var(--fail); text-anchor: middle }
+
+/* 영상 오타 찾기 */
+.pitch { padding: 8px 6px 4px }
+.pitch .sl { stroke: #6E7880; stroke-width: 1 }
+.pitch .nh { fill: #17212B }
+.pitch .ok { font: 700 10px var(--f-body); fill: var(--pass); text-anchor: middle }
+.pitch .ng { font: 700 10px var(--f-body); fill: var(--fail); text-anchor: middle }
+.pitch .lab { font: 500 8px var(--f-mono); fill: var(--sub) }
+.pitch .pop { transform-box: fill-box; transform-origin: center }
+.kpis.wide b { font-size: 15px }
+
+/* 다중 트랙 · PDF */
+.tracks { padding: 9px 11px; display: grid; gap: 6px }
+.tracks h4 { margin: 0; font: 700 11.5px var(--f-body); display: flex; justify-content: space-between; gap: 8px }
+.tracks h4 small { font: 400 10px var(--f-body); color: var(--sub); white-space: nowrap }
+.trk { display: grid; grid-template-columns: 6px 54px 1fr 54px; gap: 8px; align-items: center; font-size: 11px; padding: 4px 0; border-bottom: 1px solid #ECEEE8 }
+.trk i { height: 22px; border-radius: 2px }
+.trk span { color: var(--sub); font-size: 10.5px }
+.trk .lvl { height: 6px; border-radius: 3px; background: repeating-linear-gradient(90deg, var(--pass) 0 4px, transparent 4px 6px); transform-origin: left }
+.on .trk .lvl { animation: growx .6s var(--d) both }
+.pdf { padding: 10px 12px 8px; display: grid; gap: 4px; position: relative; box-shadow: 0 6px 16px rgba(23,33,43,.08) }
+.pdf h4 { margin: 0 0 2px; font-size: 11px; display: flex; justify-content: space-between; align-items: baseline }
+.pdf h4 small { font: 500 9px var(--f-mono); color: var(--sub) }
+.pdf .badge { position: absolute; right: -4px; top: -6px; font: 700 9px var(--f-mono); color: #fff; background: var(--fail); padding: 3px 6px; border-radius: 4px }
+.down { font: 400 18px/1 var(--f-display); text-align: center; color: var(--sub); margin: -6px 0 }
+.match { padding: 9px 11px; display: grid; gap: 6px; font-size: 11px }
+.match .row { display: flex; justify-content: space-between; align-items: baseline }
+.match .row b { font: 500 15px var(--f-mono) }
+.match .meter { height: 7px; border-radius: 4px; background: var(--line); overflow: hidden }
+.match .meter i { display: block; height: 100%; width: 99.1%; background: var(--pass); transform-origin: left }
+.on .match .meter i { animation: growx .8s 3.4s both }
+.match small { color: var(--sub); font-size: 10px }
+
+/* 검수 */
+.rv { padding: 9px 11px; display: grid; gap: 5px }
+.rv h4 { margin: 0; font-size: 11px; display: flex; justify-content: space-between; align-items: center }
+.rv .lab { font: 500 8.5px var(--f-mono); color: var(--sub) }
+.rbtns { display: flex; gap: 5px; margin-top: 2px }
+.rbtns span { flex: 1; text-align: center; font-size: 10.5px; padding: 4px; border: 1px solid var(--line); border-radius: 6px }
+.rbtns .ok { border-color: var(--pass); color: var(--pass); font-weight: 700 }
+.on .rbtns .ok { animation: click .5s 2.2s both }
+.cellbox { padding: 10px 11px; display: grid; gap: 8px }
+.cellbox h4 { margin: 0; font-size: 11px; display: flex; justify-content: space-between }
+.cellbox h4 small { font-weight: 400; color: var(--sub) }
+.cells { display: grid; grid-template-columns: repeat(29, 1fr); gap: 2px }
+.cells i { aspect-ratio: 1; border-radius: 1.5px; background: var(--line) }
+.on .cells i { animation: cellok .2s var(--d) both }
+.on .cells i.bad { animation: cellbad .2s var(--d) both, cellfix .4s 4.6s forwards }
+@keyframes cellok { to { background: var(--pass) } }
+@keyframes cellbad { to { background: var(--fail) } }
+@keyframes cellfix { from { background: var(--fail) } to { background: var(--pass) } }
+.rstats { display: grid; grid-template-columns: repeat(3, 1fr); font-size: 10px; color: var(--sub) }
+.rstats b { display: block; font: 500 15px var(--f-mono); color: var(--ink); font-variant-numeric: tabular-nums }
+</style>
+
+<div class="phone" id="phone">
+<div class="stage" id="stage" data-hold="2500">
+  <div class="bars" id="bars"></div>
+
+  <!-- 1 표지: 링크 하나로 악보까지 -->
+  <section class="scene s1">
+    <div class="eyebrow"><span>포트폴리오 · 영상 → 악보</span><span>tab-ripper</span></div>
+    <h1 class="cap">탭 영상 링크 하나로<br><mark>연주할 악보 파일</mark></h1>
+    <div class="card yt in" style="--d:.6s">
+      <div class="addr"><span class="lock"></span><span class="u" id="p1">youtube.com/watch?v=Tab_Video01</span></div>
+      <div class="vplayer">
+        <div class="screen">
+          <svg class="tab" viewBox="0 0 316 64" data-y0="8" data-gap="9" data-bars="4 156 312" data-cursor="4"
+            data-notes="24:5:3 48:3:0 72:2:1 96:3:0 120:1:0 140:2:1 172:6:3 196:4:2 220:3:0 244:2:0 268:1:3 292:2:0" aria-label="6줄 기타 탭 두 마디 위로 재생 커서가 지나가는 영상 화면"></svg>
+        </div>
+        <div class="vbar"><i></i></div>
+      </div>
+      <div class="vmeta"><b>청춘만화 · 기타 탭</b><span>탭 채널 · 1080p</span></div>
+    </div>
+    <div class="card app in" style="--d:1s">
+      <div class="atop"><i></i><i></i><i></i><span>tab-ripper</span></div>
+      <div class="url">
+        <div class="field" id="p2"><span class="paste">https://youtu.be/Tab_Video01</span><span class="ph">영상 링크를 붙여넣으세요</span></div>
+        <span class="go" id="p3">악보 만들기</span>
+      </div>
+      <ol class="work">
+        <li style="--d:8.8s"><span class="ic" data-sfx="tick"></span>영상 화면 모으기<em>21화면</em></li>
+        <li style="--d:9.4s"><span class="ic" data-sfx="tick"></span>탭 숫자·기호 읽기<em>528음</em></li>
+        <li style="--d:10s"><span class="ic" data-sfx="tick"></span>박자 맞추기<em>107마디</em></li>
+        <li style="--d:10.6s"><span class="ic" data-sfx="tick"></span>연주 기법 붙이기<em>벤드·비브라토…</em></li>
+        <li style="--d:11.2s"><span class="ic" data-sfx="tick"></span>악보 쓰기<em>Guitar Pro</em></li>
+      </ol>
+      <div class="outs"><span class="fchip main pop" style="--d:11.9s">청춘만화.gp</span><span class="fchip pop" style="--d:12.1s">악보 PDF</span><span class="fchip pop" style="--d:12.3s">태블릿 PDF</span></div>
+    </div>
+    <div class="kpis">
+      <div class="card pop" style="--d:12.8s">읽은 영상<b>10곡</b></div>
+      <div class="card pop" style="--d:13s">마디<b>994</b></div>
+      <div class="card pop" style="--d:13.2s">음<b>9,498</b></div>
+    </div>
+    <div class="cmenu m1"><div class="dim">새 탭에서 열기</div><div class="hi" id="p4">복사</div><div class="dim">검사</div></div>
+    <div class="cmenu m2"><div class="dim">잘라내기</div><div class="dim">복사</div><div class="hi" id="p5">붙여넣기</div></div>
+    <svg class="ptr" viewBox="0 0 15 21" aria-hidden="true" data-sfx-at="2.7:click 2.75:menu 3.8:click 5.5:click 5.55:menu 6.6:click 6.8:menu 8.1:click"><path d="M1 1 L1 16 L5 12.5 L8 19.5 L10.6 18.4 L7.7 11.6 L13 11.6 Z" fill="#fff" stroke="#17212B" stroke-width="1.3" stroke-linejoin="round"/></svg>
+    <div class="foot"><span>앱 화면은 구상안 · 숫자는 실제 산출</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 3 기법 -->
+  <section class="scene">
+    <div class="eyebrow"><span>tab-ripper</span><span>기법</span></div>
+    <h2 class="cap">숫자 옆의 선까지<br><mark>연주 기법으로</mark></h2>
+    <div class="card marks in" style="--d:.5s">
+      <svg class="tab" viewBox="0 0 316 92" data-y0="30" data-gap="11" data-bars="4 312"
+        data-notes="40:3:5 80:3:7 118:2:7 150:2:9 196:2:14 252:1:12 294:3:&lt;7&gt;" aria-label="슬라이드, 해머온, 벤드, 비브라토, 하모닉스가 표시된 탭">
+        <path class="mk" data-sfx="swish" pathLength="100"d="M47 56 L73 48" style="--d:1s"/>
+        <text class="mkl in" x="60" y="72" style="--d:1.2s">슬라이드</text>
+        <path class="mk" data-sfx="swish" pathLength="100"d="M118 32 Q134 19 150 32" style="--d:1.6s"/>
+        <text class="mkl in" x="134" y="16" style="--d:1.8s">해머온</text>
+        <path class="mk" data-sfx="swish" pathLength="100"d="M205 41 Q217 41 217 10 M212 16 L217 9 L222 16" style="--d:2.2s"/>
+        <text class="mkl in" x="232" y="8" style="--d:2.4s">full</text>
+        <path class="mk" data-sfx="swish" pathLength="100"d="M240 18 l4 -4 l4 4 l4 -4 l4 4 l4 -4 l4 4 l4 -4 l4 4" style="--d:2.8s"/>
+        <text class="mkl in" x="294" y="76" style="--d:3.2s">하모닉스</text>
+      </svg>
+    </div>
+    <div class="card top in" style="--d:3.4s">
+      <h4>청춘만화 한 곡에서 읽은 기법<small>음 개수</small></h4>
+      <ol>
+        <li>비브라토<i style="--w:100%;--d:3.6s"></i><em>56</em></li>
+        <li>장식음<i style="--w:73%;--d:3.7s"></i><em>41</em></li>
+        <li>벤드<i style="--w:36%;--d:3.8s"></i><em>20</em></li>
+        <li>스타카토<i style="--w:30%;--d:3.9s"></i><em>17</em></li>
+        <li>슬라이드<i style="--w:27%;--d:4s"></i><em>15</em></li>
+        <li>슬러<i style="--w:18%;--d:4.1s"></i><em>10</em></li>
+        <li>하모닉스<i style="--w:14%;--d:4.2s"></i><em>8</em></li>
+      </ol>
+    </div>
+    <p class="sub in" style="--d:4.6s">늘임표, 도돌이표, D.C. al Coda 같은 악곡 구조도 읽습니다.</p>
+    <div class="foot"><span>실제 산출 · 청춘만화 score.json</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 4 영상 오타 찾기 -->
+  <section class="scene">
+    <div class="eyebrow"><span>tab-ripper</span><span>정확도</span></div>
+    <h2 class="cap">원본 영상의<br><mark>오타까지 찾아낸다</mark></h2>
+    <p class="sub in" style="--d:.8s">오선 악보와 탭이 같이 나오는 영상은 두 쪽 음을 하나씩 맞춰 봅니다.</p>
+    <div class="card pitch in" style="--d:1s">
+      <svg class="tab" viewBox="0 0 316 140" data-y0="76" data-gap="9" data-bars="4 312"
+        data-notes="38:2:0 72:3:2 106:2:1 140:1:0 174:2:3 208:3:0 242:1:3 276:2:0" aria-label="오선 음표와 탭 숫자를 한 칸씩 맞춰 보고, 첫 칸만 서로 달라 표시한 그림">
+        <text class="lab" x="4" y="10">오선</text>
+        <line class="sl" x1="4" x2="312" y1="20" y2="20"/><line class="sl" x1="4" x2="312" y1="28" y2="28"/>
+        <line class="sl" x1="4" x2="312" y1="36" y2="36"/><line class="sl" x1="4" x2="312" y1="44" y2="44"/>
+        <line class="sl" x1="4" x2="312" y1="52" y2="52"/>
+        <ellipse class="nh" cx="38" cy="24" rx="4.6" ry="3.4" transform="rotate(-20 38 24)"/>
+        <ellipse class="nh" cx="72" cy="40" rx="4.6" ry="3.4" transform="rotate(-20 72 40)"/>
+        <ellipse class="nh" cx="106" cy="32" rx="4.6" ry="3.4" transform="rotate(-20 106 32)"/>
+        <ellipse class="nh" cx="140" cy="24" rx="4.6" ry="3.4" transform="rotate(-20 140 24)"/>
+        <ellipse class="nh" cx="174" cy="28" rx="4.6" ry="3.4" transform="rotate(-20 174 28)"/>
+        <ellipse class="nh" cx="208" cy="44" rx="4.6" ry="3.4" transform="rotate(-20 208 44)"/>
+        <ellipse class="nh" cx="242" cy="16" rx="4.6" ry="3.4" transform="rotate(-20 242 16)"/>
+        <ellipse class="nh" cx="276" cy="36" rx="4.6" ry="3.4" transform="rotate(-20 276 36)"/>
+        <text class="lab" x="4" y="68">탭</text>
+        <text class="ng pop" data-sfx="buzz"x="38" y="136" style="--d:1.6s">✗</text>
+        <text class="ok pop" data-sfx="tick"x="72" y="136" style="--d:1.85s">✓</text>
+        <text class="ok pop" data-sfx="tick"x="106" y="136" style="--d:2.1s">✓</text>
+        <text class="ok pop" data-sfx="tick"x="140" y="136" style="--d:2.35s">✓</text>
+        <text class="ok pop" data-sfx="tick"x="174" y="136" style="--d:2.6s">✓</text>
+        <text class="ok pop" data-sfx="tick"x="208" y="136" style="--d:2.85s">✓</text>
+        <text class="ok pop" data-sfx="tick"x="242" y="136" style="--d:3.1s">✓</text>
+        <text class="ok pop" data-sfx="tick"x="276" y="136" style="--d:3.35s">✓</text>
+        <circle class="mk" data-sfx="swish" pathLength="100" cx="38" cy="24" r="9" style="--d:3.7s"/>
+        <rect class="mk" pathLength="100" x="29" y="78" width="18" height="14" rx="4" style="--d:3.9s"/>
+        <path class="mk" data-sfx="swish" pathLength="100"d="M38 34 L38 76" style="--d:4.1s;stroke-dasharray:3 3;stroke-dashoffset:0"/>
+      </svg>
+    </div>
+    <div class="kpis wide">
+      <div class="card pop" style="--d:4.4s">맞춰 본 음<b>1,613</b></div>
+      <div class="card pop" style="--d:4.6s">어긋난 곳<b>1</b></div>
+      <div class="card pop" style="--d:4.8s">원인<b>영상 오기</b></div>
+    </div>
+    <div class="foot"><span>실제 기록 · Experience 첫 화음</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 5 다중 트랙 -->
+  <section class="scene">
+    <div class="eyebrow"><span>tab-ripper</span><span>다중 트랙</span></div>
+    <h2 class="cap">기타 두 대도<br><mark>트랙 둘로 나눠서</mark></h2>
+    <p class="sub in" style="--d:.8s">Lead와 Second가 한 화면에 위아래로 같이 나오는 영상. 패널마다 따로 읽고 한 파일에 합칩니다.</p>
+    <div class="vplayer in" style="--d:1.1s">
+      <div class="vtop"><span>● 사랑한 마음엔 죄가 없다 · 소란</span><span>2 패널</span></div>
+      <span class="plab">LEAD</span>
+      <div class="screen">
+        <svg class="tab" viewBox="0 0 316 62" data-y0="8" data-gap="9" data-bars="4 312" data-cursor="3.6"
+          data-notes="24:3:10 62:3:11 138:3:11 176:3:13 252:3:13 290:2:11" aria-label="리드 기타 탭"></svg>
+      </div>
+      <span class="plab">SECOND</span>
+      <div class="screen">
+        <svg class="tab" viewBox="0 0 316 62" data-y0="8" data-gap="9" data-bars="4 312" data-cursor="3.6"
+          data-notes="24:5:11 62:5:13 138:4:11 176:4:13 252:4:13 290:3:10" aria-label="세컨드 기타 탭, 리드와 화음을 이룸"></svg>
+      </div>
+    </div>
+    <div class="card tracks in" style="--d:2.6s">
+      <h4>소란.gp<small>한 파일 · 트랙 2</small></h4>
+      <div class="trk in" style="--d:3s"><i style="background:#C2402C"></i><b>Lead</b><span>일렉 기타 · 70마디</span><em class="lvl" style="--d:3.2s"></em></div>
+      <div class="trk in" style="--d:3.4s"><i style="background:#22364F"></i><b>Second</b><span>일렉 기타 · 70마디</span><em class="lvl" style="--d:3.6s"></em></div>
+      <div class="outs"><span class="fchip pop" style="--d:4.2s">트랙별 PDF</span><span class="fchip pop" style="--d:4.4s">트랙별 태블릿 PDF</span></div>
+    </div>
+    <div class="foot"><span>실제 산출 · 탭은 9마디 일부를 옮겨 그림</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 6 PDF 입력 -->
+  <section class="scene">
+    <div class="eyebrow"><span>tab-ripper</span><span>PDF</span></div>
+    <h2 class="cap">영상이 없으면<br><mark>PDF 악보에서</mark></h2>
+    <p class="sub in" style="--d:.8s">구매한 탭 악보 PDF를 넣어도 Guitar Pro 파일이 나옵니다.</p>
+    <div class="card pdf in" style="--d:1s">
+      <span class="badge">PDF</span>
+      <h4>소년이 어른이 되어 · Gt.1 &amp; 2<small>1 / 10</small></h4>
+      <svg class="tab" viewBox="0 0 316 50" data-y0="4" data-gap="8" data-bars="4 160 312"
+        data-notes="22:3:2 44:2:3 66:3:2 88:4:4 112:3:2 136:2:3 182:3:4 204:2:5 226:3:4 248:4:6 272:3:4 294:2:5"></svg>
+      <svg class="tab" viewBox="0 0 316 50" data-y0="4" data-gap="8" data-bars="4 160 312"
+        data-notes="30:5:2 30:4:4 70:5:2 110:4:4 190:6:2 190:5:4 230:6:2 270:5:4"></svg>
+    </div>
+    <div class="down in" style="--d:1.8s">↓</div>
+    <div class="card tracks in" style="--d:2.1s">
+      <h4>소년이 어른이 되어.gp<small>카포 4 · 트랙 2</small></h4>
+      <div class="trk in" style="--d:2.4s"><i style="background:#C2402C"></i><b>Gt.1</b><span>70마디</span><em class="lvl" style="--d:2.6s"></em></div>
+      <div class="trk in" style="--d:2.7s"><i style="background:#22364F"></i><b>Gt.2</b><span>70마디</span><em class="lvl" style="--d:2.9s"></em></div>
+    </div>
+    <div class="card match in" style="--d:3.2s" data-sfx-at="4.2:chime">
+      <div class="row"><span>정답 .gp를 PDF로 뽑아 다시 읽기</span><b>452 / 456</b></div>
+      <div class="meter"><i></i></div>
+      <small>박자 단위로 비교, 99% 일치</small>
+    </div>
+    <div class="foot"><span>실제 기록 · 탭은 설명용 그림</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 7 사람 검수 -->
+  <section class="scene">
+    <div class="eyebrow"><span>tab-ripper</span><span>검수</span></div>
+    <h2 class="cap">마지막 판정은<br><mark>사람이 마디마다</mark></h2>
+    <div class="card rv in" style="--d:.6s">
+      <h4>하울 114마디<span class="chip ask">대조 중</span></h4>
+      <span class="lab">영상</span>
+      <svg class="tab" viewBox="0 0 316 44" data-y0="4" data-gap="7" data-bars="4 312" data-notes="40:2:5 90:1:3 140:2:5 190:3:4 240:2:5 286:1:0"></svg>
+      <span class="lab">우리 결과</span>
+      <svg class="tab" viewBox="0 0 316 44" data-y0="4" data-gap="7" data-bars="4 312" data-notes="40:2:5 90:1:3 140:2:5 190:3:4 240:2:5 286:1:0"></svg>
+      <div class="rbtns"><span>▶ 영상 소리</span><span>▶ 악보 소리</span><span class="ok" data-sfx="click">✓</span><span>✗</span></div>
+    </div>
+    <div class="card cellbox in" style="--d:1.4s" data-sfx-at="4.9:chime">
+      <h4>하울 145마디<small>칸 하나 = 한 마디</small></h4>
+      <div class="cells" id="cells"></div>
+      <div class="rstats"><div>검수 시간<b>14분</b></div><div>틀림<b>7</b></div><div>고친 뒤<b>145/145</b></div></div>
+    </div>
+    <p class="sub in" style="--d:5s">틀린 7마디는 원인을 찾아 코드에서 고치고, 그 마디만 다시 봤습니다.</p>
+    <div class="foot"><span>실제 기록 · 2026-10-18</span><span class="pg"></span></div>
+  </section>
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+</div>
+<p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<script>
+// 탭 그림: data-notes="x:줄:프렛 ...", data-cursor=초 이면 커서가 돌며 지나간 음을 깜빡임
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.append(e);
+  return e;
+}
+document.querySelectorAll('svg.tab').forEach(svg => {
+  const W = 316, y0 = +svg.dataset.y0, g = +svg.dataset.gap, dur = +svg.dataset.cursor || 0;
+  const lay = el('g', {}); svg.prepend(lay);
+  for (let i = 0; i < 6; i++) el('line', { x1: 4, x2: W - 4, y1: y0 + i * g, y2: y0 + i * g, class: 'st' }, lay);
+  svg.dataset.bars.split(' ').forEach(x => el('line', { x1: x, x2: x, y1: y0, y2: y0 + 5 * g, class: 'bl' }, lay));
+  svg.dataset.notes.split(' ').forEach(n => {
+    const [x, s, f] = n.split(':');
+    const t = el('text', { x, y: y0 + (s - 1) * g, class: 'fn', fill: '#17212B' }, svg);
+    t.textContent = f;
+    if (dur) el('animate', { attributeName: 'fill', values: '#C2402C;#C2402C;#17212B', keyTimes: '0;.12;.3',
+      dur: dur + 's', begin: ((x - 8) / (W - 16) * dur).toFixed(2) + 's', repeatCount: 'indefinite' }, t);
+  });
+  if (dur) {
+    const c = el('rect', { class: 'cur', x: 8, y: y0 - 7, width: 2, height: 5 * g + 14 }, svg);
+    el('animate', { attributeName: 'x', from: 8, to: W - 8, dur: dur + 's', repeatCount: 'indefinite' }, c);
+  }
+});
+
+// 1번 장면 마우스 좌표 (무대 좌표, 글꼴 로드 뒤 다시): 링크 가운데, 입력칸 왼쪽, 버튼, 메뉴의 복사·붙여넣기
+// 메뉴는 2·1번 좌표 옆에 붙으므로 그 좌표를 먼저 넣고 메뉴 항목 위치를 잰다
+function placePointer() {
+  const s1 = document.querySelector('.s1');
+  const at = (id, dx, fy) => {
+    let e = document.getElementById(id), x = dx < 1 ? e.offsetWidth * dx : dx, y = e.offsetHeight * fy;
+    for (; e && e !== s1; e = e.offsetParent) { x += e.offsetLeft; y += e.offsetTop; }
+    return [x, y];
+  };
+  const set = (pts, from) => pts.forEach(([x, y], i) => {
+    s1.style.setProperty(`--x${from + i}`, x.toFixed(1) + 'px');
+    s1.style.setProperty(`--y${from + i}`, y.toFixed(1) + 'px');
+  });
+  set([at('p1', .5, .55), at('p2', 40, .6), at('p3', .5, .6)], 1);
+  set([at('p4', 26, .6), at('p5', 26, .6)], 4);
+}
+placePointer();
+document.fonts.ready.then(placePointer);
+
+// 하울 145마디 검수 칸: 처음 틀린 7마디 (6·99·100·114·115·138·139)
+const BAD = new Set([6, 99, 100, 114, 115, 138, 139]);
+document.getElementById('cells').innerHTML = Array.from({ length: 145 }, (_, i) =>
+  `<i${BAD.has(i + 1) ? ' class="bad"' : ''}${i % 10 ? '' : ' data-sfx="roll"'} style="--d:${(1.8 + i * 0.014).toFixed(3)}s"></i>`).join('');
+</script>
+<script src="demo.js"></script>

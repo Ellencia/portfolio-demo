@@ -78,6 +78,23 @@ if (params.has('video')) {
     document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * a.playbackRate; });
     document.querySelectorAll('svg').forEach(s => { s.pauseAnimations(); s.setCurrentTime(t / 1000 + 2); });  // +2초: 늦게 출발하는 동그라미가 구석에 서 있지 않게
   };
+  // 효과음(make_video.py --sfx): 지금 장면의 [ms, 소리] 목록. 소리는 요소의 첫 애니메이션이 시작하는 순간에 남
+  // 클래스별 기본 소리 + 요소의 data-sfx="소리"(덮어쓰기, "none" 이면 끔) + data-sfx-at="초:소리 ..."(CSS 지연과 같은 단위)
+  const SFX = { '.pop': 'pop', '.rip': 'click', '.bat': 'click', '.qbtns .go': 'click', '.mini .go': 'click', '.toast': 'menu', '.dock span': 'tick' };
+  window.demoSfx = () => {
+    const s = scenes[cur], hits = new Map(), out = [];
+    for (const [sel, n] of Object.entries(SFX)) s.querySelectorAll(sel).forEach(e => hits.set(e, n));
+    s.querySelectorAll('[data-sfx]').forEach(e => hits.set(e, e.dataset.sfx));
+    hits.forEach((n, e) => {
+      const a = e.getAnimations()[0];
+      if (a && n !== 'none') out.push([a.effect.getTiming().delay / a.playbackRate, n]);
+    });
+    s.querySelectorAll('[data-sfx-at]').forEach(e => e.dataset.sfxAt.split(' ').forEach(p => {
+      const [t, n] = p.split(':');
+      out.push([t * 1000 / RATE, n]);
+    }));
+    return out.sort((x, y) => x[0] - y[0]);
+  };
 } else if (params.has('shot')) {
   document.body.classList.add('shot');
   stage.classList.add('still');

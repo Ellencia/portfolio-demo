@@ -9,7 +9,7 @@ from pathlib import Path
 HERE = Path(__file__).parent
 OUT = HERE / "out"
 # (페이지, 디자인) — 디자인은 harness-themes.css 의 theme-* 이름, None 이면 기본
-JOBS = [("excel", None), ("harness", None), ("bapl", None), ("harness", "dark"), ("harness", "phone"), ("harness", "memo"), ("harness", "brand")]
+JOBS = [("excel", None), ("harness", None), ("bapl", None), ("tabrip", None), ("harness", "dark"), ("harness", "phone"), ("harness", "memo"), ("harness", "brand")]
 CHROME = next(p for p in (
     Path(r"C:\Program Files\Google\Chrome\Application\chrome.exe"),
     Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"),
@@ -28,7 +28,7 @@ for page in dict.fromkeys(p for p, _ in JOBS):
         name = f"{page}-{theme}" if theme else page
         if only and name not in only and page not in only:
             continue
-        for i in range(1, src.count('<section class="scene"') + 1):
+        for i in range(1, src.count('<section class="scene') + 1):
             png = OUT / f"{name}_{i}.png"
             q = f"?shot={i}" + (f"&theme={theme}" if theme else "")
             subprocess.run([str(CHROME), "--headless=new", "--disable-gpu", "--hide-scrollbars",
