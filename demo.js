@@ -1,8 +1,8 @@
 // 폰 데모 재생 (excel.html · harness.html 공용)
 // 장면 길이 = 장면 안 애니메이션이 다 끝나는 시각 + HOLD (끝난 화면을 보여 주는 시간)
-const RATE = 1.15, HOLD = 3500;
-
+// HOLD 는 페이지마다 <div class="stage" data-hold="1300"> 로 바꿀 수 있음 (한눈에 읽히는 화면이면 짧게)
 const stage = document.getElementById('stage'), phone = document.getElementById('phone');
+const RATE = 1.15, HOLD = +stage.dataset.hold || 3500;
 const scenes = [...stage.querySelectorAll('.scene')];
 const bars = document.getElementById('bars'), chips = document.getElementById('chips');
 const params = new URLSearchParams(location.search);
