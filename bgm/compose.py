@@ -200,11 +200,16 @@ COMP = {  # 한 화음 구간(박 off 부터 d 박)에 반주를 놓는 법 → 
                                     for s in range(int(d * 4)) if (1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0)[(int(off * 4) + s) % 16]],
     "pulse": lambda bar, off, d, v: [(off + i / 2, [(v + [n + 12 for n in v])[(0, 2, 1, 3, 2, 4, 3, 5)[i % 8] % (2 * len(v))]], .45, 56 if i % 2 else 64)
                                      for i in range(int(d * 2))],
+    "skank": lambda bar, off, d, v: [(off + o, v, .22, 62) for o in (.5, 1.5, 2.5, 3.5) if o < d],  # 엇박 화음 (칼립소·레게)
+    "alberti": lambda bar, off, d, v: [(off + i / 2, [(v[0] - 12, v[-1], v[1], v[-1])[i % 4] + 12], .4, 58 if i % 4 == 0 else 48)
+                                       for i in range(int(d * 2))],  # 낮음-높음-가운데-높음
 }
 BASS = {  # 근음 기준 (박, 반음, 길이)
     "root5": [(0, 0, 1.5), (2, 7, 1.5)],
     "funk": [(0, 0, .4), (.75, 0, .3), (1.5, 12, .4), (2.5, 7, .4), (3.25, 0, .3)],
     "lofi": [(0, 0, 1.2), (2.5, 0, .8), (3.5, 7, .4)],
+    "calypso": [(0, 0, .8), (1.5, 7, .4), (2, 12, .8), (3.5, 7, .4)],
+    "walk": [(0, 0, .9), (1, 7, .9), (2, 12, .9), (3, 7, .9)],
 }
 DRUMS = {  # 마디 하나 (박, GM 드럼 음, 세기)
     "bossa": lambda bar: [(h / 2, 70, 34 + 6 * (h % 2)) for h in range(8)] + [(0, 36, 48), (2, 36, 44)]
@@ -212,6 +217,8 @@ DRUMS = {  # 마디 하나 (박, GM 드럼 음, 세기)
     "lofi": lambda bar: [(0, 36, 72), (2.5, 36, 60), (1, 38, 56), (3, 38, 56)] + [(h / 2, 42, 32 + 10 * (h % 2 == 0)) for h in range(8)],
     "funk": lambda bar: [(0, 36, 74), (.75, 36, 56), (2.5, 36, 66), (1, 38, 70), (3, 38, 70)] + [(s / 4, 42, 50 if s % 2 == 0 else 30) for s in range(16)],
     "pulse": lambda bar: [(b, 36, 46) for b in range(4)] + [(b + .5, 46, 32) for b in range(4)] + [(1, 39, 36), (3, 39, 36)],
+    "chip": lambda bar: [(0, 36, 70), (2, 36, 70), (1, 38, 60), (3, 38, 60)] + [(h / 2, 42, 40) for h in range(8)],
+    "calypso": lambda bar: [(0, 36, 60), (2, 36, 60), (1.5, 64, 50), (3.5, 64, 50), (2.75, 63, 45)] + [(h / 2, 70, 40 if h % 2 else 30) for h in range(8)],
 }
 
 
@@ -249,7 +256,7 @@ def groove(name, bpm, mel, end_mel, prog, intro, target, lead, comp, style, bass
             for o, semi, ln in BASS[bass_style]:
                 if ci * d <= o < ci * d + d:
                     note(bass, 78, N(f"{root}2") + semi, B + o, B + o + ln)
-        if p != -1:
+        if p != -1 and drums:
             for o, dn, vel in DRUMS[drums](bi):
                 inst(m, 0, True).notes.append(pm.Note(max(1, vel + random.randint(-5, 5)), dn, t(B + o), t(B + o) + .1))
         if ml:
@@ -292,6 +299,23 @@ PULSE = [[("B4", 1), ("E5", 1), ("G5", 1), ("F#5", 1)], [("E5", 2), ("G5", 1), (
          [("G5", 1), ("B5", 1), ("E6", 1), ("D6", 1)], [("C6", 1.5), ("B5", .5), ("G5", 2)],
          [("A5", 1), ("F#5", 1), ("D5", 1), ("F#5", 1)], [("A5", 3), (None, 1)]]
 
+# 다운로드 자동 정리: 8비트 팝 — 스퀘어 리드·아르페지오 + 신스 베이스, G장조
+CHIP = [[("D5", .5), ("G5", .5), ("B5", .5), ("G5", .5), ("D6", 1), ("B5", 1)], [("A5", .5), ("F#5", .5), ("D5", .5), ("F#5", .5), ("A5", 2)],
+        [("G5", .5), ("E5", .5), ("B4", .5), ("E5", .5), ("G5", 1), ("B5", 1)], [("C6", 1), ("B5", .5), ("A5", .5), ("G5", 1), ("E5", 1)],
+        [("B5", .5), ("D6", .5), ("G6", .5), ("D6", .5), ("B5", 1), ("G5", 1)], [("F#5", .5), ("A5", .5), ("D6", .5), ("A5", .5), ("F#5", 2)],
+        [("E5", .5), ("G5", .5), ("C6", .5), ("E6", .5), ("D6", 1), ("C6", 1)], [("B5", 1), ("A5", 1), ("F#5", 1), (None, 1)]]
+# 수입 서류 점검: 칼립소 — 스틸드럼 + 엇박 기타 + 콩가·마라카스, C장조
+CALYPSO = [[("E5", .5), ("G5", .5), (None, .5), ("C6", .5), (None, .5), ("G5", .5), ("E5", 1)],
+           [("F5", .5), ("A5", .5), (None, .5), ("C6", .5), ("A5", 1), ("F5", 1)],
+           [("G5", .5), ("B5", .5), ("D6", .5), ("B5", .5), ("G5", 1), ("D5", 1)], [("E5", 1.5), ("D5", .5), ("C5", 2)],
+           [("A5", .5), ("C6", .5), ("E6", .5), ("C6", .5), ("A5", 1), ("E5", 1)], [("F5", .5), ("A5", .5), ("C6", 1), ("D6", .5), ("C6", .5), ("A5", 1)],
+           [("B5", .5), ("A5", .5), ("G5", .5), ("F5", .5), ("E5", 1), ("D5", 1)], [("G5", 2), (None, 2)]]
+# 장비 대장·제출 서류: 가벼운 바로크 — 하프시코드 알베르티 + 오보에 + 현악 패드, D장조
+BAROQUE = [[("F#5", 1), ("E5", .5), ("D5", .5), ("E5", 1), ("F#5", 1)], [("E5", 1), ("C#5", .5), ("A4", .5), ("C#5", 1), ("E5", 1)],
+           [("D5", 1), ("F#5", .5), ("B5", .5), ("A5", 1), ("F#5", 1)], [("C#5", 1.5), ("D5", .5), ("E5", 2)],
+           [("D5", .5), ("E5", .5), ("G5", .5), ("B5", .5), ("D6", 1), ("B5", 1)], [("A5", 1), ("F#5", .5), ("A5", .5), ("D6", 2)],
+           [("B5", 1), ("A5", .5), ("G5", .5), ("F#5", 1), ("E5", 1)], [("E5", 2), ("C#5", 1), (None, 1)]]
+
 SONGS = {
     # 우쿨렐레: 휘파람(GM 은 혼처럼 들림) + 나일론 스트럼 + 베이스 + 셰이커, 짝수 번째에 글로켄슈필 겹침
     "uke_whistle": lambda: pop_song("uke_whistle", 112, MEL_C, CH_C, "C G", lead=78, comp=24, style="strum", bass=32, double=9, seed=1),
@@ -306,6 +330,12 @@ SONGS = {
                                  target=51.4, lead=0, comp=28, style="funk", bass=33, bass_style="funk", drums="funk", double=11, seed=43),
     "pulse_kalimba": lambda: groove("pulse_kalimba", 112, PULSE, [("E5", 4)], "Em C G D Em C D D", "Em C",
                                     target=51.0, lead=108, comp=0, style="pulse", bass=33, bass_style="root5", drums="pulse", pad=49, seed=44),
+    "chip_tidy": lambda: groove("chip_tidy", 132, CHIP, [("G5", .5), ("B5", .5), ("D6", 3)], "G D Em C G D C D", "G C D",
+                                target=37.8, lead=80, comp=80, style="pulse", bass=38, bass_style="root5", drums="chip", seed=45),
+    "calypso_steel": lambda: groove("calypso_steel", 116, CALYPSO, [("E5", .5), ("G5", .5), ("C6", 3)], "C F G C Am F G G", "C G",
+                                    target=41.1, lead=114, comp=25, style="skank", bass=32, bass_style="calypso", drums="calypso", double=12, seed=46),
+    "baroque_oboe": lambda: groove("baroque_oboe", 108, BAROQUE, [("F#5", .5), ("E5", .5), ("D5", 3)], "D A Bm F#m G D G A", "D A",
+                                   target=41.6, lead=68, comp=6, style="alberti", bass=45, bass_style="walk", drums=None, pad=48, seed=47),
 }
 
 if __name__ == "__main__":
