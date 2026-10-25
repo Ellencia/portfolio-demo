@@ -80,7 +80,9 @@ if (params.has('video')) {
   };
   // 효과음(make_video.py --sfx): 지금 장면의 [ms, 소리] 목록. 소리는 요소의 첫 애니메이션이 시작하는 순간에 남
   // 클래스별 기본 소리 + 요소의 data-sfx="소리"(덮어쓰기, "none" 이면 끔) + data-sfx-at="초:소리 ..."(CSS 지연과 같은 단위)
-  const SFX = { '.pop': 'pop', '.rip': 'click', '.bat': 'click', '.qbtns .go': 'click', '.mini .go': 'click', '.toast': 'menu', '.dock span': 'tick' };
+  const SFX = { '.pop': 'pop', '.rip': 'click', '.bat': 'click', '.qbtns .go': 'click', '.mini .go': 'click', '.toast': 'menu', '.dock span': 'tick',
+    // 바플 전·후 상자: 알림 · 접히는 띠 · 펼쳐지는 띠 · 넘어가는 숫자 · ↻ 흐름 갱신
+    '.note': 'menu', '.seg.shrink': 'swish', '.seg.grow': 'pop', '.flip': 'roll', '.upd': 'tick' };
   window.demoSfx = () => {
     const s = scenes[cur], hits = new Map(), out = [];
     for (const [sel, n] of Object.entries(SFX)) s.querySelectorAll(sel).forEach(e => hits.set(e, n));

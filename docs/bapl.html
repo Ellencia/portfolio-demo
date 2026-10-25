@@ -13,12 +13,34 @@
 /* 전·후 화면 상자: 같은 자리에 두 장, --sw 에 '후'가 덮이며 ↻ 흐름 갱신 표시 */
 .vp { position: relative; flex: 1; min-height: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: #fff;
   box-shadow: 0 8px 22px rgba(23,33,43,.10) }
-.vp > img { position: absolute; left: 0; top: 30px; width: 100% }
-.vp.plain > img { top: 0 }
+.vp.plain > img { position: absolute; left: 0; top: 0; width: 100% }
 .vp:not(.plain)::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 30px; z-index: 1; background: #F2F4EF; border-bottom: 1px solid var(--line) }
-.vp > img.after { opacity: 0 }
-.on .vp > img.after { animation: fadeIn .45s var(--sw) both }
-@keyframes fadeIn { to { opacity: 1 } }
+/* (.in 은 공용 "떠오르기" 클래스라 띠에는 grow/shrink) 전 화면을 가로 띠로 잘라 쌓고: 사라지는 띠는 빨갛게 → 높이 0, 생기는 띠(후 화면에서 잘라 옴)는 높이 0 → 원래 + 초록. 끝나면 실제 '후' 캡처로 바꿈 */
+.stack, .final { position: absolute; left: 0; right: 0; top: 30px }
+.seg { position: relative; overflow: hidden; height: var(--h0); background-repeat: no-repeat; background-size: 100% auto }
+.on .seg.shrink, .on .seg.grow { animation: segH .45s var(--at) cubic-bezier(.5,0,.3,1) both }
+@keyframes segH { from { height: var(--h0) } to { height: var(--h1) } }
+.seg.shrink::after, .seg.grow::after { content: ""; position: absolute; inset: 0; opacity: 0 }
+.seg.shrink::after { background: rgba(194,64,44,.28); box-shadow: inset 0 0 0 2.5px var(--fail) }
+.seg.grow::after { background: rgba(30,133,81,.22); box-shadow: inset 0 0 0 2.5px var(--pass) }
+.on .seg.shrink::after { animation: tint .5s calc(var(--at) - .5s) both }
+.on .seg.grow::after { animation: tintIn 1.4s var(--at) both }
+@keyframes tint { to { opacity: 1 } }
+@keyframes tintIn { 0%, 55% { opacity: 1 } 100% { opacity: 0 } }
+.final { opacity: 0; width: 100% }
+.on .final { animation: show .01s var(--end) both }
+.on .stack { animation: hide .01s var(--end) both }
+@keyframes show { to { opacity: 1 } }
+@keyframes hide { to { opacity: 0 } }
+.flip { position: absolute; z-index: 1; overflow: hidden; border-radius: 4px }
+.flip i { position: absolute; inset: 0; background-repeat: no-repeat; background-size: var(--bs) auto }
+.flip i + i { transform: translateY(100%) }
+.on .flip i:first-child { animation: flipOut .35s var(--at) ease-in both }
+.on .flip i + i { animation: flipIn .35s calc(var(--at) + .12s) ease-out both }
+.on .flip { animation: flash 1.2s var(--at) both }
+@keyframes flipOut { to { transform: translateY(-100%) } }
+@keyframes flipIn { to { transform: none } }
+@keyframes flash { 0% { box-shadow: 0 0 0 3px transparent } 8%, 60% { box-shadow: 0 0 0 3px var(--marker) } 100% { box-shadow: 0 0 0 3px transparent } }
 .ba { position: absolute; z-index: 2; left: 8px; top: 6px; display: flex; border-radius: 6px; overflow: hidden; font-size: 10px; font-weight: 700;
   box-shadow: 0 2px 6px rgba(0,0,0,.15) }
 .ba b { padding: 3px 8px; background: #fff; color: var(--sub) }
@@ -112,28 +134,28 @@
     <h2 class="cap">업체 소식이 오면<br><mark>발주서에 바로 기록</mark></h2>
     <div class="vp in plain" data-crop="150" style="--d:.4s;height:109px;flex:none"><img src="img/bapl_order_a.jpg" alt="발주서 진행 단계"></div>
     <div class="chat fit"><div class="msg bot in" style="--d:1s"><span class="who">받는 봇 · 메신저</span>대성메탈 회신: 함체 도장 완료, 10/26 오전 배송. 발주서에 적어 둘게요.</div></div>
-    <div class="vp in " data-crop="955" style="--d:.5s;--sw:2.0s;height:195px;flex:none"><img src="img/bapl_order_b.jpg" alt="바뀌기 전 화면"><img class="after" src="img/bapl_order_a.jpg" alt="바뀐 뒤 화면"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><span class="none">아직 진행 이력 없음</span><i class="ring pop" data-box="34,1061,323,67" style="--d:2.3s"></i></div>
+    <div class="vp in" data-crop="955" data-before="order_b" data-after="order_a" data-ops='[["in", 967, 967, 1161, 2.0]]' style="--d:.5s;--sw:2s;height:195px;flex:none"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><span class="none">아직 진행 이력 없음</span></div>
     <div class="foot"><span>메신저 봇이 발주서 진행 이력에 바로 씀</span><span class="pg"></span></div>
   </section>
 
   <section class="scene">
     <div class="eyebrow"><span>강변몰 키오스크 · 함체 발주 한 건</span><span>입고</span></div>
     <h2 class="cap">물건이 도착하면<br><mark>흐름이 바로 갱신</mark></h2>
-    <div class="vp in " data-crop="160" style="--d:.5s;--sw:2.0s"><img src="img/bapl_flow_b.jpg" alt="바뀌기 전 화면"><img class="after" src="img/bapl_flow_a.jpg" alt="바뀐 뒤 화면"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><i class="ring pop" data-box="16,190,358,32" style="--d:2.3s"></i><i class="ring pop" data-box="16,251,358,129" style="--d:2.45s"></i><div class="note" style="--d:1.0s">✓ 입고 확인 · 키오스크 함체 12대 (구매서 → 입고)</div></div>
+    <div class="vp in" data-crop="160" data-before="flow_b" data-after="flow_a" data-ops='[["out", 297, 381, 2.0], ["flip", 60, 186, 30, 28, 2.5], ["flip", 139, 186, 30, 28, 2.6], ["flip", 228, 186, 30, 28, 2.7], ["flip", 148, 262, 26, 24, 2.5]]' style="--d:.5s;--sw:2s"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><div class="note" style="--d:1.0s">✓ 입고 확인 · 키오스크 함체 12대 (구매서 → 입고)</div></div>
     <div class="foot"><span>함체가 납기 지남에서 빠지고 단계 표시가 바뀜</span><span class="pg"></span></div>
   </section>
 
   <section class="scene">
     <div class="eyebrow"><span>강변몰 키오스크 · 함체 발주 한 건</span><span>견적</span></div>
     <h2 class="cap">견적 회신이 오면<br><mark>남은 일도 갱신</mark></h2>
-    <div class="vp in " data-crop="800" style="--d:.5s;--sw:2.0s"><img src="img/bapl_todo_b.jpg" alt="바뀌기 전 화면"><img class="after" src="img/bapl_todo_a.jpg" alt="바뀐 뒤 화면"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><i class="ring pop" data-box="33,912,324,88" style="--d:2.35s"></i><div class="note" style="--d:1.0s">받는 봇 · 맑은아크릴 견적서 메일 → 아크릴 커버 견적받음</div></div>
+    <div class="vp in" data-crop="800" data-before="todo_b" data-after="todo_a" data-ops='[["out", 1059, 1190, 2.0], ["in", 850, 850, 999, 2.5], ["flip", 122, 812, 32, 26, 2.6]]' style="--d:.5s;--sw:2s"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><div class="note" style="--d:1.0s">받는 봇 · 맑은아크릴 견적서 메일 → 아크릴 커버 견적받음</div></div>
     <div class="foot"><span>견적 기다리는 것 → 발주 넣을 것으로 이동</span><span class="pg"></span></div>
   </section>
 
   <section class="scene">
     <div class="eyebrow"><span>강변몰 키오스크 · 함체 발주 한 건</span><span>집계</span></div>
     <h2 class="cap">숫자는<br><mark>대시보드가 알아서</mark></h2>
-    <div class="vp in " data-crop="150" style="--d:.5s;--sw:2.0s"><img src="img/bapl_dash_b.jpg" alt="바뀌기 전 화면"><img class="after" src="img/bapl_dash_a.jpg" alt="바뀐 뒤 화면"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><i class="ring pop" data-box="200,165,174,92" style="--d:2.3s"></i><div class="note" style="--d:1.0s">✓ 입고 1건 반영 · 입고 대기 2 → 1</div></div>
+    <div class="vp in" data-crop="150" data-before="dash_b" data-after="dash_a" data-ops='[["flip", 210, 194, 30, 32, 2.0]]' style="--d:.5s;--sw:2s"><span class="ba"><b>전</b><b>후</b></span><span class="upd">↻ 흐름 갱신</span><div class="note" style="--d:1.0s">✓ 입고 1건 반영 · 입고 대기 2 → 1</div></div>
     <div class="foot"><span>입고 대기 · 납기 지남 · 결재 대기를 한 장에</span><span class="pg"></span></div>
   </section>
 
@@ -163,18 +185,52 @@
 <p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
 
 <script>
-// 캡처(폰 폭 390px) 좌표 → 상자 배율로. data-crop = 보이는 시작 y. 히어로 창은 data-box 로 클릭 상자·물결·커서, 전·후 상자는 .ring[data-box]
-document.querySelectorAll('[data-crop]').forEach(vp => {
-  const k = vp.clientWidth / 390, crop = +vp.dataset.crop, pad = vp.matches('.vp:not(.plain)') ? 30 : 0;  // pad = 표시 띠
-  const at = b => { const [x, y, w, h] = b.split(',').map(Number); return [x * k, (y - crop) * k + pad, w * k, h * k]; };
-  const place = (box, ring, dots) => {
-    const [X, Y, W, H] = at(box);
-    if (ring) Object.assign(ring.style, { left: `${X - 3}px`, top: `${Y - 3}px`, width: `${W + 6}px`, height: `${H + 6}px` });
-    dots.forEach(e => e && Object.assign(e.style, { left: `${X + W / 2}px`, top: `${Y + H / 2}px` }));
+// 캡처(폰 폭 390px) 좌표 → 상자 배율로. 히어로 창(.wbody): data-crop + data-box 로 클릭 상자·물결·커서
+document.querySelectorAll('.wbody[data-crop]').forEach(w => {
+  const k = w.clientWidth / 390, crop = +w.dataset.crop, [x, y, bw, bh] = w.dataset.box.split(',').map(Number);
+  const X = x * k, Y = (y - crop) * k, W = bw * k, H = bh * k;
+  w.querySelector('.wimg').style.transform = `translateY(${-crop * k}px)`;
+  Object.assign(w.querySelector('.tgt').style, { left: `${X - 3}px`, top: `${Y - 3}px`, width: `${W + 6}px`, height: `${H + 6}px` });
+  [w.querySelector('.rip'), w.querySelector('.cur')].forEach(e => Object.assign(e.style, { left: `${X + W / 2}px`, top: `${Y + H / 2}px` }));
+});
+// 전·후 상자(.vp[data-ops]): 전 화면을 띠로 잘라 쌓고, out 띠는 접고 in 띠(후 화면)는 펼침, flip 은 글자만 넘김. 다 끝나면 실제 후 캡처로
+document.querySelectorAll('.vp[data-ops]').forEach(vp => {
+  const k = vp.clientWidth / 390, crop = +vp.dataset.crop, pad = 30, ops = JSON.parse(vp.dataset.ops);
+  const src = n => `url(img/bapl_${vp.dataset[n]}.jpg)`, px = v => `${v * k}px`;
+  const stack = document.createElement('div'); stack.className = 'stack';
+  const seg = (img, y0, h0, h1, cls, at) => {
+    const d = document.createElement('div'); d.className = 'seg ' + cls;
+    Object.assign(d.style, { backgroundImage: src(img), backgroundPosition: `0 ${-y0 * k}px` });
+    d.style.setProperty('--h0', px(h0)); d.style.setProperty('--h1', px(h1));
+    if (at != null) d.style.setProperty('--at', at + 's');
+    stack.append(d);
   };
-  vp.querySelectorAll(':scope > img').forEach(i => { i.style.transform = `translateY(${-crop * k}px)`; });
-  if (vp.dataset.box) place(vp.dataset.box, vp.querySelector('.tgt'), [vp.querySelector('.rip'), vp.querySelector('.cur')]);
-  vp.querySelectorAll('.ring[data-box]').forEach(r => place(r.dataset.box, r, []));
+  // 전 화면 y 순서로: 그대로 둘 띠 / 사라질 띠 / 그 자리에 끼울 후 화면 띠
+  const cuts = ops.filter(o => o[0] !== 'flip').sort((a, b) => a[1] - b[1]);
+  let y = crop, end = 2.0;
+  for (const o of cuts) {
+    if (o[1] > y) seg('before', y, o[1] - y, o[1] - y, 'keep');
+    if (o[0] === 'out') { seg('before', o[1], o[2] - o[1], 0, 'shrink', o[3]); y = o[2]; end = Math.max(end, o[3] + .5); }
+    else { seg('after', o[2], 0, o[3] - o[2], 'grow', o[4]); y = o[1]; end = Math.max(end, o[4] + .5); }
+  }
+  seg('before', y, 900, 900, 'keep');
+  vp.prepend(stack);
+  const fin = document.createElement('img');
+  fin.className = 'final'; fin.alt = '바뀐 뒤 화면'; fin.src = `img/bapl_${vp.dataset.after}.jpg`;
+  fin.style.transform = `translateY(${-crop * k}px)`; vp.prepend(fin);
+  for (const o of ops.filter(o => o[0] === 'flip')) {
+    const [, x, fy, w, h, at] = o, f = document.createElement('div');
+    f.className = 'flip';
+    Object.assign(f.style, { left: px(x), top: `${(fy - crop) * k + pad}px`, width: px(w), height: px(h) });
+    f.style.setProperty('--at', at + 's'); f.style.setProperty('--bs', `${390 * k}px`);
+    for (const n of ['before', 'after']) {
+      const i = document.createElement('i');
+      Object.assign(i.style, { backgroundImage: src(n), backgroundPosition: `${-x * k}px ${-fy * k}px` });
+      f.append(i);
+    }
+    vp.append(f); end = Math.max(end, at + .5);
+  }
+  vp.style.setProperty('--end', end + 's');
 });
 </script>
 <script src="demo.js"></script>

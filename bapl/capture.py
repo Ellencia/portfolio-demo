@@ -32,6 +32,10 @@ BOX = """(q) => { let best = null;
   const c = best.el.closest('.card, .kpi-card, .flow-group, section, li, tr') || best.el, cr = c.getBoundingClientRect();
   const f = r => [Math.round(r.x), Math.round(r.y + scrollY), Math.round(r.width), Math.round(r.height)];
   return {el: f(best.r), card: f(cr)}; }"""
+# 화면 블록 목록 (띠를 자를 경계용): 폭 넓은 요소들의 y 범위와 첫 글자
+BLOCKS = """() => [...document.querySelectorAll('body *')].map(el => { const r = el.getBoundingClientRect();
+  return [el.tagName + '.' + String(el.className).split(' ')[0], Math.round(r.x), Math.round(r.y + scrollY), Math.round(r.width), Math.round(r.height),
+          el.textContent.replace(/\s+/g, ' ').trim().slice(0, 24)]; }).filter(b => b[3] >= 250 && b[4] >= 14 && b[4] <= 400)"""
 
 # 단계: {이름: (경로, 찍을 높이 CSS px(0 = 끝까지), 좌표를 잴 글자들)}
 STEPS = {
@@ -80,7 +84,8 @@ def main():
                     full = pg.evaluate("document.documentElement.scrollHeight")
                     clip = {"x": 0, "y": 0, "width": 390, "height": min(h or full, full)}
                     pg.screenshot(path=str(OUT / f"bapl_{name}.jpg"), clip=clip, full_page=True, type="jpeg", quality=88)
-                    boxes[name] = {"height": clip["height"], **{q: pg.evaluate(BOX, q) for q in queries}}
+                    boxes[name] = {"height": clip["height"], **{q: pg.evaluate(BOX, q) for q in queries},
+                                   **({"blocks": pg.evaluate(BLOCKS)} if queries else {})}
                     print(step, name, clip["height"])
             b.close()
     finally:
