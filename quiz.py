@@ -1,10 +1,11 @@
 """처음 보는 사람 시험: 장면 카드 PNG 만 보고 문제를 풀게 한 뒤, 정답 기준으로 따로 채점한다.
 
-실행: python quiz.py submit|wait|grade <페이지>   (카드는 render_cards.py 결과 out/cards/<페이지>_N.png)
+실행: python quiz.py submit|wait|grade|order <페이지>   (카드는 render_cards.py 결과 out/cards/<페이지>_N.png)
 결과: out/quiz/<페이지>/ 에 answers.jsonl(읽기 모델 원답)·judge.jsonl(채점 요청·응답 전체)·report.md
-읽는 법: 시험 통과 ≠ 사람 이해, 틀린 문항을 찾는 도구. Haiku 객관식은 위치 편향(늘 2번)이 있으니 객관식 오답은 보기 순서를 바꿔 재확인.
+읽는 법: 시험 통과 ≠ 사람 이해, 틀린 문항을 찾는 도구. Haiku 객관식은 위치 편향(늘 2번)이 있으니 객관식 오답은
+  `order` 로 재확인(보기 1·2 를 바꾼 판 + 원순서에 이유 요구, Haiku 직접 호출 N 회씩, q1_order.jsonl).
 """
-import base64, json, os, sys, time
+import base64, json, os, re, sys, time
 from pathlib import Path
 
 HERE = Path(__file__).parent
@@ -71,12 +72,16 @@ def text_of(msg):
                 if (b["type"] if isinstance(b, dict) else b.type) == "text")
 
 
-def submit(page, out):
-    questions, prompt = QUESTIONS[page], read_prompt(QUESTIONS[page])
+def cards(page):
     pngs = sorted(CARDS.glob(f"{page}_*.png"), key=lambda p: int(p.stem.rsplit("_", 1)[1]))
     assert pngs, f"out/cards/{page}_*.png 없음 — render_cards.py {page} 먼저"
-    imgs = [{"type": "image", "source": {"type": "base64", "media_type": "image/png",
-             "data": base64.standard_b64encode(p.read_bytes()).decode()}} for p in pngs]
+    return pngs, [{"type": "image", "source": {"type": "base64", "media_type": "image/png",
+                   "data": base64.standard_b64encode(p.read_bytes()).decode()}} for p in pngs]
+
+
+def submit(page, out):
+    questions, prompt = QUESTIONS[page], read_prompt(QUESTIONS[page])
+    pngs, imgs = cards(page)
     reqs = [{"custom_id": f"{m}-{k}", "params": {
         "model": mid, "max_tokens": 16000,
         "output_config": {"effort": "medium", "format": {"type": "json_schema", "schema": READ_SCHEMA}},
@@ -137,8 +142,35 @@ def grade(page, out):
     print("\n".join(head))
 
 
+def order(page, out):
+    """1번 객관식 위치 편향 재확인. swap: 보기 1·2 바꿈(정답이 2번 자리로), why: 원순서 + 이유 한 문장."""
+    q, key = QUESTIONS[page][0]
+    head, opts = q.split(" 보기 중 하나의 번호만: ")
+    texts = re.findall(r"\d\) (.+?)(?=  \d\)|$)", opts)
+    assert key == "1" and len(texts) == 4, (key, texts)
+    swapped = [texts[1], texts[0]] + texts[2:]
+    variants = [("swap", swapped, "", "2"), ("why", texts, "\n번호를 고른 뒤 이유를 한 문장으로.", "1")]
+    c, _imgs = client(), cards(page)[1]
+    tally = {}
+    with open(out / "q1_order.jsonl", "w", encoding="utf-8") as f:
+        for name, ts, suffix, answer in variants:
+            prompt = ("위 사진들은 인스타그램 릴스에서 넘겨 본 짧은 소개 영상의 장면들입니다(1번부터 순서대로).\n"
+                      "당신은 이 분야 일을 해 본 적 없는 일반인입니다. 화면에 보이는 것만으로 답하세요.\n\n"
+                      + head + "\n" + "  ".join(f"{i + 1}) {t}" for i, t in enumerate(ts)) + suffix)
+            for k in range(N):
+                msg = c.messages.create(model=MODELS["haiku"], max_tokens=4000, output_config={"effort": "medium"},
+                                        messages=[{"role": "user", "content": _imgs + [{"type": "text", "text": prompt}]}])
+                pick = (re.search(r"\d", text_of(msg)) or [""])[0]
+                tally.setdefault(name, []).append(pick)
+                f.write(json.dumps({"variant": name, "k": k, "answer": answer, "pick": pick, "prompt": prompt,
+                                    "response": msg.to_dict()}, ensure_ascii=False) + "\n")
+                print(name, k, "답", pick, "정답", answer, "O" if pick == answer else "X", flush=True)
+    for name, picks in tally.items():
+        print(name, "고른 번호:", picks)
+
+
 if __name__ == "__main__":
     cmd, page = sys.argv[1], sys.argv[2]
     out = HERE / "out" / "quiz" / page
     out.mkdir(parents=True, exist_ok=True)
-    {"submit": submit, "wait": wait, "grade": grade}[cmd](page, out)
+    {"submit": submit, "wait": wait, "grade": grade, "order": order}[cmd](page, out)
