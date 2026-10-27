@@ -35,7 +35,7 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 
 `python build_site.py` 는 GitHub Pages 용 `docs/` 를 만듭니다. `make_video.py` 는 화면녹화가 아니라 프레임마다 애니메이션 시각을 맞춰 찍어 H.264 로 묶습니다.
 
-## 상태 (2026-10-26)
+## 상태 (2026-10-27)
 
 ### 어디까지 됐나
 
@@ -43,25 +43,25 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 
 | 편 | html 마지막 변경 | 영상 | 글 점검 |
 | --- | --- | --- | --- |
-| imp | 6dd5dc3 | 최신 (6dd5dc3) | 다시 씀 (서사 교체, 처음 보는 사람 시험 9문항 통과) |
-| harness | 0d9e632 | 최신 (0d9e632, `--sfx --bgm bgm/lofi_keys.mid` 는 미확인: 커밋 메시지에 기록 없음) | 다시 씀 (구매 담당 서사: 손으로 옮겨 적던 다섯 경로 → 봇 둘, 시험 8문항 중 2–8 Opus·Haiku 3/3, 1번 Haiku 1/3 → 순서 재확인 6/6, 화면 탓 아님) |
-| bapl | (이번 커밋) | 다시 뽑음 (`--sfx --bgm bgm/bossa_flute.mid`) | 다시 씀 (주문한 물건이 어디쯤인지 회사 전산은 답이 없어서 → 발주 한 건 따라가기, 시험 8문항 Opus 3/3 전부, Haiku 2·5·8 번 2/3·나머지 3/3, 7번은 두 카드 중 하나만 맞아도 통과로 사용자 결정) |
-| forms | 9b44572 | 최신 (40ef42b) | 다시 쓸 편 4 |
+| imp | 6dd5dc3 | 최신 (6dd5dc3) | 다시 씀 (서사 교체, 처음 보는 사람 시험 9문항 통과 — Haiku 1번 0/3 은 위치 편향이라 통과로 침, 사용자 판정 10-27) |
+| harness | 0d9e632 | 최신 (0d9e632, `--sfx --bgm bgm/lofi_keys.mid` — 커밋 메시지엔 없고 사용자 확인 10-27) | 다시 씀 (손으로 옮겨 적던 다섯 경로 → 봇 둘, 시험 8문항 중 2–8 Opus·Haiku 3/3, 1번 Haiku 1/3 → 순서 재확인 6/6, 화면 탓 아님) |
+| bapl | d1f42f4 | 최신 (d1f42f4, `--sfx --bgm bgm/bossa_flute.mid`) | 다시 씀 (발주 한 건 따라가기, 시험 8문항 Opus 3/3 전부, Haiku 2·5·8번 2/3·나머지 3/3, 7번은 두 카드 중 하나만 맞아도 통과로 사용자 결정) |
+| forms | 043a8c7 | 최신 (043a8c7, `--sfx --bgm bgm/baroque_oboe.mid`) | 다시 씀 (장비 목록을 서류에 매번 다시 적는 일 → 직접 만든 프로그램, 시험 8문항 Opus 3/3 전부, Haiku 1번 2/3 → 순서 재확인 6/6 화면 탓 아님·나머지 3/3. 1차 표지는 1번 0/3·2번 1/3, `out/quiz/forms/report_v1.md`) |
 | cad | 84725a4 | 최신 (6d34b5d) | 다시 쓸 편 5 |
-| excel | e380f0e | 최신 (e380f0e, 배경음 6d34b5d) | 다시 쓸 편 6 |
+| excel | e380f0e | 최신 (6d34b5d, 배경음) | 다시 쓸 편 6 |
 | tabrip | e380f0e | 최신 (e380f0e) | 양호 |
 | b2b | ccdcbce | 최신 (ccdcbce) | 양호 |
 | dl | 9b44572 | 최신 (40ef42b) | 양호 |
 
-- "영상 최신" = 영상의 마지막 렌더 커밋이 html 마지막 변경과 같거나 나중(`git log --follow`, out/ 폴더 이동 커밋 077c50b 는 건너뜀). `main` 은 `origin/main` 과 같음(4338b64). 미커밋: `quiz.py` 의 `order` 명령 추가, `out/quiz/harness/report.md` 끝 "1번 순서 재확인" 절, 미추적 `out/quiz/harness/q1_order.jsonl`(Haiku swap 2·2·2, why 1·1·1).
-- `docs/` 는 소스와 같습니다(스크래치 복사본에서 `build_site.py` 를 돌린 결과와 `diff -rq` 차이 없음: 페이지 9·index·영상 9·css 2·js·img 46). 장면 카드 수 = 각 html 장면 수(9편 전부, harness 는 디자인 5종 × 7장).
-- 사이트 첫 화면 카드 설명은 `build_site.py` 의 PAGES 에 있습니다. 편을 다시 쓰면 이 문구도 같이 봅니다(imp·harness·bapl 은 새 서사로 바꿈).
+- "영상 최신" = 영상의 마지막 렌더 커밋이 html 마지막 변경과 같거나 나중(`git log --follow`, out/ 폴더 이동 커밋 077c50b 는 건너뜀). 작업 트리 깨끗함. `main` 이 `origin/main`(d1f42f4)보다 1커밋 앞섬: forms 커밋 043a8c7 아직 푸시 안 함.
+- `docs/` 는 소스와 같습니다(스크래치 복사본에서 `build_site.py` 를 돌린 결과와 `diff -rq` 차이 없음: 페이지 9·index·영상 9·img 46). 장면 카드 수 = 각 html 장면 수(9편 전부, harness 는 디자인 5종 × 7장).
+- 사이트 첫 화면 카드 설명은 `build_site.py` 의 PAGES 에 있습니다. 편을 다시 쓰면 이 문구도 같이 봅니다(imp·harness·bapl·forms 는 새 서사로 바꿈).
 - harness 의 실제 구조 출처는 회사 PC 압축본 `STC_Outbox/2026-10-26/harness_src_2026-10-26.zip` 안 `shared-tools/하네스.md`(부품 지도)·`work-inbox/README.md`(받는 봇). 데모는 일반 이름(받는 봇·실행 봇·기록 DB·ERP)만 씁니다.
 
 ### 다음
 
-1. 화면 글 다시 쓰기, 위 표의 "다시 쓸 편" 순서대로(남은 것: forms → cad → excel). 한 편 고치면 그 칸을 "다시 씀(커밋)"으로 바꿉니다. 기준: 처음 보는 사람이 화면만 보고 이해, 장면마다 무슨 문제인지 먼저, 업계 약어·검사 용어(PASS 등)·설명 없는 점수는 빼거나 일상어로, 숫자는 장면당 하나.
-2. 검사: 카드 PNG 만 모델(Opus·Haiku)에게 보여 주고 정답 기준이 있는 문제를 풀게 해 틀린 문항을 찾기. 자기 보고("모르는 단어")는 늘 뭔가를 채워 넣어 쓸모없었음. 스크립트는 `quiz.py submit|wait|grade <편>`(문항·정답 기준은 파일 안 `QUESTIONS`, 기준은 사용자가 확인한 것만), 결과는 `out/quiz/<편>/`. imp 는 2–9번 전 문항 통과(`out/quiz/imp/report.md`), 1번 Haiku 0/3 은 보기 위치 편향(`q1_order.jsonl`, 순서 바꿔도 늘 2번) 이라 객관식 오답은 `quiz.py order <편>` 으로 재확인(보기 1·2 바꾼 판 + 원순서에 이유 요구, Haiku 3회씩). harness 1번 Haiku 1/3 은 10-26 재확인 6/6(`out/quiz/harness/report.md` 끝) — 화면 탓 아님으로 종결(이 기록과 `order` 코드는 아직 미커밋). 편을 다시 쓸 때마다 그 편 문항을 `QUESTIONS` 에 추가하고 돌림.
+1. 화면 글 다시 쓰기, 위 표의 "다시 쓸 편" 순서대로(남은 것: cad → excel). 한 편 고치면 그 칸을 "다시 씀(커밋)"으로 바꿉니다. 기준: 처음 보는 사람이 화면만 보고 이해, 장면마다 무슨 문제인지 먼저, 업계 약어·검사 용어(PASS 등)·설명 없는 점수는 빼거나 일상어로, 숫자는 장면당 하나.
+2. 검사: 카드 PNG 만 모델(Opus·Haiku)에게 보여 주고 정답 기준이 있는 문제를 풀게 해 틀린 문항을 찾기(자기 보고 "모르는 단어"는 늘 뭔가를 채워 넣어 쓸모없었음). `quiz.py submit|wait|grade <편>`(문항·정답 기준은 파일 안 `QUESTIONS`, 기준은 사용자가 확인한 것만), 결과는 `out/quiz/<편>/report.md`. 객관식 1번 오답은 `quiz.py order <편>` 으로 재확인(보기 1·2 바꾼 판 + 원순서에 이유 요구, Haiku 3회씩) — harness·forms 는 6/6 화면 탓 아님, imp 는 순서를 바꿔도 늘 2번이라 위치 편향(`out/quiz/imp/q1_order.jsonl`). 편을 다시 쓸 때마다 그 편 문항을 `QUESTIONS` 에 추가하고 돌림(cad·excel 은 아직 문항 없음).
 3. 새 편 3D 조립 검사기(cad-lab, 미스미 inCAD 공개 예제만, three.js + 가짜 커서, 주인공은 AI 제안을 "여기서 걸립니다"로 거부하는 검사기 — 창문 빼기, 문 젖히다 볼트 머리에 걸림). 첫 작업은 헤드리스 크롬에서 WebGL 화면이 찍히는지 확인.
 
 ### 하면 안 되는 것
