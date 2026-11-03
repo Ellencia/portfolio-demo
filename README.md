@@ -56,7 +56,7 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 - "영상 최신" = 영상의 마지막 렌더 커밋이 html 마지막 변경과 같거나 나중(`git log --follow`, out/ 폴더 이동 커밋 077c50b 는 건너뜀). 작업 트리 깨끗함. `main` 이 `origin/main`(d1f42f4)보다 1커밋 앞섬: forms 커밋 043a8c7 아직 푸시 안 함.
 - `docs/` 는 소스와 같습니다(스크래치 복사본에서 `build_site.py` 를 돌린 결과와 `diff -rq` 차이 없음: 페이지 9·index·영상 9·img 46). 장면 카드 수 = 각 html 장면 수(9편 전부, harness 는 디자인 5종 × 7장).
 - 사이트 첫 화면 카드 설명은 `build_site.py` 의 PAGES 에 있습니다. 편을 다시 쓰면 이 문구도 같이 봅니다(imp·harness·bapl·forms 는 새 서사로 바꿈).
-- harness 의 실제 구조 출처는 회사 PC 압축본 `STC_Outbox/2026-10-26/harness_src_2026-10-26.zip` 안 `shared-tools/하네스.md`(부품 지도)·`work-inbox/README.md`(받는 봇). 데모는 일반 이름(받는 봇·실행 봇·기록 DB·ERP)만 씁니다.
+- harness 의 실제 구조 출처는 회사 PC에서 가져온 2026-10-26 압축본(git 밖) 안 `shared-tools/하네스.md`(부품 지도)·`work-inbox/README.md`(받는 봇). 데모는 일반 이름(받는 봇·실행 봇·기록 DB·ERP)만 씁니다.
 
 ### 다음
 
