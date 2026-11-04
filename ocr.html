@@ -58,8 +58,20 @@
 
 /* 3 투표 */
 .vote { padding: 10px 11px; display: grid; gap: 3px }
-.vrow { display: grid; grid-template-columns: 52px 1fr; gap: 6px; align-items: center; font: 500 10.5px var(--f-body); color: var(--sub) }
-.vrow .thumb { display: none }
+.vrow { display: grid; grid-template-columns: 30px 78px 1fr; gap: 6px; align-items: center; font: 500 10.5px var(--f-body); color: var(--sub) }
+.vrow.head { font-size: 9.5px }
+.ph { position: relative; z-index: 1; height: 26px; overflow: hidden; border: 1px solid var(--line); border-radius: 2px; transform-origin: left center }
+.ph img { display: block; width: 100%; height: 100% }
+.ph::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--marker); opacity: 0 }
+.on .ph { animation: popread .7s var(--d) both }
+.on .ph::after { animation: readbeam .7s var(--d) both }
+/* 크게 떠서 읽히고 → 제자리로 줄어듦 */
+@keyframes popread {
+  0% { opacity: 0; transform: scale(1.4); box-shadow: 0 0 0 transparent }
+  12%, 72% { opacity: 1; transform: scale(2.7); box-shadow: 0 3px 8px rgba(0,0,0,.4) }
+  100% { opacity: 1; transform: none; box-shadow: 0 0 0 transparent }
+}
+@keyframes readbeam { 0%, 12% { opacity: 0; top: 0 } 13% { opacity: 1; top: 0 } 70% { opacity: 1; top: 100% } 71%, 100% { opacity: 0; top: 100% } }
 .vcells { display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px }
 .vcells i { height: 16px; border-radius: 2px; background: var(--line) }
 .on .vcells i.g { animation: goodcell .15s var(--d) both }
@@ -67,6 +79,7 @@
 @keyframes goodcell { to { background: var(--pass) } }
 @keyframes badcell { to { background: var(--fail) } }
 .vrow.sum { margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--line); color: var(--ink); font-weight: 700 }
+.vrow.sum > span { grid-column: 1 / 3 }
 .vkey { display: flex; gap: 12px; font-size: 10px; color: var(--sub) }
 .vkey i { display: inline-block; width: 8px; height: 8px; border-radius: 1.5px; margin-right: 4px }
 .num { display: flex; align-items: baseline; justify-content: center; gap: 12px; padding: 7px 12px; font-size: 12px }
@@ -150,7 +163,7 @@
     </div>
     <div class="card cause in" style="--d:3.9s">
       <div class="clef"><span class="ring" data-sfx="swish" style="left:68px;top:31px;--d:4.2s;width:26px;height:46px;margin:-23px 0 0 -13px;border-radius:12px"></span></div>
-      <p><b>박자표도 못 읽고 있었습니다.</b> 한 마디에 몇 박인지 적은 숫자입니다. 사진 진하기를 바꾸니 읽혔고, 고칠 곳이 126에서 88로 줄었습니다.</p>
+      <p><b>박자표도 못 읽고 있었습니다.</b> 한 마디에 몇 박인지 적은 숫자입니다. 사진 모양을 바꾸니 읽혔고, 고칠 곳이 126에서 88로 줄었습니다.</p>
     </div>
     <div class="foot"><span>실제 기록 · 숫자 3은 미뉴에트, 박자표는 4중주 · 사진은 설명용</span><span class="pg"></span></div>
   </section>
@@ -159,11 +172,11 @@
   <section class="scene">
     <div class="eyebrow"><span>첼로 악보</span><span>여러 번 읽기</span></div>
     <h2 class="cap">한 번에 못 읽으면<br><mark>여섯 번 읽혔습니다</mark></h2>
-    <p class="sub in" style="--d:.8s">진하기를 바꿔 읽힐 때마다 틀리는 마디가 달랐습니다. 그래서 여섯 번 읽혀 마디마다 잘 읽힌 결과만 골라 한 장으로 합쳤습니다.</p>
-    <div class="card vote in" id="vote" style="--d:1s" data-sfx-at="4.4:chime"></div>
+    <p class="sub in" style="--d:.8s">같은 악보를 여섯 가지 모양으로 바꿔 읽혔습니다. 틀리는 마디가 매번 달라서, 마디마다 잘 읽힌 결과만 골라 합쳤습니다.</p>
+    <div class="card vote in" id="vote" style="--d:1s" data-sfx-at="6:chime"></div>
     <div class="vkey in" style="--d:1.2s"><span>칸 하나 = 한 마디</span><span><i style="background:var(--pass)"></i>잘 읽힘</span><span><i style="background:var(--fail)"></i>틀림</span></div>
-    <div class="card num in" style="--d:4.5s">고칠 곳 <b class="old">88</b> → <b>59</b></div>
-    <div class="foot"><span>59는 당시 값, 세는 법을 고친 뒤 62 · 칸 무늬는 설명용</span><span class="pg"></span></div>
+    <div class="card num in" style="--d:6.1s">고칠 곳 <b class="old">88</b> → <b>59</b></div>
+    <div class="foot"><span>59는 당시 값, 세는 법을 고친 뒤 62 · 사진과 칸 무늬는 설명용</span><span class="pg"></span></div>
   </section>
 
   <!-- 4 박자는 맞는데 음이 틀림 -->
@@ -221,19 +234,19 @@
 <p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
 
 <script>
-// 3번 장면 칸(설명용): 여섯 판은 절반쯤 틀리고, 합친 판은 하나 빼고 맞게. 모두 틀린 칸만 합친 판에서도 틀림
+// 3번 장면(칸은 설명용): 사진이 크게 떠서 읽히고 제자리로 줄어들면 그 줄 칸이 채워짐. 여섯 판은 절반쯤 틀리고, 모두 틀린 칸만 합친 판에서도 틀림
 const COLS = 8, RUNS = 6, ALLBAD = new Set([5]);
 let seed = 7;
 const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const rows = [];
 for (let r = 0; r < RUNS; r++) {
-  const cells = [];
+  const t = 1.3 + r * .7, cells = [];
   for (let c = 0; c < COLS; c++)
-    cells.push(`<i class="${ALLBAD.has(c) || rnd() < .45 ? 'r' : 'g'}"${c ? '' : ' data-sfx="roll"'} style="--d:${(1.4 + r * .36 + c * .03).toFixed(3)}s"></i>`);
-  rows.push(`<div class="vrow"><span>${r + 1}번째</span><div class="vcells">${cells.join('')}</div></div>`);
+    cells.push(`<i class="${ALLBAD.has(c) || rnd() < .45 ? 'r' : 'g'}"${c ? '' : ' data-sfx="roll"'} style="--d:${(t + .5 + c * .025).toFixed(3)}s"></i>`);
+  rows.push(`<div class="vrow"><span>${r + 1}번째</span><div class="ph" data-sfx="pop" style="--d:${t.toFixed(1)}s"><img src="img/ocr_read_${r + 1}.jpg" alt="모양을 바꾼 악보 사진 ${r + 1}"></div><div class="vcells">${cells.join('')}</div></div>`);
 }
 const merged = Array.from({ length: COLS }, (_, c) =>
-  `<i class="${ALLBAD.has(c) ? 'r' : 'g'}" style="--d:${(3.7 + c * .05).toFixed(3)}s"></i>`).join('');
-document.getElementById('vote').innerHTML = rows.join('') + `<div class="vrow sum"><span>골라 합침</span><div class="vcells">${merged}</div></div>`;
+  `<i class="${ALLBAD.has(c) ? 'r' : 'g'}" style="--d:${(5.6 + c * .05).toFixed(3)}s"></i>`).join('');
+document.getElementById('vote').innerHTML = `<div class="vrow head"><span></span><span>읽힌 사진</span><span>읽은 결과</span></div>` + rows.join('') + `<div class="vrow sum"><span>골라 합침</span><div class="vcells">${merged}</div></div>`;
 </script>
 <script src="demo.js"></script>

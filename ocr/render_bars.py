@@ -121,6 +121,20 @@ def paper(img, seed):
     return ImageChops.multiply(tint, Image.merge("RGB", [base] * 3))
 
 
+def read_variants():
+    """3번 장면 "여섯 번 읽기"의 사진 6장: 실제 실행처럼 회색 한 장 + 흑백 문턱 110–170 다섯 장 (설명용, 그늘 진 종이 그림에 적용)."""
+    src = Image.open(IMG / "ocr_cover_paper.jpg").convert("L").crop((40, 20, 1120, 380))
+    W, H = src.size
+    shade = Image.new("L", (W, H))
+    ImageDraw.Draw(shade)
+    shade.putdata([int(255 * (1 - 0.42 * (x / W) ** 1.6)) for _ in range(H) for x in range(W)])  # 오른쪽 그늘: 문턱 높은 판에서 검게 번짐
+    dim = ImageChops.multiply(src, shade).filter(ImageFilter.GaussianBlur(2.2))
+    size = (660, 220)
+    src.convert("RGB").resize(size, Image.LANCZOS).save(IMG / "ocr_read_1.jpg", quality=86)
+    for n, t in enumerate((110, 125, 140, 155, 170), start=2):
+        dim.point(lambda v: 255 if v > t else 0).resize(size, Image.LANCZOS).convert("RGB").save(IMG / f"ocr_read_{n}.jpg", quality=86)
+
+
 JOBS = [  # 이름, 원본, 마디(0부터), 얹을 운지, 종이?, 보표 높이
     ("ocr_m41_raw", RAW, [41], None, False, None),
     ("ocr_m41_paper", FIX, [41], {(41, i): f for i, f in enumerate("013401")}, True, None),  # 운지는 교재 그대로
@@ -145,3 +159,4 @@ if __name__ == "__main__":
             else:
                 img.save(IMG / f"{name}.png", optimize=True)
             print(name, img.size)
+    read_variants()
