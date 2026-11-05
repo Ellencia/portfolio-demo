@@ -54,7 +54,7 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 | tabrip | e380f0e | 최신 (e380f0e) | 양호 |
 | b2b | ccdcbce | 최신 (ccdcbce) | 양호 |
 | dl | 9b44572 | 최신 (40ef42b) | 양호 |
-| ocr | d6ea0b5 | 최신 (d6ea0b5, `--sfx --sfx-db -10 --bgm music/habanera_quartet.mid`) | 사용자 판정으로 다시 씀, 시험 문항 아직 없음 |
+| ocr | 0b219fd | 최신 (0b219fd, `--sfx --sfx-db -10 --bgm music/habanera_quartet.mid`) | 사용자 판정으로 다시 씀, 시험 문항 아직 없음 |
 
 - "영상 최신" = 영상의 마지막 렌더 커밋이 html 마지막 변경과 같거나 나중(`git log --follow`, out/ 폴더 이동 커밋 077c50b 는 건너뜀). 작업 트리 깨끗함. `main` 이 `origin/main`(d1f42f4)보다 1커밋 앞섬: forms 커밋 043a8c7 아직 푸시 안 함.
 - `docs/` 는 소스와 같습니다(스크래치 복사본에서 `build_site.py` 를 돌린 결과와 `diff -rq` 차이 없음: 페이지 9·index·영상 9·img 46). 장면 카드 수 = 각 html 장면 수(9편 전부, harness 는 디자인 5종 × 7장).
