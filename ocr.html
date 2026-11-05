@@ -123,23 +123,23 @@
 
   <!-- 영상 표지: 카톡은 썸네일을 못 고르므로 첫 프레임을 썸네일로 -->
   <div id="cover">
-    <div class="eyebrow"><span>포트폴리오 · 첼로 악보</span><span>개인 프로젝트</span></div>
+    <div class="eyebrow"><span>포트폴리오 · 종이 악보</span><span>개인 프로젝트</span></div>
     <h1 class="cap">사진 한 장을<br><mark>악보 파일로</mark></h1>
-    <div class="cam"><img src="img/ocr_page_paper.jpg" alt="폰으로 찍은 듯한 첼로 악보 네 마디"></div>
+    <div class="cam"><img src="img/ocr_page_paper.jpg" alt="누렇게 바랜 옛 악보를 폰으로 찍은 듯한 네 마디"></div>
     <div class="arrow" aria-hidden="true">↓</div>
     <div class="card outcome">
       <div class="lab" style="padding-left:2px;padding-bottom:3px"><span>악보 파일</span></div>
       <img src="img/ocr_page_raw.png" alt="컴퓨터 악보로 바뀐 같은 네 마디">
     </div>
-    <div class="foot"><span>사진은 설명용 그림 · 아래 악보는 실제 판독 결과</span></div>
+    <div class="foot"><span>「하바네라」 1883년 판 · 사진 효과는 설명용 · 아래는 실제 판독</span></div>
   </div>
 
   <!-- 1 표지: 무슨 일인지 + 그래서 만든 것 -->
   <section class="scene">
-    <div class="eyebrow"><span>포트폴리오 · 첼로 악보</span><span>개인 프로젝트</span></div>
+    <div class="eyebrow"><span>포트폴리오 · 종이 악보</span><span>개인 프로젝트</span></div>
     <h1 class="cap">종이 악보를 일일이<br>손으로 입력하기가<br><mark>너무 힘들었습니다</mark></h1>
     <p class="sub in" style="--d:1s">그래서 폰으로 찍기만 하면 악보 파일이 되는 프로그램을 직접 만들었습니다.</p>
-    <div class="cam in" style="--d:1.6s"><img src="img/ocr_page_paper.jpg" alt="폰으로 찍은 듯한 첼로 악보 네 마디"><span class="beam"></span></div>
+    <div class="cam in" style="--d:1.6s"><img src="img/ocr_page_paper.jpg" alt="누렇게 바랜 옛 악보를 폰으로 찍은 듯한 네 마디"><span class="beam"></span></div>
     <div class="proc in" style="--d:2s" role="status">
       <div class="spin" aria-hidden="true"><i style="--d:2.2s;--t:4.1s;--n:2.93"></i><b class="done pop" style="--d:6.3s">✓</b></div>
       <div class="steps">
@@ -155,31 +155,31 @@
       <div class="lab" style="padding-left:2px;padding-bottom:3px"><span>악보 파일</span></div>
       <img src="img/ocr_page_raw.png" alt="컴퓨터 악보로 바뀐 같은 네 마디">
     </div>
-    <div class="foot"><span>사진은 설명용 그림 · 아래 악보는 실제 판독 결과</span><span class="pg"></span></div>
+    <div class="foot"><span>「하바네라」 1883년 판 · 사진 효과는 설명용 · 아래는 실제 판독</span><span class="pg"></span></div>
   </section>
 
-  <!-- 2 어려웠던 점: 같은 한 마디가 단계마다 고쳐지는 모습. 미뉴에트 3번 79마디의 실제 단계별 파일 -->
+  <!-- 2 어려웠던 점: 같은 한 마디가 단계마다 고쳐지는 모습. 1차는 하바네라 7마디의 실제 판독, 2·3차는 손으로 그린 설명용(render_bars.py) -->
   <section class="scene">
-    <div class="eyebrow"><span>첼로 악보</span><span>고치는 과정</span></div>
+    <div class="eyebrow"><span>종이 악보</span><span>고치는 과정</span></div>
     <h2 class="cap"><mark>어려웠던 점</mark></h2>
     <p class="sub in" style="--d:.8s">AI가 읽은 악보는 사진과 달랐습니다. 그래서 프로그램으로 단계를 나눠 고쳤습니다.</p>
     <div class="card duo in" style="--d:1.1s">
       <div class="bar">
         <div class="lab"><span>사진</span></div>
-        <div class="onebar"><img src="img/ocr_m79_paper.jpg" alt="슬러와 스타카토, 셈여림이 있는 악보 한 마디"><span class="beam" style="--d:1.7s"></span></div>
+        <div class="onebar" style="width:230px"><img src="img/ocr_bar_paper.jpg" alt="옛 악보를 찍은 사진의 한 마디"><span class="beam" style="--d:1.7s"></span></div>
       </div>
       <div class="proc in" style="--d:1.6s" role="status">
         <div class="spin" aria-hidden="true"><i data-sfx="tick" style="--d:1.7s;--t:1.8s;--n:1.29"></i><b class="done pop" style="--d:3.5s">✓</b></div>
         <span class="say">AI 사진 인식</span>
       </div>
       <div class="bar in" style="--d:3.6s">
-        <div class="lab"><span>1차 · AI가 읽은 결과</span><span class="chip fail pop" style="--d:4s">틀린 음 · 빠진 표시</span></div>
+        <div class="lab"><span>1차 · AI가 읽은 결과</span><span class="chip fail pop" style="--d:4s">틀린 리듬 · 빠진 음</span></div>
         <div class="onebar">
-          <img src="img/ocr_m79_1.png" alt="음표가 겹치고 쉼표가 끼어든 잘못된 판독">
-          <span class="ring" data-sfx="swish" style="left:77px;top:28px;--d:4s;width:30px;height:18px;margin:-9px 0 0 -15px;border-radius:9px"></span>
-          <span class="ring" style="left:118px;top:21px;--d:4.2s;width:30px;height:18px;margin:-9px 0 0 -15px;border-radius:9px"></span>
-          <span class="ring" style="left:149px;top:5px;--d:4.4s;width:22px;height:14px;margin:-7px 0 0 -11px;border-radius:7px"></span>
-          <span class="ring" style="left:275px;top:10px;--d:4.6s;width:16px;height:26px;margin:-13px 0 0 -8px;border-radius:8px"></span>
+          <img src="img/ocr_bar_1.png" alt="잇단음표를 놓치고 없는 점이 생기고 마지막 음이 빠진 판독">
+          <span class="ring" data-sfx="swish" style="left:96px;top:17px;--d:4s;width:84px;height:26px;margin:-13px 0 0 -42px;border-radius:13px"></span>
+          <span class="ring" style="left:98px;top:5px;--d:4.2s;width:14px;height:12px;margin:-6px 0 0 -7px;border-radius:7px"></span>
+          <span class="ring" style="left:249px;top:37px;--d:4.4s;width:14px;height:12px;margin:-6px 0 0 -7px;border-radius:7px"></span>
+          <span class="ring" style="left:280px;top:22px;--d:4.6s;width:22px;height:30px;margin:-15px 0 0 -11px;border-radius:11px"></span>
           <span class="beam" style="--d:5.2s"></span>
         </div>
       </div>
@@ -188,11 +188,11 @@
         <span class="say">프로그램으로 음 고치기</span>
       </div>
       <div class="bar in" style="--d:7.1s">
-        <div class="lab"><span>2차 · 사진과 맞춰 고침</span><span class="chip pass pop" style="--d:7.5s">음 높낮이</span></div>
+        <div class="lab"><span>2차 · 사진과 맞춰 고침</span><span class="chip pass pop" style="--d:7.5s">음 · 리듬</span></div>
         <div class="onebar">
-          <img src="img/ocr_m79_2.png" alt="음 높낮이를 고친 악보, 슬러 같은 표시는 아직 없음">
-          <span class="ring good" style="left:76px;top:15px;--d:7.5s;width:18px;height:18px;margin:-9px 0 0 -9px"></span>
-          <span class="ring good" style="left:117px;top:12px;--d:7.7s;width:18px;height:18px;margin:-9px 0 0 -9px"></span>
+          <img src="img/ocr_bar_2.png" alt="리듬과 빠진 음을 고친 악보, 슬러 같은 표시는 아직 없음">
+          <span class="ring good" style="left:91px;top:6px;--d:7.5s;width:18px;height:18px;margin:-9px 0 0 -9px"></span>
+          <span class="ring good" style="left:253px;top:35px;--d:7.7s;width:18px;height:18px;margin:-9px 0 0 -9px"></span>
           <span class="beam" style="--d:8.2s"></span>
         </div>
       </div>
@@ -203,20 +203,21 @@
       <div class="bar in" style="--d:10.1s" data-sfx-at="11.9:chime">
         <div class="lab"><span>3차 · 빠진 표시를 옮겨 붙임</span></div>
         <div class="onebar">
-          <img src="img/ocr_m79_3.png" alt="슬러와 스타카토, 셈여림까지 붙은 악보">
-          <span class="tag pop" style="left:150px;top:-1px;--d:10.5s">슬러</span>
-          <span class="ring added" style="left:239px;top:4px;--d:11s;width:13px;height:13px;margin:-6.5px 0 0 -6.5px"></span>
-          <span class="tag pop" style="left:248px;top:-2px;--d:11s">스타카토</span>
-          <span class="tag pop" style="left:232px;top:46px;--d:11.5s">셈여림</span>
+          <img src="img/ocr_bar_3.png" alt="슬러와 스타카토, 셈여림까지 붙은 악보">
+          <span class="tag pop" style="left:84px;top:46px;--d:10.5s">슬러</span>
+          <span class="ring added" style="left:203px;top:41px;--d:11s;width:13px;height:13px;margin:-6.5px 0 0 -6.5px"></span>
+          <span class="ring added" style="left:252px;top:41px;--d:11s;width:13px;height:13px;margin:-6.5px 0 0 -6.5px"></span>
+          <span class="tag pop" style="left:208px;top:46px;--d:11s">스타카토</span>
+          <span class="tag pop" style="left:12px;top:46px;--d:11.5s">셈여림</span>
         </div>
       </div>
     </div>
-    <div class="foot"><span>실제 기록 · 미뉴에트 3번 79마디 · 사진은 설명용</span><span class="pg"></span></div>
+    <div class="foot"><span>1차는 실제 판독 · 2·3차는 설명용 · 「하바네라」 7마디</span><span class="pg"></span></div>
   </section>
 
   <!-- 3 여러 번 읽어 투표 -->
   <section class="scene">
-    <div class="eyebrow"><span>첼로 악보</span><span>여러 번 읽기</span></div>
+    <div class="eyebrow"><span>종이 악보</span><span>여러 번 읽기</span></div>
     <h2 class="cap">한 번에 못 읽으면<br><mark>여섯 번 읽혔습니다</mark></h2>
     <p class="sub in" style="--d:.8s">같은 악보를 여섯 가지 모양으로 바꿔 읽혔습니다. 틀리는 마디가 매번 달라서, 마디마다 잘 읽힌 결과만 골라 합쳤습니다.</p>
     <div class="card vote in" id="vote" style="--d:1s" data-sfx-at="7.05:chime"></div>

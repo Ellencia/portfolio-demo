@@ -1,74 +1,103 @@
-"""악보 판독 데모용 그림: score-ocr(비공개)의 미뉴에트 원출력·고친 판에서 몇 마디만 잘라 MuseScore 로 그린다.
+"""악보 판독 데모용 그림: 비제 「하바네라」(저작권 끝남) 1883년 Choudens 판 5–8마디.
 
-실행: python ocr/render_bars.py  ->  img/ocr_*.png, img/ocr_paper_*.jpg
-교재 사진은 공개 저장소에 넣지 않는다. "사진"은 고친 판 렌더에 종이 질감을 입힌 설명용 그림이다.
+- 사진(ocr_page_paper, ocr_bar_paper): habanera_bars5-8.jpg 스캔에 폰 사진 효과를 입힌 설명용 그림
+  원본 https://archive.org/details/carmenopracomi00bize PDF 57쪽
+- 판독 결과(ocr_page_raw, ocr_bar_1): habanera_omr.mxl = 그 스캔을 Audiveris 로 읽은 원출력 그대로
+- 2·3차(ocr_bar_2, ocr_bar_3): 7마디 노래 줄을 손으로 적은 설명용 그림. 파이프라인을 돌린 결과가 아니고, 스타카토·셈여림은 악보에 없는데 넣음
+
+실행: python ocr/render_bars.py  ->  img/ocr_*
 """
 import copy
 import random
 import subprocess
 import tempfile
 import xml.etree.ElementTree as ET
+import zipfile
 from pathlib import Path
 
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 HERE = Path(__file__).parent
 IMG = HERE.parent / "img"
-SRC = Path(r"c:/Programming/Projects/score-ocr/minuet")
-RAW = SRC / "omr" / "minuet_scan.mvt1.musicxml"  # Audiveris 원출력
-FIX = SRC / "Minuet_mscz.musicxml"  # 사람이 고친 판
-M3 = Path(r"c:/Programming/Projects/score-ocr/minuet3b")  # 처리 단계별 파일이 다 남은 곡
+SCAN = HERE / "habanera_bars5-8.jpg"
+OMR = HERE / "habanera_omr.mxl"
+VOICE, PIANO = "P10", "P11"  # 5–8마디에서 노래와 피아노가 들어간 파트. 원출력은 노래를 파트 셋에 흩어 놓음
+BAR7_BOX = (965, 30, 1405, 165)  # 스캔에서 7마디 노래 줄
 MUSE = r"C:\Program Files\MuseScore 4\bin\MuseScore4.exe"
 
 
-def clip(src, bars, out, fingering=None, mm=None, keep_dir=False):
-    """bars 번째 마디만 남긴 MusicXML. 앞 마디들의 박자·조표·음자리표는 첫 마디로 옮기고 fingering={(마디, 음 번호): "3"} 은 손으로 얹는다.
-    mm = 보표 높이(mm): 한 마디가 쪽 폭을 다 채우면 폰 화면에서 작아져서 키울 때. keep_dir = 셈여림 남기기."""
+def clip(src, bars, out, keep, mm=None, width=None):
+    """keep 파트의 bars 번째 마디만 남긴 MusicXML. 앞 마디들의 박자·조표·음자리표는 첫 마디로 옮긴다."""
     tree = ET.parse(src)
     root = tree.getroot()
     for tag in ("work", "movement-number", "movement-title", "identification", "defaults", "credit"):
         for e in root.findall(tag):
             root.remove(e)
-    if mm:
-        d = ET.fromstring(f"<defaults><scaling><millimeters>{mm}</millimeters><tenths>40</tenths></scaling></defaults>")
+    if mm:  # width = 쪽 폭: 마디들이 한 줄에 들어가게. 없으면 기본 쪽(한 마디가 쪽 폭을 채움)
+        wide = f"<page-layout><page-height>2000</page-height><page-width>{width}</page-width></page-layout>" if width else ""
+        d = ET.fromstring(f"<defaults><scaling><millimeters>{mm}</millimeters><tenths>40</tenths></scaling>{wide}</defaults>")
         root.insert(list(root).index(root.find("part-list")), d)
-    for tag in ("part-name", "part-abbreviation"):
-        for e in root.iter(tag):
-            e.set("print-object", "no")
-    part = root.find("part")
-    seen, kept = {}, []
-    for i, m in enumerate(list(part.findall("measure"))):
-        if i <= bars[0]:
-            for attrs in m.findall("attributes"):  # 한 마디에 여러 개일 수 있음
-                for a in attrs:
-                    seen[a.tag] = a
-        if i in bars:
-            kept.append(m)
-        part.remove(m)
-    for n, m in enumerate(kept):
-        for tag in ("print", "barline") if keep_dir else ("print", "direction", "barline"):
-            for e in m.findall(tag):
-                m.remove(e)
-        for e in m.findall("note"):
-            for nt in e.findall("notations"):
-                for tech in nt.findall("technical"):
-                    nt.remove(tech)  # 운지는 아래 fingering 으로만 (OCR 찌꺼기 빼기)
-        if n == 0:
-            for attrs in m.findall("attributes"):
-                m.remove(attrs)
-            a = ET.Element("attributes")
-            for tag in ("divisions", "key", "time", "clef"):
-                if tag in seen:
-                    a.append(copy.deepcopy(seen[tag]))
-            m.insert(0, a)
-        part.append(m)
-    for (bar, idx), text in (fingering or {}).items():
-        note = kept[bars.index(bar)].findall("note")[idx]
-        nt = note.find("notations")
-        if nt is None:
-            nt = ET.SubElement(note, "notations")
-        ET.SubElement(ET.SubElement(nt, "technical"), "fingering").text = text
+    for e in root.iter("part-name"):
+        e.text = ""  # 원출력의 "du palple." 같은 찌꺼기
+    for sp in root.iter("score-part"):
+        for tag in ("part-abbreviation", "part-name-display", "part-abbreviation-display"):
+            for e in sp.findall(tag):
+                sp.remove(e)
+    plist = root.find("part-list")
+    for sp in plist.findall("score-part"):
+        if sp.get("id") not in keep:
+            plist.remove(sp)
+    for pg in plist.findall("part-group"):
+        plist.remove(pg)
+    for part in root.findall("part"):
+        if part.get("id") not in keep:
+            root.remove(part)
+            continue
+        seen, kept = {}, []
+        for i, m in enumerate(list(part.findall("measure"))):
+            if i <= bars[0]:
+                for attrs in m.findall("attributes"):  # 한 마디에 여러 개일 수 있음. clef 는 보표마다 하나씩
+                    for tag in {a.tag for a in attrs}:
+                        seen[tag] = attrs.findall(tag)
+            if i in bars:
+                kept.append(m)
+            part.remove(m)
+        for n, m in enumerate(kept):
+            for tag in ("print", "direction", "barline"):
+                for e in m.findall(tag):
+                    m.remove(e)
+            if n == 0:
+                for attrs in m.findall("attributes"):
+                    m.remove(attrs)
+                a = ET.Element("attributes")
+                for tag in ("divisions", "key", "time", "staves", "clef"):
+                    a.extend(copy.deepcopy(x) for x in seen.get(tag, []))
+                m.insert(0, a)
+            part.append(m)
     tree.write(out, encoding="utf-8", xml_declaration=True)
+
+
+def note(step, oct_, dur, kind, alter=None, tuplet=None, marks=""):
+    alt = f"<alter>{alter}</alter>" if alter else ""
+    tm = "<time-modification><actual-notes>3</actual-notes><normal-notes>2</normal-notes></time-modification>" if tuplet else ""
+    tup = f'<tuplet type="{tuplet}"/>' if tuplet in ("start", "stop") else ""
+    nt = f"<notations>{tup}{marks}</notations>" if tup or marks else ""
+    return f"<note><pitch><step>{step}</step>{alt}<octave>{oct_}</octave></pitch><duration>{dur}</duration><voice>1</voice><type>{kind}</type>{tm}{nt}</note>"
+
+
+def bar7(out, marks, mm):
+    """7마디 노래 줄. marks = 슬러·스타카토·셈여림까지(설명용)."""
+    s0, s1 = ('<slur type="start" number="1"/>', '<slur type="stop" number="1"/>') if marks else ("", "")
+    st = "<articulations><staccato/></articulations>" if marks else ""
+    dyn = '<direction placement="below"><direction-type><dynamics><p/></dynamics></direction-type></direction>' if marks else ""
+    notes = (note("F", 4, 80, "16th", tuplet="start", marks=s0) + note("G", 4, 80, "16th", tuplet="mid")
+             + note("F", 4, 80, "16th", tuplet="stop", marks=s1) + note("E", 4, 120, "16th", marks=s0)
+             + note("F", 4, 120, "16th", marks=s1) + note("G", 4, 240, "eighth", marks=st) + note("F", 4, 240, "eighth", marks=st))
+    Path(out).write_text(f"""<?xml version="1.0" encoding="UTF-8"?>
+<score-partwise version="3.1"><defaults><scaling><millimeters>{mm}</millimeters><tenths>40</tenths></scaling></defaults>
+<part-list><score-part id="P1"><part-name print-object="no">x</part-name></score-part></part-list>
+<part id="P1"><measure number="7"><attributes><divisions>480</divisions><key><fifths>-1</fifths></key><time><beats>2</beats><beat-type>4</beat-type></time><clef><sign>G</sign><line>2</line></clef></attributes>
+{dyn}{notes}</measure></part></score-partwise>""", encoding="utf-8")
 
 
 def render(xml, png):
@@ -89,7 +118,8 @@ def squeeze(img, keep=60):
     rows, blank = [], 0
     for y in range(H):
         row = img.crop((0, y, W, y + 1))
-        blank = blank + 1 if ImageChops.invert(row).point(lambda v: 255 if v > 40 else 0).getbbox() is None else 0
+        # 왼쪽 묶음줄은 빈 칸으로 침: 파트 사이를 줄여도 세로로 이어짐
+        blank = blank + 1 if ImageChops.invert(row.crop((W // 8, 0, W, 1))).point(lambda v: 255 if v > 40 else 0).getbbox() is None else 0
         if blank <= keep:
             rows.append(row)
     out = Image.new("L", (W, len(rows)), 255)
@@ -98,65 +128,46 @@ def squeeze(img, keep=60):
     return out
 
 
-def paper(img, seed):
-    """폰으로 찍은 종이처럼: 누런 바탕, 살짝 기울임, 한쪽 그늘, 흐림 (설명용, 실제 사진 아님)."""
+def photo(img, seed, angle=-1.0):
+    """스캔을 폰으로 찍은 듯이: 살짝 기울임, 한쪽 그늘, 흐림, 잡티 (설명용, 실제 사진 아님)."""
     rnd = random.Random(seed)
     W, H = img.size
-    pad = 60
-    base = Image.new("L", (W + pad * 2, H + pad * 2), 255)
-    base.paste(img, (pad, pad))
-    base = base.rotate(-1.1, resample=Image.BICUBIC, fillcolor=255).filter(ImageFilter.GaussianBlur(1.1))
-    W, H = base.size
-    tint = Image.new("RGB", (W, H), (246, 241, 226))
-    d = ImageDraw.Draw(tint)
-    for x in range(W):  # 오른쪽으로 갈수록 그늘
-        k = 1 - 0.14 * (x / W) ** 2
-        d.line([(x, 0), (x, H)], fill=(int(246 * k), int(241 * k), int(226 * k)))
-    for _ in range(3):  # 뒷면 비침 몇 줄
-        y = rnd.randrange(H)
-        d.line([(0, y), (W, y + rnd.randrange(-6, 6))], fill=(232, 226, 210), width=2)
-    grain = Image.effect_noise((W, H), 9).convert("L")
-    tint = ImageChops.multiply(tint, Image.merge("RGB", [grain.point(lambda v: 225 + v // 9)] * 3))
-    return ImageChops.multiply(tint, Image.merge("RGB", [base] * 3))
-
-
-def read_variants():
-    """3번 장면 "여섯 번 읽기"의 사진 6장: 실제 실행처럼 회색 한 장 + 흑백 문턱 110–170 다섯 장 (설명용, 그늘 진 종이 그림에 적용)."""
-    src = Image.open(IMG / "ocr_cover_paper.jpg").convert("L").crop((40, 20, 1120, 380))
-    W, H = src.size
+    fill = img.resize((1, 1)).getpixel((0, 0))
+    out = img.rotate(angle, resample=Image.BICUBIC, fillcolor=fill).filter(ImageFilter.GaussianBlur(1.0))
     shade = Image.new("L", (W, H))
-    ImageDraw.Draw(shade)
-    shade.putdata([int(255 * (1 - 0.42 * (x / W) ** 1.6)) for _ in range(H) for x in range(W)])  # 오른쪽 그늘: 문턱 높은 판에서 검게 번짐
-    dim = ImageChops.multiply(src, shade).filter(ImageFilter.GaussianBlur(2.2))
+    far = rnd.uniform(.72, .78)
+    shade.putdata([int(255 * (1 - (1 - far) * (x / W) ** 1.5) * (1 - .05 * (y / H))) for y in range(H) for x in range(W)])
+    grain = Image.effect_noise((W, H), 7).convert("L").point(lambda v: 228 + v // 10)
+    return ImageChops.multiply(ImageChops.multiply(out, Image.merge("RGB", [shade] * 3)), Image.merge("RGB", [grain] * 3))
+
+
+def read_variants(src):
+    """3번 장면 "여섯 번 읽기"의 사진 6장: 회색 한 장 + 흑백 문턱 다섯 장 (설명용)."""
+    g = src.convert("L")
     size = (660, 220)
-    src.convert("RGB").resize(size, Image.LANCZOS).save(IMG / "ocr_read_1.jpg", quality=86)
-    for n, t in enumerate((110, 125, 140, 155, 170), start=2):
-        dim.point(lambda v: 255 if v > t else 0).resize(size, Image.LANCZOS).convert("RGB").save(IMG / f"ocr_read_{n}.jpg", quality=86)
+    g.convert("RGB").resize(size, Image.LANCZOS).save(IMG / "ocr_read_1.jpg", quality=86)
+    for n, t in enumerate((95, 115, 135, 155, 175), start=2):
+        g.point(lambda v: 255 if v > t else 0).resize(size, Image.LANCZOS).convert("RGB").save(IMG / f"ocr_read_{n}.jpg", quality=86)
 
-
-JOBS = [  # 이름, 원본, 마디(0부터), 얹을 운지, 종이?, 보표 높이
-    ("ocr_cover_paper", FIX, [1, 2], None, True, 11),
-    ("ocr_page_paper", FIX, [1, 2, 3, 4], None, True, 11),
-    ("ocr_page_raw", RAW, [1, 2, 3, 4], None, False, 11),
-    # 2번 장면: 미뉴에트 3번 79마디의 처리 단계별 판. 음표만 읽음(omr_fix) → 사진과 맞춰 음 고침(apply_fixes) → 표시 옮겨 붙임(transplant)
-    ("ocr_m79_paper", M3 / "Minuet3_fixed.musicxml", [78], None, True, 13),
-    ("ocr_m79_1", M3 / "minuet3_omr.musicxml", [78], None, False, 13),
-    ("ocr_m79_2", M3 / "minuet3_judged.musicxml", [78], None, False, 13),
-    ("ocr_m79_3", M3 / "Minuet3_fixed.musicxml", [78], None, False, 13),
-]
-KEEP_DIR = {"ocr_m79_paper", "ocr_m79_3"}
 
 if __name__ == "__main__":
     for old in IMG.glob("ocr_*"):
         old.unlink()
+    scan = Image.open(SCAN).convert("RGB")
+    page = photo(scan, "page")
+    page.resize((1400, round(1400 * page.height / page.width)), Image.LANCZOS).save(IMG / "ocr_page_paper.jpg", quality=86)
+    photo(scan.crop(BAR7_BOX).resize((1200, round(1200 * 135 / 440)), Image.LANCZOS), "bar", -.8).save(IMG / "ocr_bar_paper.jpg", quality=88)
+    read_variants(page)
     with tempfile.TemporaryDirectory() as tmp:
-        for name, src, bars, fing, is_paper, mm in JOBS:
-            xml, png = Path(tmp) / f"{name}.musicxml", Path(tmp) / f"{name}.png"
-            clip(src, bars, xml, fing, mm, name in KEEP_DIR)
-            img = render(xml, png)
-            if is_paper:
-                paper(img, name).save(IMG / f"{name}.jpg", quality=86)
-            else:
-                img.save(IMG / f"{name}.png", optimize=True)
+        t = Path(tmp)
+        raw = t / "omr.xml"
+        with zipfile.ZipFile(OMR) as z:
+            raw.write_bytes(z.read("hab_test.xml"))
+        clip(raw, [4, 5, 6, 7], t / "page.musicxml", {VOICE, PIANO}, 7, 2600)
+        clip(raw, [6], t / "bar1.musicxml", {VOICE}, 13)
+        bar7(t / "bar2.musicxml", False, 13)
+        bar7(t / "bar3.musicxml", True, 13)
+        for src, name in (("page", "ocr_page_raw"), ("bar1", "ocr_bar_1"), ("bar2", "ocr_bar_2"), ("bar3", "ocr_bar_3")):
+            img = render(t / f"{src}.musicxml", t / f"{src}.png")
+            img.save(IMG / f"{name}.png", optimize=True)
             print(name, img.size)
-    read_variants()
