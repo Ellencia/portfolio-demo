@@ -13,6 +13,7 @@
 - `dl.html` — 다운로드 파일 자동 이름·폴더 정리 크롬 확장. 파일·업체명은 가상
 - `tabrip.html` — 유튜브 기타 탭 영상을 Guitar Pro 악보로 바꾸는 tab-ripper(개인 프로젝트). 첫 장면의 링크 붙여넣기 앱은 구상안, 숫자는 실제 산출
 - `b2b.html` — PC 교체 현장의 IP·프린터·백업을 기록하는 my-b2b-apps(AI 에이전트와 만든 첫 앱)의 실제 화면. `b2b/seed.js` 가 가상 고객사를 localStorage 에 넣고 `b2b/capture.py` 가 폰 폭으로 찍음(폰 폭에서 꺾이는 곳만 캡처용 CSS 로 덮음, 앱 코드는 그대로)
+- `ocr.html` — 폰으로 찍은 종이 악보를 악보 파일로 바꾸는 score-ocr(개인 프로젝트, 저장소 비공개)의 요약 데모. 교재 사진은 넣지 않고 `ocr/render_bars.py` 가 고친 판 렌더에 종이 질감을 입혀 그린 설명용 그림을 씀, 판독 그림과 숫자는 실제 기록
 - `demo.css` · `demo.js` — 공용 스타일과 재생 (장면 길이 = 애니메이션이 끝나는 시각 + 3.5초)
 - `sfx.py` — 영상 효과음(numpy 합성, 음원 파일 없음). 소리 시각은 `demo.js` 의 클래스별 기본표, 요소의 `data-sfx="소리"`·`data-sfx-at="초:소리 ..."`
 - `bgm/` — 직접 쓴 배경음 후보(MIDI). `bgm/compose.py` 가 멜로디·코드로 `uke_whistle`(우쿨렐레+휘파람)·`marimba_shuffle`(마림바 셔플)·`musicbox_waltz`(오르골 왈츠) 전곡(약 95–107초)을 만듦. 저작권 걱정 없음
@@ -32,6 +33,7 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 
 배경음 원본은 `music/` 에 받아 두고 커밋하지 않습니다(Pixabay 라이선스: 음원 단독 배포 금지).
 `out/video/tabrip.mp4` 배경음: [Kids Ukulele Music — 331music](https://pixabay.com/music/happy-childrens-tunes-kids-ukulele-music-600484/) (Pixabay Content License, 2026-10-25 기준 Content ID 미등록).
+`out/video/ocr.mp4` 배경음: 비제 「하바네라」 1–19마디를 Choudens 보컬 스코어([1883](https://archive.org/details/carmenopracomi00bize)·[1900](https://archive.org/details/carmenopraen4act00bize))에서 읽어 `ocr/make_bgm.py` 로 첼로 4대에 직접 편곡(노래 = 활, 피아노 파트 = 피치카토, ♩=72 → 58)하고 FluidSynth 로 합성. 결과 `music/habanera_quartet.mid` 는 커밋 안 함.
 
 `python build_site.py` 는 GitHub Pages 용 `docs/` 를 만듭니다. `make_video.py` 는 화면녹화가 아니라 프레임마다 애니메이션 시각을 맞춰 찍어 H.264 로 묶습니다.
 
@@ -52,6 +54,7 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 | tabrip | e380f0e | 최신 (e380f0e) | 양호 |
 | b2b | ccdcbce | 최신 (ccdcbce) | 양호 |
 | dl | 9b44572 | 최신 (40ef42b) | 양호 |
+| ocr | e893915 | 최신 (e893915 기준, `--sfx --sfx-db -10 --bgm music/habanera_quartet.mid`) | 사용자 판정으로 다시 씀, 시험 문항 아직 없음 |
 
 - "영상 최신" = 영상의 마지막 렌더 커밋이 html 마지막 변경과 같거나 나중(`git log --follow`, out/ 폴더 이동 커밋 077c50b 는 건너뜀). 작업 트리 깨끗함. `main` 이 `origin/main`(d1f42f4)보다 1커밋 앞섬: forms 커밋 043a8c7 아직 푸시 안 함.
 - `docs/` 는 소스와 같습니다(스크래치 복사본에서 `build_site.py` 를 돌린 결과와 `diff -rq` 차이 없음: 페이지 9·index·영상 9·img 46). 장면 카드 수 = 각 html 장면 수(9편 전부, harness 는 디자인 5종 × 7장).

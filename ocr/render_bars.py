@@ -17,13 +17,13 @@ IMG = HERE.parent / "img"
 SRC = Path(r"c:/Programming/Projects/score-ocr/minuet")
 RAW = SRC / "omr" / "minuet_scan.mvt1.musicxml"  # Audiveris 원출력
 FIX = SRC / "Minuet_mscz.musicxml"  # 사람이 고친 판
-CLEAN = SRC / "omr" / "Minuet_clean.musicxml"  # omr_fix 자동 복구 결과
+M3 = Path(r"c:/Programming/Projects/score-ocr/minuet3b")  # 처리 단계별 파일이 다 남은 곡
 MUSE = r"C:\Program Files\MuseScore 4\bin\MuseScore4.exe"
 
 
-def clip(src, bars, out, fingering=None, mm=None):
+def clip(src, bars, out, fingering=None, mm=None, keep_dir=False):
     """bars 번째 마디만 남긴 MusicXML. 앞 마디들의 박자·조표·음자리표는 첫 마디로 옮기고 fingering={(마디, 음 번호): "3"} 은 손으로 얹는다.
-    mm = 보표 높이(mm): 한 마디가 쪽 폭을 다 채우면 폰 화면에서 작아져서 키울 때."""
+    mm = 보표 높이(mm): 한 마디가 쪽 폭을 다 채우면 폰 화면에서 작아져서 키울 때. keep_dir = 셈여림 남기기."""
     tree = ET.parse(src)
     root = tree.getroot()
     for tag in ("work", "movement-number", "movement-title", "identification", "defaults", "credit"):
@@ -38,15 +38,15 @@ def clip(src, bars, out, fingering=None, mm=None):
     part = root.find("part")
     seen, kept = {}, []
     for i, m in enumerate(list(part.findall("measure"))):
-        attrs = m.find("attributes")
-        if attrs is not None and i <= bars[0]:
-            for a in attrs:
-                seen[a.tag] = a
+        if i <= bars[0]:
+            for attrs in m.findall("attributes"):  # 한 마디에 여러 개일 수 있음
+                for a in attrs:
+                    seen[a.tag] = a
         if i in bars:
             kept.append(m)
         part.remove(m)
     for n, m in enumerate(kept):
-        for tag in ("print", "direction", "barline"):
+        for tag in ("print", "barline") if keep_dir else ("print", "direction", "barline"):
             for e in m.findall(tag):
                 m.remove(e)
         for e in m.findall("note"):
@@ -54,8 +54,7 @@ def clip(src, bars, out, fingering=None, mm=None):
                 for tech in nt.findall("technical"):
                     nt.remove(tech)  # 운지는 아래 fingering 으로만 (OCR 찌꺼기 빼기)
         if n == 0:
-            attrs = m.find("attributes")
-            if attrs is not None:
+            for attrs in m.findall("attributes"):
                 m.remove(attrs)
             a = ET.Element("attributes")
             for tag in ("divisions", "key", "time", "clef"):
@@ -136,15 +135,16 @@ def read_variants():
 
 
 JOBS = [  # 이름, 원본, 마디(0부터), 얹을 운지, 종이?, 보표 높이
-    ("ocr_m41_raw", RAW, [41], None, False, None),
-    ("ocr_m41_paper", FIX, [41], {(41, i): f for i, f in enumerate("013401")}, True, None),  # 운지는 교재 그대로
-    ("ocr_m41_fixed", CLEAN, [41], None, False, None),
-    ("ocr_m11_raw", RAW, [11], None, False, 13),
-    ("ocr_m11_paper", FIX, [11], None, True, 13),
     ("ocr_cover_paper", FIX, [1, 2], None, True, 11),
     ("ocr_page_paper", FIX, [1, 2, 3, 4], None, True, 11),
     ("ocr_page_raw", RAW, [1, 2, 3, 4], None, False, 11),
+    # 2번 장면: 미뉴에트 3번 79마디의 처리 단계별 판. 음표만 읽음(omr_fix) → 사진과 맞춰 음 고침(apply_fixes) → 표시 옮겨 붙임(transplant)
+    ("ocr_m79_paper", M3 / "Minuet3_fixed.musicxml", [78], None, True, 13),
+    ("ocr_m79_1", M3 / "minuet3_omr.musicxml", [78], None, False, 13),
+    ("ocr_m79_2", M3 / "minuet3_judged.musicxml", [78], None, False, 13),
+    ("ocr_m79_3", M3 / "Minuet3_fixed.musicxml", [78], None, False, 13),
 ]
+KEEP_DIR = {"ocr_m79_paper", "ocr_m79_3"}
 
 if __name__ == "__main__":
     for old in IMG.glob("ocr_*"):
@@ -152,7 +152,7 @@ if __name__ == "__main__":
     with tempfile.TemporaryDirectory() as tmp:
         for name, src, bars, fing, is_paper, mm in JOBS:
             xml, png = Path(tmp) / f"{name}.musicxml", Path(tmp) / f"{name}.png"
-            clip(src, bars, xml, fing, mm)
+            clip(src, bars, xml, fing, mm, name in KEEP_DIR)
             img = render(xml, png)
             if is_paper:
                 paper(img, name).save(IMG / f"{name}.jpg", quality=86)

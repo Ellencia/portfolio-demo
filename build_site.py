@@ -16,6 +16,7 @@ PAGES = [("bapl", "구매관리 웹앱", "주문한 물건이 지금 어디쯤�
          ("dl", "다운로드 자동 정리", "받는 순간 파일 이름을 규칙대로 바꾸고 폴더로 나누는 크롬 확장"),
          ("excel", "엑셀 자동 정리", "양식이 제각각인 엑셀을 한 표로, 검증과 대시보드까지"),
          ("tabrip", "탭 영상 → 악보", "유튜브 기타 탭 영상을 연주할 Guitar Pro 악보로 (개인 프로젝트, 숫자는 실제 산출)"),
+         ("ocr", "악보 사진 → 악보 파일", "종이 악보를 손으로 입력하기 힘들어서 만든 프로그램: 폰으로 찍으면 악보 파일이 됨 (개인 프로젝트, 요약 데모)"),
          ("b2b", "현장 IP 관리 앱", "PC 설치·교체·유지보수용 CRM, 코딩 공부 없이 Gemini CLI로 만든 첫 앱의 실제 화면 (데이터는 가상)")]
 HEAD = '<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n' \
        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
@@ -59,7 +60,7 @@ footer {{ margin-top: 28px; color: var(--sub); font-size: 13px }}
 <body>
 <main>
   <h1>반복 업무를<br><mark>자동으로</mark></h1>
-  <p class="lead">폰 화면 크기 데모 아홉 편. 업무 데모 화면의 회사·거래처·품목·금액은 모두 예시입니다.</p>
+  <p class="lead">폰 화면 크기 데모 열 편. 업무 데모 화면의 회사·거래처·품목·금액은 모두 예시입니다.</p>
   <ul>
 {cards}
   </ul>

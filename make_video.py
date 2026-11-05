@@ -21,6 +21,7 @@ ap.add_argument("page", choices=["excel", "harness", "bapl", "tabrip", "cad", "d
 ap.add_argument("--theme", default="", help="harness 디자인: dark / phone / memo / brand")
 ap.add_argument("--fps", type=int, default=30)
 ap.add_argument("--sfx", action="store_true", help="효과음 트랙 넣기")
+ap.add_argument("--sfx-db", type=float, default=0, help="효과음 음량 조절(dB). 음악은 그대로")
 ap.add_argument("--bgm", nargs="?", const="waltz",
                 help="배경음: waltz·arp = 합성 기타 반주(기본 waltz), bgm/*.mid = 직접 쓴 곡(FluidSynth 렌더), 그 밖엔 음악 파일 경로(music/ 에 두고 커밋 안 함)")
 a = ap.parse_args()
@@ -46,12 +47,14 @@ try:
             import sfx
             ast = out.add_stream("aac", rate=sfx.SR, layout="stereo")
         frames, events = 0, []
-        for i in range(page.evaluate("demoScenes")):
-            dur = page.evaluate(f"demoShow({i})")
-            if a.sfx:
+        cover = page.evaluate("!!document.getElementById('cover')")  # 페이지에 표지가 있으면 맨 앞에: 카톡 미리보기 = 첫 프레임
+        for i in range(-1 if cover else 0, page.evaluate("demoScenes")):
+            dur = 1034 if i < 0 else page.evaluate(f"demoShow({i})")  # 표지 1.03초: ocr 배경음 첫 음까지(♩=58 한 박)
+            page.evaluate(f"document.body.classList.toggle('cover-on', {'true' if i < 0 else 'false'})")
+            if a.sfx and i >= 0:
                 t0 = frames / a.fps
                 events += [(t0 + ms / 1000, n) for ms, n in page.evaluate("demoSfx()")]
-                if i:
+                if frames:
                     events.append((t0 - 0.15, "whoosh"))
             for f in range(round(dur / 1000 * a.fps)):
                 page.evaluate(f"demoFrame({f * 1000 / a.fps})")
@@ -81,7 +84,7 @@ try:
                         chunks += [o.to_ndarray().ravel() for o in rs.resample(fr)]
                 chunks += [o.to_ndarray().ravel() for o in rs.resample(None)]
                 music = np.concatenate(chunks)
-            pcm = sfx.mix(events, frames / a.fps, music=music)
+            pcm = sfx.mix(events, frames / a.fps, music=music, sfx_db=a.sfx_db)
             for k in range(0, pcm.shape[1], 1024):
                 fr = av.AudioFrame.from_ndarray(np.ascontiguousarray(pcm[:, k:k + 1024]), format="fltp", layout="stereo")
                 fr.sample_rate, fr.pts, fr.time_base = sfx.SR, k, Fraction(1, sfx.SR)

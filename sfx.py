@@ -99,9 +99,9 @@ def _bed(m, n):
     return m * (10 ** (-25 / 20) / rms) if rms > 0 else m
 
 
-def mix(events, seconds, frame=1024, music=None):
+def mix(events, seconds, frame=1024, music=None, sfx_db=0):
     """events = [(초, 소리 이름)] → (2, n) float32 스테레오. 길이는 frame 의 배수(AAC 프레임)로 맞춘다.
-    music="waltz"·"arp" 면 그 합성 기타 반주를, 1차원 배열(SR, 모노)이면 그 음악을 효과음(최고 0.8) 밑에 RMS −25 dBFS 로 깐다."""
+    music="waltz"·"arp" 면 그 합성 기타 반주를, 1차원 배열(SR, 모노)이면 그 음악을 효과음(최고 0.8, sfx_db 만큼 더하거나 뺌) 밑에 RMS −25 dBFS 로 깐다."""
     n = -(-int(SR * seconds) // frame) * frame
     out = np.zeros(n + SR)
     for t, name in events:
@@ -111,7 +111,7 @@ def mix(events, seconds, frame=1024, music=None):
     out = out[:n]
     peak = np.abs(out).max()
     if peak > 0:
-        out *= 0.8 / peak
+        out *= 0.8 / peak * 10 ** (sfx_db / 20)
     if music is not None:
         out += _bed(bgm(n / SR, music) if isinstance(music, str) else np.asarray(music, dtype=float), n)
         out /= max(1.0, np.abs(out).max() / 0.95)
@@ -122,6 +122,7 @@ if __name__ == "__main__":
     a = mix([(0.1, "click"), (0.5, "pop"), (1.9, "chime")], 3)
     assert a.shape[0] == 2 and a.shape[1] % 1024 == 0 and a.shape[1] >= 3 * SR
     assert abs(np.abs(a).max() - 0.8) < 1e-6 and not a[:, : int(0.1 * SR) - 1].any()
+    assert abs(np.abs(mix([(0.1, "click")], 3, sfx_db=-20)).max() - 0.08) < 1e-6
     # 뜯은 줄의 주기가 음높이와 맞는지 (A2 = 110 Hz): 자기상관이 가장 큰 지연 = 한 주기
     s = pluck(45)[: SR // 2]
     ac = np.correlate(s, s, "full")[len(s) - 1:]
