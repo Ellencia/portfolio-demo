@@ -4,6 +4,28 @@
 
 **바로 보기: https://ellencia.github.io/portfolio-demo/**
 
+## 다른 데모를 만드는 사람을 위한 가이드
+
+이 저장소의 데모를 만들며 반복해서 고친 문제를 **[이해되는 데모 만들기](skills/demo-storytelling/SKILL.md)**로 정리했습니다. 제품·업무 도구의 웹 데모와 영상에 적용할 수 있는 한국어 가이드이자 AI용 스킬입니다.
+
+핵심은 **설명 문장을 줄인 자리를, 알아볼 수 있는 과정으로 채우는 것**입니다. 사실과 증거 → 처음 보는 사람의 이해 → 관람 경로 → 읽는 시간과 움직임 → 최종 산출물 검수 순서로 판단합니다. 글을 줄이면서 맥락까지 없애거나, 설명용 연출을 실제 구현처럼 보이게 만드는 문제를 다룹니다.
+
+- [SKILL.md](skills/demo-storytelling/SKILL.md): 공통 기준과 작업 순서
+- [장면 설계 예시](skills/demo-storytelling/references/scene-design.md): 견적서 입력, 사진 판독, 통화에서 할 일로 이어지는 장면
+- [최종 산출물 검수](skills/demo-storytelling/references/artifact-review.md): 이해·화면·재생·음향·배포본 확인
+
+사람은 위 문서를 바로 읽고 사용할 수 있습니다. AI에는 `skills/demo-storytelling/SKILL.md`를 읽고 적용하도록 요청하세요. 스킬을 지원하는 환경에서는 `skills/demo-storytelling/` 폴더 전체를 등록해 사용합니다. 환경에 따라 등록 방법은 다릅니다.
+
+요청 예시:
+
+> 이 저장소의 `skills/demo-storytelling/SKILL.md`를 읽고 이 데모를 점검해 줘. 먼저 실제 재생본을 확인하고, 처음 보는 사람이 이해하기 어려운 장면과 근거를 짚어 줘. 이번에는 수정하지 마.
+
+> 이 저장소의 `skills/demo-storytelling/SKILL.md`를 적용해 견적서 입력 데모를 만들어 줘. 실제 앱 화면과 예시 데이터를 사용하고, 대표 장면 하나를 먼저 검수한 뒤 나머지 장면으로 확장해 줘.
+
+이 가이드는 특정 디자인이나 엔진을 요구하지 않습니다. 실제 사용자 피드백을 일반화한 작업 기준이며, 기존 데모 전부가 이 기준으로 검수되었다는 뜻은 아닙니다.
+
+## 데모 구성
+
 - `excel.html` — 엑셀 자동 정리: 양식이 제각각인 결과보고 통합, 검증, 대시보드, 영수증 증빙, 공유 엑셀 보호
 - `harness.html` — 메신저 업무 봇 두 개와 기록 DB를 잇는 업무 자동화. 디자인 5종(기본·다크 앱·폰 목업·메모장·브랜드, `harness-themes.css`)
 - `bapl.html` — 직접 만든 구매관리 웹앱의 실제 화면(폰 폭 캡처, `img/`). 데이터는 `bapl/seed_demo.py` 가 만든 가상 회사 DB, `bapl/capture.py` 가 이야기 단계마다 DB 를 바꿔 가며 전·후 화면을 찍음

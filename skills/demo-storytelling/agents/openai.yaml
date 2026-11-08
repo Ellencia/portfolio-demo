@@ -1,0 +1,4 @@
+interface:
+  display_name: "이해되는 데모 만들기"
+  short_description: "처음 보는 사람이 입력·처리·결과를 따라가는 데모 설계와 검수"
+  default_prompt: "$demo-storytelling을 사용해 이 데모를 처음 보는 사람 기준으로 설계하거나 점검해 주세요."
