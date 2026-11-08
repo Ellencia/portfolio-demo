@@ -37,7 +37,7 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 
 `python build_site.py` 는 GitHub Pages 용 `docs/` 를 만듭니다. `make_video.py` 는 화면녹화가 아니라 프레임마다 애니메이션 시각을 맞춰 찍어 H.264 로 묶습니다.
 
-## 상태 (2026-10-27)
+## 상태 (2026-11-08)
 
 ### 어디까지 됐나
 
@@ -56,13 +56,14 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 | dl | 9b44572 | 최신 (40ef42b) | 양호 |
 | ocr | 0b219fd | 최신 (0b219fd, `--sfx --sfx-db -10 --bgm music/habanera_quartet.mid`) | 사용자 판정으로 다시 씀, 시험 문항 아직 없음 |
 
-- "영상 최신" = 영상의 마지막 렌더 커밋이 html 마지막 변경과 같거나 나중(`git log --follow`, out/ 폴더 이동 커밋 077c50b 는 건너뜀). 작업 트리 깨끗함. `main` 이 `origin/main`(d1f42f4)보다 1커밋 앞섬: forms 커밋 043a8c7 아직 푸시 안 함.
+- "영상 최신" = 영상의 마지막 렌더 커밋이 html 마지막 변경과 같거나 나중(`git log --follow`, out/ 폴더 이동 커밋 077c50b 는 건너뜀). 작업 트리 깨끗함. `main` 과 `origin/main` 같음(98d5f03).
 - `docs/` 는 소스와 같습니다(스크래치 복사본에서 `build_site.py` 를 돌린 결과와 `diff -rq` 차이 없음: 페이지 9·index·영상 9·img 46). 장면 카드 수 = 각 html 장면 수(9편 전부, harness 는 디자인 5종 × 7장).
 - 사이트 첫 화면 카드 설명은 `build_site.py` 의 PAGES 에 있습니다. 편을 다시 쓰면 이 문구도 같이 봅니다(imp·harness·bapl·forms 는 새 서사로 바꿈).
 - harness 의 실제 구조 출처는 회사 PC에서 가져온 2026-10-26 압축본(git 밖) 안 `shared-tools/하네스.md`(부품 지도)·`work-inbox/README.md`(받는 봇). 데모는 일반 이름(받는 봇·실행 봇·기록 DB·ERP)만 씁니다.
 
 ### 다음
 
+0. harness 광고형 시안 고르기(11-08 사용자: "일을 쉽게 처리하고 있다는 걸 광고하는 느낌"). `harness_a.html`(하루 압축, 결과 먼저·큰 시계)·`harness_c.html`(누른 횟수 0→3) 초안 6장면씩, 카드만 찍음·영상 없음. B(전후 대비)는 예전 손작업 시간 세 개(견적서 입력·메일 첨부 정리·일일보고)를 사용자에게 받아야 만듦. 이 편만 "문제 먼저" 원칙 예외. 고른 판이 `harness.html` 을 대체하면 `build_site.py` PAGES 문구도 바꿈. C의 "누른 횟수"는 사진 보내기를 안 셈(문구 결정 대기). 아티팩트 도구가 있는 세션에서 이어 갈 것.
 1. 화면 글 다시 쓰기, 위 표의 "다시 쓸 편" 순서대로(남은 것: cad → excel). 한 편 고치면 그 칸을 "다시 씀(커밋)"으로 바꿉니다. 기준: 처음 보는 사람이 화면만 보고 이해, 장면마다 무슨 문제인지 먼저, 업계 약어·검사 용어(PASS 등)·설명 없는 점수는 빼거나 일상어로, 숫자는 장면당 하나.
 2. 검사: 카드 PNG 만 모델(Opus·Haiku)에게 보여 주고 정답 기준이 있는 문제를 풀게 해 틀린 문항을 찾기(자기 보고 "모르는 단어"는 늘 뭔가를 채워 넣어 쓸모없었음). `quiz.py submit|wait|grade <편>`(문항·정답 기준은 파일 안 `QUESTIONS`, 기준은 사용자가 확인한 것만), 결과는 `out/quiz/<편>/report.md`. 객관식 1번 오답은 `quiz.py order <편>` 으로 재확인(보기 1·2 바꾼 판 + 원순서에 이유 요구, Haiku 3회씩) — harness·forms 는 6/6 화면 탓 아님, imp 는 순서를 바꿔도 늘 2번이라 위치 편향(`out/quiz/imp/q1_order.jsonl`). 편을 다시 쓸 때마다 그 편 문항을 `QUESTIONS` 에 추가하고 돌림(cad·excel 은 아직 문항 없음).
 3. 새 편 3D 조립 검사기(cad-lab, 미스미 inCAD 공개 예제만, three.js + 가짜 커서, 주인공은 AI 제안을 "여기서 걸립니다"로 거부하는 검사기 — 창문 빼기, 문 젖히다 볼트 머리에 걸림). 첫 작업은 헤드리스 크롬에서 WebGL 화면이 찍히는지 확인.

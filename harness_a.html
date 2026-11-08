@@ -1,0 +1,147 @@
+<title>하네스 업무 자동화 데모 (A: 하루 압축)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@500;800&display=swap">
+<link rel="stylesheet" href="demo.css">
+<link rel="stylesheet" href="harness-themes.css">
+<style>
+.clock { font: 500 44px var(--f-mono); letter-spacing: -.02em; line-height: 1; margin: -4px 0 -6px }
+.clock small { font: 500 12px var(--f-body); color: var(--sub); margin-left: 8px; letter-spacing: 0 }
+.noti { padding: 9px 12px; font-size: 11.5px; line-height: 1.5; box-shadow: 0 8px 20px rgba(23,33,43,.12) }
+.noti b { display: block; font-size: 10px; color: var(--sub); font-weight: 500 }
+</style>
+
+<div class="phone" id="phone">
+<div class="stage" id="stage">
+  <div class="bars" id="bars"></div>
+  <div class="statusbar"><span>9:41</span><span class="icons">5G <b class="batt"></b></span></div><div class="island"></div><div class="homebar"></div>
+
+  <!-- 1 표지: 결과 먼저 -->
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 업무 자동화</span><span>구매 담당</span></div>
+    <div class="clock in" style="--d:.2s">17:30<small>퇴근 30분 전</small></div>
+    <h1 class="cap">일일보고는<br><mark>이미 써져 있습니다</mark></h1>
+    <div class="chat fit">
+      <div class="msg bot in" style="--d:1.2s;max-width:94%"><span class="who">받는 봇 · 17:30</span>오늘 일일보고 초안이에요.
+        <div class="dline">강변점 집기 발주 (#1043)<span class="chip pass">확정</span></div>
+        <div class="dline">강변점 견적 검토<span class="chip pass">확정</span></div>
+        <div class="dline">앵커 볼트 추가 견적 요청<span class="chip pass">확정</span></div>
+      </div>
+    </div>
+    <p class="sub in" style="--d:2.2s">오늘 하루를 돌려 보겠습니다.</p>
+    <div class="foot"><span>화면의 데이터는 모두 예시</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 2 메일 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>메일</span></div>
+    <div class="clock in" style="--d:.2s">10:12</div>
+    <h2 class="cap">견적 메일이 오면<br><mark>폴더엔 이미 있습니다</mark></h2>
+    <div class="card mail in" style="--d:.8s">
+      <div><span class="k">제목</span>[견적] 강변점 리모델링 집기</div>
+      <div><span class="k">첨부</span><span class="chip ask">견적서_1023.pdf</span></div>
+    </div>
+    <div class="card noti pop" style="--d:1.8s"><b>받는 봇</b>강변점 리모델링 폴더에 넣었어요. 할 일 '견적 검토'도 추가했어요.</div>
+    <div class="card tree in" style="--d:2.4s">
+      <div style="--lv:0">사업</div>
+      <div style="--lv:1">강변점 리모델링</div>
+      <div style="--lv:2">견적</div>
+      <div style="--lv:3"><span class="hl" style="--d:2.9s">견적서_OO상사_1023.pdf</span></div>
+    </div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 3 견적서 사진 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>발주</span></div>
+    <div class="clock in" style="--d:.2s">14:40</div>
+    <h2 class="cap">견적서는<br><mark>사진 한 장이면 끝</mark></h2>
+    <div class="chat">
+      <div class="msg me in" style="--d:.7s"><div class="photo"><i></i><i></i><i></i><i></i><i></i></div>이거 입력</div>
+      <div class="msg bot in" style="--d:1.6s"><span class="who">실행 봇</span>견적서 읽음 · 케이블 3종, 합계 1,284,000원<div class="qbtns"><span class="go" style="animation-delay:2.6s">등록</span><span>수정</span></div></div>
+      <div class="msg bot in" style="--d:3.2s">발주서 #1043 등록 완료.</div>
+    </div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 4 통화 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>통화</span></div>
+    <div class="clock in" style="--d:.2s">16:05</div>
+    <h2 class="cap">전화를 끊으면<br><mark>할 일이 먼저 와 있습니다</mark></h2>
+    <div class="card wave in" style="--d:.8s"><div><b>통화 녹음</b>04:12 · OO상사</div><div class="wbars" id="wbars"></div></div>
+    <div class="card todo pop" style="--d:2s">
+      <h4>할 일 추가</h4>
+      <div class="in" style="--d:2.3s"><span class="box"></span>납품일 변경 회신<span class="chip fail">오늘</span></div>
+      <div class="in" style="--d:2.6s"><span class="box"></span>앵커 볼트 추가 견적<span class="chip ask">11/1</span></div>
+    </div>
+    <div class="foot"><span>녹음은 회사 PC 안에서만 글로 바꿉니다 · 예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 5 퇴근 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>보고</span></div>
+    <div class="clock in" style="--d:.2s">17:30</div>
+    <h2 class="cap">넣기 한 번<br><mark>그리고 퇴근</mark></h2>
+    <div class="chat fit">
+      <div class="msg bot in" style="--d:.7s;max-width:94%"><span class="who">받는 봇</span>하나 더 있어요.
+        <div class="dline">OO상사 통화: 납품일 변경<span class="mini"><span class="go" style="--d:1.8s">넣기</span><span>빼기</span></span></div>
+      </div>
+    </div>
+    <div class="card daily in" style="--d:2.4s">
+      <h4>오늘 일일보고</h4>
+      · 강변점 집기 발주 (#1043)<br>
+      · 강변점 견적 검토 · 앵커 볼트 추가 견적 요청<br>
+      · <span class="hl" style="--d:2.9s">OO상사 통화: 납품일 11/5로 변경</span>
+    </div>
+    <div class="card result pop" style="--d:3.6s"><b>일일보고 끝</b><span>퇴근</span></div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 6 다음 날 아침 + 정체 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>다음 날</span></div>
+    <div class="clock in" style="--d:.2s">아침</div>
+    <h2 class="cap">밤사이 일은<br><mark>봇이 점검해 뒀습니다</mark></h2>
+    <div class="card result pop" style="--d:.9s"><b>17항목 전부 정상</b><span>오늘 문제 없음</span></div>
+    <div class="legend">
+      <div class="in" style="--d:1.6s"><b>받는 봇</b>말·메일·전화를 할 일로 붙잡아 둡니다</div>
+      <div class="in" style="--d:1.9s"><b>실행 봇</b>시키면 ERP와 기록에 대신 입력합니다</div>
+      <div class="in" style="--d:2.2s"><b>기록 DB</b>발주·구매·재고가 모이는 사내 웹</div>
+      <div class="in" style="--d:2.5s"><b>일일보고</b>퇴근 전 봇이 초안을 써 둡니다</div>
+    </div>
+    <div class="card kpis-run in" style="--d:3s"><div>ERP 수집<b>30분마다</b></div><div>스스로 점검<b>매일 아침</b></div><div>조작은<b>폰에서</b></div></div>
+    <div class="foot"><span>이 묶음을 '하네스'라 부릅니다 · 점검 결과는 실제 (2026-10-25)</span><span class="pg"></span></div>
+  </section>
+
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+  <div class="themes" id="themes"></div>
+</div>
+<p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<script>
+const THEMES = { base: '기본', dark: '다크 앱', phone: '폰 목업', memo: '메모장', brand: '브랜드' };
+function setTheme(t) {
+  if (!(t in THEMES)) t = 'base';
+  document.body.className = document.body.className.replace(/\btheme-\S+/g, '').trim();
+  if (t !== 'base') document.body.classList.add('theme-' + t);
+  [...document.getElementById('themes').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t));
+  if (typeof fit === 'function') fit();
+}
+document.getElementById('themes').innerHTML = Object.entries(THEMES)
+  .map(([t, n]) => `<button type="button" data-t="${t}">${n}</button>`).join('');
+document.getElementById('themes').onclick = e => { if (e.target.dataset.t) setTheme(e.target.dataset.t); };
+setTheme(new URLSearchParams(location.search).get('theme') || location.hash.slice(1));
+
+const hs = [30, 55, 40, 80, 62, 35, 90, 70, 45, 25, 60, 85, 50, 30, 75, 95, 55, 40, 65, 35, 50, 80, 45, 30];
+document.getElementById('wbars').innerHTML = hs.map((h, i) => `<i style="--h:${h}%;--d:${(0.9 + i * 0.03).toFixed(2)}s"></i>`).join('');
+</script>
+<script src="demo.js"></script>
