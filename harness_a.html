@@ -1,13 +1,25 @@
 <title>하네스 업무 자동화 데모 (A: 하루 압축)</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Gaegu:wght@400;700&family=Gowun+Dodum&family=Nanum+Pen+Script&family=Noto+Sans+KR:wght@500;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DotGothic16&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="demo.css">
-<link rel="stylesheet" href="harness-themes.css">
 <style>
-.clock { font: 500 44px var(--f-mono); letter-spacing: -.02em; line-height: 1; margin: -4px 0 -6px }
-.clock small { font: 500 12px var(--f-body); color: var(--sub); margin-left: 8px; letter-spacing: 0 }
-.noti { padding: 9px 12px; font-size: 11.5px; line-height: 1.5; box-shadow: 0 8px 20px rgba(23,33,43,.12) }
+/* 세계: 출퇴근 타임카드. 장면마다 카드 칸에 시각이 찍힘(점 찍는 기계 글씨), 지난 칸은 남고 다음 칸은 빈칸 */
+:root { --paper: #EDE5D1; --punch: #5E2D8C; --punch-out: #B3362B; --stock: #F7F1E2; --rule: #CDBF9F; --rule-ink: #8C7A5B }
+.chat { background: #E3D8C0 }
+.tc { display: grid; grid-template-columns: 20px repeat(4, 1fr); background: var(--stock); border: 1.5px solid var(--rule-ink); border-radius: 3px; flex: none }
+.tc > * { border-left: 1px solid var(--rule); padding: 4px 6px 5px; min-height: 42px; display: flex; flex-direction: column; justify-content: space-between }
+.tc > i { border: 0; padding: 0; writing-mode: vertical-rl; font: 500 7.5px var(--f-mono); font-style: normal; letter-spacing: .12em; color: var(--rule-ink); align-items: center; justify-content: center; background: repeating-linear-gradient(var(--rule) 0 1px, transparent 1px 4px) }
+.tc b { font: 500 9px var(--f-body); color: var(--rule-ink) }
+.tc small { font-size: 8.5px; color: var(--sub) }
+.punch { display: inline-block; font: 400 14px/1 "DotGothic16", var(--f-mono); color: var(--punch); rotate: -1.5deg; opacity: .9; text-shadow: 0 0 .6px currentColor }
+.tc .out .punch { color: var(--punch-out) }
+.tc .now { background: #FFFDF6 }
+.tc .now .punch { font-size: 21px }
+.on .tc .now .punch { animation: punch .4s var(--d, .3s) cubic-bezier(.3,1.5,.5,1) both }
+@keyframes punch { from { opacity: 0; transform: translateY(-5px) scale(1.5); filter: blur(1.5px) } to { opacity: .9; transform: none; filter: none } }
+.clock { margin: -2px 0 -6px } .clock .punch { font-size: 40px }
+.noti { padding: 9px 12px; font-size: 11.5px; line-height: 1.5; box-shadow: 0 8px 20px rgba(60,45,20,.14) }
 .noti b { display: block; font-size: 10px; color: var(--sub); font-weight: 500 }
 </style>
 
@@ -16,10 +28,10 @@
   <div class="bars" id="bars"></div>
   <div class="statusbar"><span>9:41</span><span class="icons">5G <b class="batt"></b></span></div><div class="island"></div><div class="homebar"></div>
 
-  <!-- 1 표지: 결과 먼저 -->
+  <!-- 1 표지: 결과 먼저 (보고 칸만 찍힘, 앞 칸은 이제 돌려 볼 하루) -->
   <section class="scene">
     <div class="eyebrow"><span>포트폴리오 · 업무 자동화</span><span>구매 담당</span></div>
-    <div class="clock in" style="--d:.2s">17:30<small>퇴근 30분 전</small></div>
+    <div class="tc"><i>TIME CARD</i><div><b>메일</b></div><div><b>발주</b></div><div><b>통화</b></div><div class="now out"><b>보고</b><span class="punch" style="--d:.3s" data-sfx="click">17:30</span><small>퇴근 30분 전</small></div></div>
     <h1 class="cap">일일보고는<br><mark>이미 써져 있습니다</mark></h1>
     <div class="chat fit">
       <div class="msg bot in" style="--d:1.2s;max-width:94%"><span class="who">받는 봇 · 17:30</span>오늘 일일보고 초안이에요.
@@ -35,7 +47,7 @@
   <!-- 2 메일 -->
   <section class="scene">
     <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>메일</span></div>
-    <div class="clock in" style="--d:.2s">10:12</div>
+    <div class="tc"><i>TIME CARD</i><div class="now"><b>메일</b><span class="punch" data-sfx="click">10:12</span></div><div><b>발주</b></div><div><b>통화</b></div><div><b>보고</b></div></div>
     <h2 class="cap">견적 메일이 오면<br><mark>폴더엔 이미 있습니다</mark></h2>
     <div class="card mail in" style="--d:.8s">
       <div><span class="k">제목</span>[견적] 강변점 리모델링 집기</div>
@@ -54,7 +66,7 @@
   <!-- 3 견적서 사진 -->
   <section class="scene">
     <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>발주</span></div>
-    <div class="clock in" style="--d:.2s">14:40</div>
+    <div class="tc"><i>TIME CARD</i><div><b>메일</b><span class="punch">10:12</span></div><div class="now"><b>발주</b><span class="punch" data-sfx="click">14:40</span></div><div><b>통화</b></div><div><b>보고</b></div></div>
     <h2 class="cap">견적서는<br><mark>사진 한 장이면 끝</mark></h2>
     <div class="chat">
       <div class="msg me in" style="--d:.7s"><div class="photo"><i></i><i></i><i></i><i></i><i></i></div>이거 입력</div>
@@ -67,7 +79,7 @@
   <!-- 4 통화 -->
   <section class="scene">
     <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>통화</span></div>
-    <div class="clock in" style="--d:.2s">16:05</div>
+    <div class="tc"><i>TIME CARD</i><div><b>메일</b><span class="punch">10:12</span></div><div><b>발주</b><span class="punch">14:40</span></div><div class="now"><b>통화</b><span class="punch" data-sfx="click">16:05</span></div><div><b>보고</b></div></div>
     <h2 class="cap">전화를 끊으면<br><mark>할 일이 먼저 와 있습니다</mark></h2>
     <div class="card wave in" style="--d:.8s"><div><b>통화 녹음</b>04:12 · OO상사</div><div class="wbars" id="wbars"></div></div>
     <div class="card todo pop" style="--d:2s">
@@ -81,7 +93,7 @@
   <!-- 5 퇴근 -->
   <section class="scene">
     <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>보고</span></div>
-    <div class="clock in" style="--d:.2s">17:30</div>
+    <div class="tc"><i>TIME CARD</i><div><b>메일</b><span class="punch">10:12</span></div><div><b>발주</b><span class="punch">14:40</span></div><div><b>통화</b><span class="punch">16:05</span></div><div class="now out"><b>보고</b><span class="punch" data-sfx="click">17:30</span></div></div>
     <h2 class="cap">넣기 한 번<br><mark>그리고 퇴근</mark></h2>
     <div class="chat fit">
       <div class="msg bot in" style="--d:.7s;max-width:94%"><span class="who">받는 봇</span>하나 더 있어요.
@@ -101,7 +113,7 @@
   <!-- 6 다음 날 아침 + 정체 -->
   <section class="scene">
     <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>다음 날</span></div>
-    <div class="clock in" style="--d:.2s">아침</div>
+    <div class="clock in" style="--d:.2s"><span class="punch">아침</span></div>
     <h2 class="cap">밤사이 일은<br><mark>봇이 점검해 뒀습니다</mark></h2>
     <div class="card result pop" style="--d:.9s"><b>17항목 전부 정상</b><span>오늘 문제 없음</span></div>
     <div class="legend">
@@ -123,24 +135,10 @@
   <button id="next" type="button">다음</button>
   <button id="rec" type="button">녹화 화면</button>
   <div class="chips" id="chips"></div>
-  <div class="themes" id="themes"></div>
 </div>
 <p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
 
 <script>
-const THEMES = { base: '기본', dark: '다크 앱', phone: '폰 목업', memo: '메모장', brand: '브랜드' };
-function setTheme(t) {
-  if (!(t in THEMES)) t = 'base';
-  document.body.className = document.body.className.replace(/\btheme-\S+/g, '').trim();
-  if (t !== 'base') document.body.classList.add('theme-' + t);
-  [...document.getElementById('themes').children].forEach(b => b.setAttribute('aria-pressed', b.dataset.t === t));
-  if (typeof fit === 'function') fit();
-}
-document.getElementById('themes').innerHTML = Object.entries(THEMES)
-  .map(([t, n]) => `<button type="button" data-t="${t}">${n}</button>`).join('');
-document.getElementById('themes').onclick = e => { if (e.target.dataset.t) setTheme(e.target.dataset.t); };
-setTheme(new URLSearchParams(location.search).get('theme') || location.hash.slice(1));
-
 const hs = [30, 55, 40, 80, 62, 35, 90, 70, 45, 25, 60, 85, 50, 30, 75, 95, 55, 40, 65, 35, 50, 80, 45, 30];
 document.getElementById('wbars').innerHTML = hs.map((h, i) => `<i style="--h:${h}%;--d:${(0.9 + i * 0.03).toFixed(2)}s"></i>`).join('');
 </script>
