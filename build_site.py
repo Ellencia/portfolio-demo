@@ -75,7 +75,7 @@ h2 {{ font-size: 21px; margin: 32px 0 14px }}
 @media (max-width: 720px) {{ .featured, .more {{ grid-template-columns: 1fr }} .preview img {{ height: 300px }} }}
 li {{ background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 2px }}
 li b {{ font-size: 17px }} li span {{ color: var(--sub); font-size: 14px }}
-li p {{ margin: 8px 0 0; display: flex; gap: 8px; flex-wrap: wrap }}
+li p {{ margin: 8px 0 0; display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-start; align-self: end }}
 li a {{ color: var(--fg); text-decoration: none; border: 1px solid var(--line); border-radius: 8px; padding: 5px 12px; font-size: 14px; font-weight: 700 }}
 li a:first-child {{ background: var(--marker); border-color: var(--marker); color: #17212B }}
 li a:focus-visible {{ outline: 2px solid var(--fg); outline-offset: 2px }}
