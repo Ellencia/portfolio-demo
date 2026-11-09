@@ -13,11 +13,13 @@ from fractions import Fraction
 from pathlib import Path
 
 import av
+from av.video.reformatter import VideoReformatter
+from PIL import Image
 from playwright.sync_api import sync_playwright
 
 HERE = Path(__file__).parent
 ap = argparse.ArgumentParser()
-ap.add_argument("page", choices=["excel", "harness", "bapl", "tabrip", "cad", "dl", "forms", "imp", "b2b", "ocr"])
+ap.add_argument("page", choices=["excel", "harness", "harness_a", "harness_b", "harness_c", "bapl", "tabrip", "cad", "dl", "forms", "imp", "b2b", "ocr"])
 ap.add_argument("--theme", default="", help="harness 디자인: dark / phone / memo / brand")
 ap.add_argument("--fps", type=int, default=30)
 ap.add_argument("--sfx", action="store_true", help="효과음 트랙 넣기")
@@ -37,11 +39,18 @@ try:
     with sync_playwright() as p, av.open(str(mp4), "w") as out:
         browser = p.chromium.launch(channel="chrome")
         page = browser.new_page(viewport={"width": 360, "height": 640}, device_scale_factor=3)
+        errors = []
+        page.on("pageerror", lambda error: errors.append(str(error)))
         page.goto(tmp.as_uri() + "?video=1" + (f"&theme={a.theme}" if a.theme else ""))
         page.evaluate("document.fonts.ready.then(() => 1)")
+        page.evaluate("new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))")
+        if errors:
+            raise RuntimeError("페이지 오류: " + "; ".join(errors))
         st = out.add_stream("libx264", rate=a.fps)
         st.width, st.height, st.pix_fmt = 1080, 1920, "yuv420p"
         st.options = {"crf": "21", "preset": "medium"}
+        st.codec_context.color_range = 1  # MPEG limited range
+        reformatter = VideoReformatter()
         if a.sfx or a.bgm:
             import numpy as np
             import sfx
@@ -59,7 +68,11 @@ try:
             for f in range(round(dur / 1000 * a.fps)):
                 page.evaluate(f"demoFrame({f * 1000 / a.fps})")
                 png = page.screenshot(type="png")
-                img = next(av.open(io.BytesIO(png), format="png_pipe").decode(video=0)).reformat(format="yuv420p")
+                # PNG 디코더의 full-range 태그를 YUV로 그대로 넘기면 MP4에서 대비가 달라진다.
+                with Image.open(io.BytesIO(png)) as capture:
+                    rgb = av.VideoFrame.from_image(capture.convert("RGB"))
+                img = reformatter.reformat(rgb, format="yuv420p", src_color_range="JPEG", dst_color_range="MPEG")
+                img.color_range = 1
                 img.pts, img.time_base = frames, Fraction(1, a.fps)  # 없으면 재생기가 길이를 0초로 읽음
                 img.pict_type = av.video.frame.PictureType.NONE  # PNG 에서 온 프레임은 전부 키프레임 표시라 압축이 안 됨
                 for pkt in st.encode(img):
@@ -94,6 +107,8 @@ try:
                 out.mux(pkt)
             print(f"효과음 {len(events)}개", flush=True)
         browser.close()
+        if errors:
+            raise RuntimeError("페이지 오류: " + "; ".join(errors))
     print(f"{mp4.name}  {frames} 프레임 = {frames / a.fps:.1f}초")
 finally:
     tmp.unlink(missing_ok=True)

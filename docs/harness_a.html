@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>하네스 업무 자동화 데모 (A: 하루 압축)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=DotGothic16&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="demo.css">
+<style>
+/* 세계: 출퇴근 타임카드. 장면마다 카드 칸에 시각이 찍힘(점 찍는 기계 글씨), 지난 칸은 남고 다음 칸은 빈칸 */
+:root { --paper: #EDE5D1; --punch: #5E2D8C; --punch-out: #B3362B; --stock: #F7F1E2; --rule: #CDBF9F; --rule-ink: #8C7A5B }
+.chat { background: #E3D8C0 }
+.cap { word-break: keep-all }
+.result.check-result { display: block }
+.result.check-result b { display: block; font: 700 18px/1.4 var(--f-body); color: var(--marker) }
+.result.check-result span { display: block; margin-top: 5px; font: 400 11px/1.5 var(--f-body); color: var(--stock) }
+.tc { display: grid; grid-template-columns: 20px repeat(4, 1fr); background: var(--stock); border: 1.5px solid var(--rule-ink); border-radius: 3px; flex: none }
+.tc > * { border-left: 1px solid var(--rule); padding: 4px 6px 5px; min-height: 42px; display: flex; flex-direction: column; justify-content: space-between }
+.tc > i { border: 0; padding: 0; writing-mode: vertical-rl; font: 500 7.5px var(--f-mono); font-style: normal; letter-spacing: .12em; color: var(--rule-ink); align-items: center; justify-content: center; background: repeating-linear-gradient(var(--rule) 0 1px, transparent 1px 4px) }
+.tc b { font: 500 9px var(--f-body); color: var(--rule-ink) }
+.tc small { font-size: 8.5px; color: var(--sub) }
+.punch { display: inline-block; font: 400 14px/1 "DotGothic16", var(--f-mono); color: var(--punch); rotate: -1.5deg; opacity: .9; text-shadow: 0 0 .6px currentColor }
+.tc .out .punch { color: var(--punch-out) }
+.tc .now { background: #FFFDF6 }
+.tc .now .punch { font-size: 21px }
+.on .tc .now .punch { animation: punch .4s var(--d, .3s) cubic-bezier(.3,1.5,.5,1) both }
+@keyframes punch { from { opacity: 0; transform: translateY(-5px) scale(1.5); filter: blur(1.5px) } to { opacity: .9; transform: none; filter: none } }
+/* 표지 끝: 타임카드를 거꾸로 감음. 시각이 17:30 → 10:12 로 넘어가고 같은 순간 그 칸이 깜빡임 */
+.rewind { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--ink); color: var(--stock); border-radius: 10px; font: 700 14.5px var(--f-body) }
+.rwi { color: #FF7A6B; font-size: 12px; letter-spacing: -3px }
+.on .rwi { animation: blink .35s 4s 4 both }
+@keyframes blink { 50% { opacity: .15 } }
+.rwt { margin-left: auto; display: inline-grid; font: 400 26px/1 "DotGothic16", var(--f-mono); color: #fff }
+.rwt i { grid-area: 1 / 1; font-style: normal; opacity: 0 }
+.on .rwt i { animation: flick .35s var(--d) both }
+.on .rwt i.last { animation: rise .3s var(--d) both }
+@keyframes flick { 0%, 100% { opacity: 0 } 15%, 85% { opacity: 1 } }
+.on .tc .rwf { animation: cellflash .35s var(--d) both }
+@keyframes cellflash { 0%, 100% { background: transparent } 30%, 70% { background: #FFE98A } }
+/* 5장면: 보고 칸은 표지에서 이미 찍혀 있음 → 다시 찍지 않고 한 번만 반짝 */
+.on .tc .again .punch { animation: none }
+.on .tc .again { animation: again .7s var(--d) ease-in-out }
+@keyframes again { 50% { background: #FFE98A; box-shadow: inset 0 0 0 2px var(--punch-out) } }
+.clock { margin: -2px 0 -6px } .clock .punch { font-size: 40px }
+.noti { padding: 9px 12px; font-size: 11.5px; line-height: 1.5; box-shadow: 0 8px 20px rgba(60,45,20,.14) }
+.noti b { display: block; font-size: 10px; color: var(--sub); font-weight: 500 }
+/* 2장면: 메일 카드가 옆에서 밀려 들어오고, 카드 사이 화살표로 다음 단계로 넘어감을 보임 */
+.on .slidein { animation: slideIn .5s var(--d) cubic-bezier(.2,1.2,.4,1) both }
+@keyframes slideIn { from { opacity: 0; transform: translateX(110%) } to { opacity: 1; transform: none } }
+.mail .new { display: inline-block; margin-right: 6px; padding: 1px 6px; border-radius: 4px; background: #2F6FDB; color: #fff; font: 700 9.5px/1.5 var(--f-body); vertical-align: 1px }
+/* 3장면: 사진을 훑는 줄 → 품목이 한 줄씩 입력되고 합계가 채워짐 */
+.photo { position: relative; overflow: hidden }
+.scan { position: absolute; left: 0; right: 0; top: 0; height: 14px; background: linear-gradient(transparent, rgba(47,111,219,.45)); border-bottom: 2px solid #2F6FDB; opacity: 0 }
+.on .scan { animation: scan .9s var(--d) ease-in-out both }
+@keyframes scan { 0% { opacity: 1; transform: translateY(-14px) } 90% { opacity: 1; transform: translateY(70px) } 100% { opacity: 0; transform: translateY(70px) } }
+.erp { margin-top: 5px; display: grid; gap: 2px; font-size: 11px }
+.erp > div { display: flex; justify-content: space-between; gap: 12px; padding: 3px 6px; background: #F4F1E8; border-radius: 4px }
+.erp > div span:last-child { font-family: var(--f-mono) }
+.on .erp > div { animation: type .4s var(--d) steps(10) both }
+@keyframes type { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0) } }
+.erp > .sum { background: #FFE98A; font-weight: 700 }
+/* 4장면: 녹음 → 글로 바꾼 대화 → 할 일이 될 말에 형광펜 → 할 일 목록 */
+/* 파형을 네 구간으로 읽음: 구간 틀 + ↓ 가 뜨고 막대가 읽은 색으로, 이어서 그 구간의 전사 줄이 나옴 */
+.wave { position: relative; z-index: 1 }
+.wbars { position: relative }
+.on .wbars i { animation: grow .4s var(--d) both, readc .3s var(--r) forwards }
+@keyframes readc { to { background: var(--punch) } }
+.seg { position: absolute; top: -4px; bottom: -4px; width: 25%; border: 1.5px solid var(--punch); border-radius: 4px; background: rgba(94,45,140,.08); opacity: 0 }
+.on .seg { animation: segIn .25s var(--r) both, segOut .25s var(--x) forwards }
+@keyframes segIn { from { opacity: 0 } to { opacity: 1 } }
+@keyframes segOut { to { opacity: 0 } }
+/* 구간 → 그 전사 줄 끝까지 화살표를 그렸다가 지움 (좌표는 아래 스크립트가 실제 글자 위치로 계산) */
+.lnk { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; overflow: visible }
+.lnk path { fill: none; stroke: var(--punch); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0 }
+.on .lnk .ln { stroke-linecap: butt; stroke-dasharray: 1 2; animation: lnDraw .56s var(--a) ease-in-out both, segOut .3s var(--z) forwards }
+@keyframes lnDraw { from { opacity: 1; stroke-dashoffset: 1 } to { opacity: 1; stroke-dashoffset: 0 } }
+.on .lnk .hd { animation: segIn .15s calc(var(--a) + .48s) both, segOut .3s var(--z) forwards }
+.talk { padding: 9px 12px; font-size: 11.5px; line-height: 1.5 }
+.talk h4 { margin: 0 0 3px; font-size: 10.5px; color: var(--sub); font-weight: 500 }
+.talk div { display: grid; grid-template-columns: 44px 1fr; padding: 1px 0 }
+.talk .sp { font-size: 10px; color: var(--sub); padding-top: 1px }
+.done { display: flex; align-items: center; gap: 7px }
+.ok { width: 20px; height: 20px; flex: none }
+.ok circle { fill: #22A559 } .ok path { fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14 }
+.on .ok { animation: pop .3s var(--d) cubic-bezier(.3,1.6,.5,1) both }
+.on .ok path { animation: draw .3s calc(var(--d) + .2s) ease-out both }
+@keyframes draw { from { stroke-dashoffset: 14 } to { stroke-dashoffset: 0 } }
+.flow { align-self: center; height: 18px; margin: -8px 0; color: var(--punch); font: 700 21px/18px var(--f-body); font-style: normal }
+</style>
+
+</head>
+<body>
+<div class="phone" id="phone">
+<div class="stage" id="stage">
+  <div class="bars" id="bars"></div>
+
+  <!-- 1 표지: 결과 먼저 (보고 칸만 찍힘, 앞 칸은 이제 돌려 볼 하루) -->
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 업무 자동화</span><span>구매 담당</span></div>
+    <div class="tc"><i>TIME CARD</i><div class="rwf" style="--d:5.05s"><b>메일</b></div><div class="rwf" style="--d:4.7s"><b>발주</b></div><div class="rwf" style="--d:4.35s"><b>통화</b></div><div class="now out"><b>보고</b><span class="punch" style="--d:.3s" data-sfx="click">17:30</span><small>퇴근 30분 전</small></div></div>
+    <h1 class="cap">퇴근 전 일일 업무 보고 초안이<br><mark>알아서 도착해요</mark></h1>
+    <div class="chat fit">
+      <div class="msg bot in" style="--d:1.4s;max-width:94%"><span class="who">접수 비서 · 17:30</span>오늘 일일보고 초안이에요.
+        <div class="dline">강변점 집기 발주 (#1043)<span class="chip pass">확정</span></div>
+        <div class="dline">강변점 견적 검토<span class="chip pass">확정</span></div>
+        <div class="dline">앵커 볼트 추가 견적 요청<span class="chip pass">확정</span></div>
+      </div>
+    </div>
+    <div class="rewind in" style="--d:3.6s"><span class="rwi">◀◀</span><b>어떻게 이렇게 정리됐는지<br>같이 볼까요</b>
+      <span class="rwt"><i style="--d:4s" data-sfx="tick">17:30</i><i style="--d:4.35s" data-sfx="tick">16:05</i><i style="--d:4.7s" data-sfx="tick">14:40</i><i class="last" style="--d:5.05s" data-sfx="tick">10:12</i></span></div>
+    <div class="foot"><span>화면의 데이터는 모두 예시</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 2 메일 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>메일</span></div>
+    <div class="tc"><i>TIME CARD</i><div class="now"><b>메일</b><span class="punch" data-sfx="click">10:12</span></div><div><b>발주</b></div><div><b>통화</b></div><div class="out"><b>보고</b><span class="punch">17:30</span></div></div>
+    <h2 class="cap">견적 메일이 오면<br><mark>폴더엔 이미 들어가 있어요</mark></h2>
+    <div class="card mail slidein" style="--d:1.4s" data-sfx="menu">
+      <div><span class="k">제목</span><span><span class="new">새 메일</span>[견적] 강변점 리모델링 집기</span></div>
+      <div><span class="k">첨부</span><span class="chip ask">견적서_1023.pdf</span></div>
+    </div>
+    <i class="flow in" style="--d:2.9s">↓</i>
+    <div class="card noti pop" style="--d:3.2s"><b>접수 비서</b>강변점 리모델링 폴더에 넣었어요. 할 일 '견적 검토'도 추가했어요.</div>
+    <i class="flow in" style="--d:4.9s">↓</i>
+    <div class="card tree in" style="--d:5.2s">
+      <div style="--lv:0">사업</div>
+      <div style="--lv:1">강변점 리모델링</div>
+      <div style="--lv:2">견적</div>
+      <div style="--lv:3"><span class="rn" style="--d:5.9s">견적서_OO상사_1023.pdf</span></div>
+    </div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 3 견적서 사진 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>발주</span></div>
+    <div class="tc"><i>TIME CARD</i><div><b>메일</b><span class="punch">10:12</span></div><div class="now"><b>발주</b><span class="punch" data-sfx="click">14:40</span></div><div><b>통화</b></div><div class="out"><b>보고</b><span class="punch">17:30</span></div></div>
+    <h2 class="cap">견적서는<br><mark>사진 한 장이면 끝</mark></h2>
+    <div class="chat">
+      <div class="msg me in" style="--d:1.2s"><div class="photo"><i></i><i></i><i></i><i></i><i></i><b class="scan" style="--d:1.7s"></b></div>이 견적서 입력해줘</div>
+      <div class="msg bot in" style="--d:2.9s"><span class="who">입력 비서 · 발주서 작성 중</span>
+        <div class="erp"><div style="--d:3.3s" data-sfx="tick"><span>케이블 A · 200m</span><span>412,000</span></div><div style="--d:3.8s" data-sfx="tick"><span>케이블 B · 150m</span><span>528,000</span></div><div style="--d:4.3s" data-sfx="tick"><span>케이블 C · 80m</span><span>344,000</span></div><div class="sum" style="--d:4.9s" data-sfx="pop"><span>합계</span><span>1,284,000원</span></div></div>
+        <div class="qbtns"><span class="go" style="animation-delay:5.9s">등록</span><span>수정</span></div></div>
+      <div class="msg bot in done" style="--d:6.5s"><svg class="ok" viewBox="0 0 20 20" style="--d:6.7s" data-sfx="pop" aria-hidden="true"><circle cx="10" cy="10" r="10"/><path d="M5.5 10.3l3 3 6-6.3"/></svg>발주서 #1043 등록 완료.</div>
+    </div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 4 통화 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>통화</span></div>
+    <div class="tc"><i>TIME CARD</i><div><b>메일</b><span class="punch">10:12</span></div><div><b>발주</b><span class="punch">14:40</span></div><div class="now"><b>통화</b><span class="punch" data-sfx="click">16:05</span></div><div class="out"><b>보고</b><span class="punch">17:30</span></div></div>
+    <h2 class="cap">전화를 끊으면<br><mark>할 일이 먼저 와 있어요</mark></h2>
+    <div class="card wave in" style="--d:1.2s"><div><b>통화 녹음</b>04:12 · OO상사</div><div class="wbars" id="wbars"></div></div>
+    <div class="card talk in" style="--d:2.2s">
+      <h4>통화 내용 · 글로 바꿈</h4>
+      <div class="pop" style="--d:2.95s"><span class="sp">OO상사</span><span><span class="rn" style="--d:8.6s">납품일을 11/5로</span> 미뤄야 할 것 같아요.</span></div>
+      <div class="pop" style="--d:4.35s"><span class="sp">나</span><span>확인하고 <span class="rn" style="--d:9s">오늘 중으로 회신</span>드릴게요.</span></div>
+      <div class="pop" style="--d:5.75s"><span class="sp">OO상사</span><span><span class="rn" style="--d:11s">앵커 볼트도 추가 견적</span> 부탁드려요.</span></div>
+      <div class="pop" style="--d:7.15s"><span class="sp">나</span><span>네, <span class="rn" style="--d:11.4s">11/1까지</span> 보내드릴게요.</span></div>
+    </div>
+    <i class="flow in" style="--d:9.6s">↓</i>
+    <div class="card todo pop" style="--d:9.8s">
+      <h4>할 일 추가</h4>
+      <div class="in" style="--d:10.1s" data-sfx="tick"><span class="box"></span>납품일 변경 회신<span class="chip fail">오늘</span></div>
+      <div class="in" style="--d:12s" data-sfx="tick"><span class="box"></span>앵커 볼트 추가 견적<span class="chip ask">11/1</span></div>
+    </div>
+    <div class="foot"><span>녹음은 회사 PC 안에서만 글로 바꿉니다 · 예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 5 퇴근 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>보고</span></div>
+    <div class="tc"><i>TIME CARD</i><div><b>메일</b><span class="punch">10:12</span></div><div><b>발주</b><span class="punch">14:40</span></div><div><b>통화</b><span class="punch">16:05</span></div><div class="now out again" style="--d:.4s" data-sfx="tick"><b>보고</b><span class="punch">17:30</span></div></div>
+    <h2 class="cap">넣기 한 번<br><mark>그리고 퇴근</mark></h2>
+    <!-- 보고 먼저(세 줄) → 추가 사항 → 넣기 누르는 순간 마지막 줄 팝업 -->
+    <div class="card daily in" style="--d:1.2s">
+      <h4>오늘 일일보고</h4>
+      · 강변점 집기 발주 (#1043)<br>
+      · 강변점 견적 검토 · 앵커 볼트 추가 견적 요청
+      <div class="pop" style="--d:4.3s;transform-origin:left center">· <span class="rn" style="--d:4.9s">OO상사 통화: 납품일 11/5로 변경</span></div>
+    </div>
+    <div class="chat fit">
+      <div class="msg bot in" style="--d:2.4s;max-width:94%"><span class="who">접수 비서</span>보고에 추가할 사항이 하나 더 있어요.
+        <div class="dline">OO상사 통화: 납품일 변경<span class="mini"><span class="go" style="--d:3.9s">넣기</span><span>빼기</span></span></div>
+      </div>
+    </div>
+    <div class="card result pop" style="--d:6s"><b>일일보고 끝</b><span>퇴근</span></div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 6 다음 날 아침 + 정체 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>다음 날</span></div>
+    <div class="clock in" style="--d:.2s"><span class="punch">아침</span></div>
+    <h2 class="cap">아침에 확인하는<br><mark>자동 점검 결과</mark></h2>
+    <div class="card result check-result pop" style="--d:1.2s"><b>자동 점검 17개 항목 통과</b><span>정해진 점검 항목에 한한 결과입니다.</span></div>
+    <div class="legend">
+      <div class="in" style="--d:2.6s"><b>접수 비서</b>말·메일·전화를 할 일로 붙잡아 둡니다</div>
+      <div class="in" style="--d:3.2s"><b>입력 비서</b>시키면 ERP와 기록에 대신 입력합니다</div>
+      <div class="in" style="--d:3.8s"><b>기록 DB</b>발주·구매·재고가 모이는 사내 웹</div>
+      <div class="in" style="--d:4.4s"><b>일일보고</b>퇴근 전 비서가 초안을 써 둡니다</div>
+    </div>
+    <div class="card kpis-run in" style="--d:5.4s"><div>ERP 수집<b>30분마다</b></div><div>스스로 점검<b>매일 아침</b></div><div>조작은<b>폰에서</b></div></div>
+    <div class="foot"><span>이 묶음을 '하네스'라 부릅니다 · 점검 결과는 실제 (2026-10-25)</span><span class="pg"></span></div>
+  </section>
+
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+</div>
+<p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<script src="vendor/rough-notation-0.5.1.min.js"></script>
+<script src="demo-fx.js"></script>
+<script>
+// 형광펜: 손으로 한 번 그은 모양, 덜 삐뚤게, 끝은 형광펜 촉처럼 사선(FX_DESIGN.md 2단계). 시작 시각은 요소의 --d
+document.querySelectorAll('.rn').forEach(e => demoFx.rough(e, parseFloat(e.style.getPropertyValue('--d')), { type: 'highlight', iterations: 1, soft: true, cap: 'slant' }));
+const hs = [30, 55, 40, 80, 62, 35, 90, 70, 45, 25, 60, 85, 50, 30, 75, 95, 55, 40, 65, 35, 50, 80, 45, 30];
+// 파형 구간 k(막대 6개씩)를 읽는 시각. 화살표가 +0.2초부터 그 줄로 그려지고, 줄은 +0.45초에 튀어나와 화살촉 도착(+0.76초)과 맞물리고, 화살표는 +1.2초에 사라짐
+const R = [2.5, 3.9, 5.3, 6.7];
+const wb = document.getElementById('wbars'), sc = wb.closest('.scene');
+wb.innerHTML = hs.map((h, i) => `<i style="--h:${h}%;--d:${(1.3 + i * 0.03).toFixed(2)}s;--r:${R[i / 6 | 0]}s"></i>`).join('')
+  + R.map((r, k) => `<b class="seg" style="left:${k * 25}%;--r:${r}s;--x:${R[k + 1] ?? r + 1.4}s"></b>`).join('');
+sc.insertAdjacentHTML('beforeend', '<svg class="lnk" aria-hidden="true"></svg>');
+// 화살표 길: 구간 아래 → 그 줄 글자 끝으로 바로, 살짝 휜 곡선. 글자와 겹쳐도 됨 (곧 사라지므로)
+function links() {
+  const base = sc.getBoundingClientRect(), z = base.width / 360;
+  const at = r => ({ l: (r.left - base.left) / z, r: (r.right - base.left) / z, t: (r.top - base.top) / z, b: (r.bottom - base.top) / z });
+  const segs = wb.querySelectorAll('.seg'), lines = sc.querySelectorAll('.talk > div > span:last-child');
+  sc.querySelector('.lnk').innerHTML = R.map((r, k) => {
+    const s = at(segs[k].getBoundingClientRect()), rg = document.createRange();
+    rg.selectNodeContents(lines[k]);
+    const t = at(rg.getBoundingClientRect());
+    const ex = (t.l + t.r) / 2, ey = t.t - 1;   // 그 줄 글자 윗변 가운데
+    let sx = (s.l + s.r) / 2, sy = s.b + 2;     // 기본: 구간 아랫변 가운데에서 출발
+    // 출발 각도가 수평 30° 미만으로 눕는 화살표는 구간 박스 옆(끝점 쪽)에서 출발
+    if (0.85 * Math.abs(ex - sx) > 1.73 * 0.25 * (ey - sy)) { sx = ex < sx ? s.l - 2 : s.r + 2; sy = s.b - (s.b - s.t) * 0.2 }   // 옆변 아래에서 20% 높이
+    const cx = ex + (sx - ex) * 0.15, cy = sy + (ey - sy) * 0.25;   // 조절점을 끝점 위쪽에 둬 위로 볼록, 화살촉은 거의 수직으로 내려꽂힘 (수직 기준 ±20° 이내)
+    const ux = (ex - cx) / Math.hypot(ex - cx, ey - cy), uy = (ey - cy) / Math.hypot(ex - cx, ey - cy);
+    const h = (a, b) => `${(ex - ux * 7 + a * -uy * 5).toFixed(1)},${(ey - uy * 7 + a * ux * 5).toFixed(1)}`;
+    const st = `--a:${r + 0.2}s;--z:${r + 1.2}s`;
+    const d = `M${sx},${sy} Q${cx},${cy} ${ex},${ey}`, hd = `M${h(1)} L${ex},${ey} L${h(-1)}`;
+    return `<path class="ln" pathLength="1" style="${st}" d="${d}"/><path class="hd" style="${st}" d="${hd}"/>`;
+  }).join('');
+}
+links(); document.fonts.ready.then(links); addEventListener('resize', links);
+</script>
+<script src="demo.js"></script>
+
+</body>
+</html>

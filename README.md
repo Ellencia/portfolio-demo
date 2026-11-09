@@ -4,6 +4,8 @@
 
 **바로 보기: https://ellencia.github.io/portfolio-demo/**
 
+대표 업무 자동화 데모: **[하루의 업무가 일일보고로](https://ellencia.github.io/portfolio-demo/harness_a.html)** · [MP4](https://ellencia.github.io/portfolio-demo/video/harness_a.mp4)
+
 ## 다른 데모를 만드는 사람을 위한 가이드
 
 이 저장소의 데모를 만들며 반복해서 고친 문제를 **[이해되는 데모 만들기](skills/demo-storytelling/SKILL.md)**로 정리했습니다. 제품·업무 도구의 웹 데모와 영상에 적용할 수 있는 한국어 가이드이자 AI용 스킬입니다.
@@ -26,6 +28,8 @@
 
 ## 데모 구성
 
+- `harness_a.html` — 대표 데모. 견적 메일 → 발주 → 통화 → 일일보고를 따라가는 하루 구성. 설명용 재현 화면·예시 데이터. 자동 점검 결과는 지정 항목의 통과만 뜻함.
+- `harness_b.html` · `harness_c.html` — 전후 비교 / 확인과 결재 구성. 홈페이지에서 다른 구성으로 연결.
 - `excel.html` — 엑셀 자동 정리: 양식이 제각각인 결과보고 통합, 검증, 대시보드, 영수증 증빙, 공유 엑셀 보호
 - `harness.html` — 메신저 업무 봇 두 개와 기록 DB를 잇는 업무 자동화. 디자인 5종(기본·다크 앱·폰 목업·메모장·브랜드, `harness-themes.css`)
 - `bapl.html` — 직접 만든 구매관리 웹앱의 실제 화면(폰 폭 캡처, `img/`). 데이터는 `bapl/seed_demo.py` 가 만든 가상 회사 DB, `bapl/capture.py` 가 이야기 단계마다 DB 를 바꿔 가며 전·후 화면을 찍음
@@ -43,6 +47,7 @@
 ## 만들기
 
 ```
+pip install playwright av numpy Pillow     # 설치된 Chrome 사용
 python render_cards.py                      # out/cards/ 에 장면별 1080x1920 PNG (설치된 크롬 헤드리스)
 .venv\Scripts\python make_video.py harness  # out/video/harness.mp4 (pip install playwright av)
 .venv\Scripts\python make_video.py tabrip --sfx  # 효과음 트랙까지 (pip install numpy)
@@ -50,6 +55,23 @@ python render_cards.py                      # out/cards/ 에 장면별 1080x1920
 .venv\Scripts\python make_video.py b2b --sfx --bgm bgm/musicbox_waltz.mid  # 직접 쓴 곡 (FluidSynth + GM 사운드폰트)
 python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들어 보기용 wav, 커밋 안 함)
 ```
+
+하네스 A·B·C를 수정한 뒤에는 카드 → 영상 → 사이트 순서로 갱신합니다. 카드와 영상은 웹 글꼴과 효과 초기화가 끝난 뒤 캡처하며, 페이지 스크립트 오류가 있으면 실패합니다.
+
+```
+python render_cards.py harness_a harness_b harness_c
+python make_video.py harness_a --sfx
+python make_video.py harness_b --sfx
+python make_video.py harness_c --sfx
+python fx_check.py harness_a.html
+python build_site.py
+```
+
+새 A·B·C MP4는 효과음 포함, 배경음 없음입니다. 기존 본편의 영상·음악은 유지합니다. 홈페이지 대표작은 A·구매관리·현장 IP 관리이며, 나머지 데모와 기존 본편도 계속 열 수 있습니다. 썸네일은 저장된 카드에서 생성합니다.
+
+`fx_check.py`는 글자·불투명도·위치와 SVG 선의 그려지는 진행·경로를 비교합니다. 실제 카드·최종 MP4 프레임·공개 페이지 확인과 음향 청취는 별도 검수입니다. `docs/`는 직접 수정하지 않고 `build_site.py`로 만듭니다.
+
+2026-11-09 생성본 확인: A 59.1초·B 28.4초·C 26.6초, 모두 1080×1920/30fps. 카드 15장과 웹·인코딩된 영상의 각 장면 끝을 대조했고, A의 6장면 시계 검사와 검사기 정상/의도적 실패 예제를 확인했습니다. 영상 진행 막대는 카드에서 숨기는 기존 규칙을 유지합니다. 홈페이지는 데스크톱·모바일 폭, 로컬 파일 연결 121개를 확인했습니다. 효과음은 트랙과 피크 검사까지 확인했으며 청취 평가는 별도입니다.
 
 `.mid` 렌더에는 FluidSynth 와 GM 사운드폰트가 필요합니다. 경로는 환경변수 `FLUIDSYNTH_EXE`·`BGM_SF2` 로 바꿉니다(기본값은 작업 PC 경로, 사운드폰트는 FluidR3 GM).
 
@@ -59,7 +81,9 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 
 `python build_site.py` 는 GitHub Pages 용 `docs/` 를 만듭니다. `make_video.py` 는 화면녹화가 아니라 프레임마다 애니메이션 시각을 맞춰 찍어 H.264 로 묶습니다.
 
-## 상태 (2026-11-08)
+## 이전 작업 기록 (2026-11-08)
+
+아래 표와 다음 작업 목록은 당시 기록입니다. 하네스 A·B·C의 공개 연결과 생성 절차는 위의 최신 안내를 따릅니다.
 
 ### 어디까지 됐나
 

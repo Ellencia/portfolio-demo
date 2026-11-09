@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>하네스 업무 자동화 데모 (C: 한 번 누르면 끝)</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&family=Nanum+Myeongjo:wght@700;800&display=swap">
+<link rel="stylesheet" href="demo.css">
+<style>
+/* 세계: 결재 서류. 버튼 한 번 = 결재란에 도장 하나. 결재란은 장면마다 같은 자리, 지난 도장은 남음 */
+:root { --paper: #F8F6EF; --seal: #D1342B; --f-doc: "Nanum Myeongjo", serif }
+.eyebrow { padding-bottom: 6px; border-bottom: 3px double var(--ink) }
+.cap { font: 800 29px/1.25 var(--f-doc); letter-spacing: -.02em }
+.cap mark { background-image: linear-gradient(transparent 80%, var(--seal) 80%); }
+.chat { background: #ECEAE1 }
+.qbtns span { white-space: nowrap; padding: 5px 10px }
+.sign { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px }
+.sign + .foot { margin-top: 0 }
+.sign > p { margin: 0; font-size: 11px; color: var(--sub); line-height: 1.45 }
+.gy { display: grid; grid-template-columns: 18px repeat(3, 58px); background: #fff; border: 1.5px solid var(--ink) }
+.gy > * { border-left: 1px solid var(--ink); display: grid; grid-template-rows: 18px 48px }
+.gy > i { border: 0; grid-template-rows: 1fr; place-items: center; font: 700 10px/1.3 var(--f-doc); font-style: normal; text-align: center }
+.gy b { font: 700 10px var(--f-doc); display: grid; place-items: center; border-bottom: 1px solid var(--ink) }
+.gy span { display: grid; place-items: center }
+.seal { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; color: var(--seal); font: 800 11px/1.05 var(--f-doc); text-align: center;
+  box-shadow: inset 0 0 0 2px var(--seal), inset 0 0 0 3.5px #fff, inset 0 0 0 4.5px var(--seal); rotate: -9deg; opacity: .86; mix-blend-mode: multiply }
+.c:nth-child(3) .seal { rotate: 6deg } .c:nth-child(4) .seal { rotate: -3deg }
+.on .seal.now { animation: slam .35s var(--d, 0s) cubic-bezier(.2,1.4,.4,1) both }
+@keyframes slam { from { opacity: 0; transform: scale(1.9) } 70% { opacity: .95; transform: scale(.93) } to { opacity: .86; transform: none } }
+/* 끝 장면: 큰 결재란 */
+.gy.big { align-self: center; margin-top: 18px; grid-template-columns: 26px repeat(3, 84px) }
+.gy.big > * { grid-template-rows: 26px 76px } .gy.big > i { grid-template-rows: 1fr }
+.gy.big > i, .gy.big b { font-size: 13px }
+.gy.big .seal { width: 58px; height: 58px; font-size: 16px }
+.gy.big + p { text-align: center; margin: 0; font-size: 14px; color: var(--sub) }
+</style>
+
+</head>
+<body>
+<div class="phone" id="phone">
+<div class="stage" id="stage" data-hold="2500">
+  <div class="bars" id="bars"></div>
+
+  <!-- 1 견적서 사진 (표지 없음) -->
+  <section class="scene">
+    <div class="eyebrow"><span>포트폴리오 · 업무 자동화</span><span>발주</span></div>
+    <h1 class="cap">견적서 사진<br><mark>[등록]</mark></h1>
+    <div class="chat fit">
+      <div class="msg me in" style="--d:.6s"><div class="photo"><i></i><i></i><i></i><i></i><i></i></div>이 견적서 입력해줘</div>
+      <div class="msg bot in" style="--d:1.4s"><span class="who">입력 비서</span>케이블 3종, 합계 1,284,000원<div class="qbtns"><span class="go" style="animation-delay:2.2s">등록</span><span>수정</span></div></div>
+      <div class="msg bot in" style="--d:2.8s">발주서 #1043 등록 완료.</div>
+    </div>
+    <div class="sign"><p>버튼 한 번이<br>도장 하나</p><div class="gy"><i>결<br>재</i>
+      <div class="c"><b>발주</b><span><i class="seal now" style="--d:3.2s" data-sfx="click">확<br>인</i></span></div>
+      <div class="c"><b>메일</b><span></span></div>
+      <div class="c"><b>보고</b><span></span></div></div></div>
+    <div class="foot"><span>화면의 데이터는 모두 예시</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 2 메일 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>메일</span></div>
+    <h2 class="cap">견적 메일<br><mark>[입력 비서에게 맡기기]</mark></h2>
+    <div class="card mail in" style="--d:.6s">
+      <div><span class="k">제목</span>[견적] 강변점 리모델링 집기</div>
+      <div><span class="k">첨부</span><span class="chip ask">견적서_1023.pdf</span></div>
+    </div>
+    <div class="chat fit">
+      <div class="msg bot in" style="--d:1.3s;max-width:94%"><span class="who">접수 비서</span>강변점 리모델링 폴더에 넣었어요.<div class="qbtns"><span class="go" style="animation-delay:2.2s">입력 비서에게 맡기기</span><span>나중에</span></div></div>
+    </div>
+    <div class="sign"><p>버튼 한 번이<br>도장 하나</p><div class="gy"><i>결<br>재</i>
+      <div class="c"><b>발주</b><span><i class="seal">확<br>인</i></span></div>
+      <div class="c"><b>메일</b><span><i class="seal now" style="--d:2.9s" data-sfx="click">확<br>인</i></span></div>
+      <div class="c"><b>보고</b><span></span></div></div></div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 3 통화 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>통화</span></div>
+    <h2 class="cap">통화<br><mark>누를 것도 없음</mark></h2>
+    <div class="card wave in" style="--d:.6s"><div><b>통화 녹음</b>04:12 · OO상사</div><div class="wbars" id="wbars"></div></div>
+    <div class="card todo in" style="--d:1.8s">
+      <h4>할 일 추가</h4>
+      <div class="in" style="--d:2.1s"><span class="box"></span>납품일 변경 회신<span class="chip fail">오늘</span></div>
+      <div class="in" style="--d:2.4s"><span class="box"></span>앵커 볼트 추가 견적<span class="chip ask">11/1</span></div>
+    </div>
+    <div class="sign"><p>통화는<br>도장 없이</p><div class="gy"><i>결<br>재</i>
+      <div class="c"><b>발주</b><span><i class="seal">확<br>인</i></span></div>
+      <div class="c"><b>메일</b><span><i class="seal">확<br>인</i></span></div>
+      <div class="c"><b>보고</b><span></span></div></div></div>
+    <div class="foot"><span>녹음은 회사 PC 안에서만 글로 바꿉니다 · 예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 4 보고 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>보고</span></div>
+    <h2 class="cap">퇴근 전 보고 초안<br><mark>[넣기]</mark></h2>
+    <div class="chat fit">
+      <div class="msg bot in" style="--d:.6s;max-width:94%"><span class="who">접수 비서 · 17:30</span>오늘 일일보고 초안이에요.
+        <div class="dline">강변점 집기 발주 (#1043)<span class="chip pass">확정</span></div>
+        <div class="dline">강변점 견적 검토<span class="chip pass">확정</span></div>
+        <div class="dline">OO상사 통화: 납품일 변경<span class="mini"><span class="go" style="--d:1.8s">넣기</span><span>빼기</span></span></div>
+      </div>
+    </div>
+    <div class="sign"><p>버튼 한 번이<br>도장 하나</p><div class="gy"><i>결<br>재</i>
+      <div class="c"><b>발주</b><span><i class="seal">확<br>인</i></span></div>
+      <div class="c"><b>메일</b><span><i class="seal">확<br>인</i></span></div>
+      <div class="c"><b>보고</b><span><i class="seal now" style="--d:2.6s" data-sfx="click">확<br>인</i></span></div></div></div>
+    <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 5 끝 -->
+  <section class="scene">
+    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>오늘</span></div>
+    <h2 class="cap">오늘 결재<br><mark>도장 세 번</mark></h2>
+    <div class="gy big"><i>결<br>재</i>
+      <div class="c"><b>발주</b><span><i class="seal now" style="--d:.6s" data-sfx="click">확<br>인</i></span></div>
+      <div class="c"><b>메일</b><span><i class="seal now" style="--d:1s" data-sfx="click">확<br>인</i></span></div>
+      <div class="c"><b>보고</b><span><i class="seal now" style="--d:1.4s" data-sfx="click">확<br>인</i></span></div></div>
+    <p class="in" style="--d:1.8s">발주 한 건 · 견적 한 건 · 통화 한 건 · 일일보고</p>
+    <div class="legend">
+      <div class="in" style="--d:2.2s"><b>접수 비서</b>말·메일·전화를 할 일로 붙잡아 둡니다</div>
+      <div class="in" style="--d:2.5s"><b>입력 비서</b>시키면 ERP와 기록에 대신 입력합니다</div>
+      <div class="in" style="--d:2.8s"><b>기록 DB</b>발주·구매·재고가 모이는 사내 웹</div>
+      <div class="in" style="--d:3.1s"><b>일일보고</b>퇴근 전 비서가 초안을 써 둡니다</div>
+    </div>
+    <div class="foot"><span>이 묶음을 '하네스'라 부릅니다 · 실제 운영 중</span><span class="pg"></span></div>
+  </section>
+
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+</div>
+<p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<script>
+const hs = [30, 55, 40, 80, 62, 35, 90, 70, 45, 25, 60, 85, 50, 30, 75, 95, 55, 40, 65, 35, 50, 80, 45, 30];
+document.getElementById('wbars').innerHTML = hs.map((h, i) => `<i style="--h:${h}%;--d:${(0.9 + i * 0.03).toFixed(2)}s"></i>`).join('');
+</script>
+<script src="demo.js"></script>
+
+</body>
+</html>

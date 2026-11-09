@@ -5,10 +5,12 @@
 """
 import shutil
 from pathlib import Path
+from PIL import Image
 
 HERE = Path(__file__).parent
 DOCS = HERE / "docs"
-PAGES = [("bapl", "구매관리 웹앱", "주문한 물건이 지금 어디쯤인지 보려고 직접 만든 웹앱, 실제 화면 (데이터는 가상)"),
+PAGES = [("harness_a", "하루의 업무가 일일보고로", "견적 메일·발주·통화가 기록되고, 보고 초안으로 모이는 과정을 따라갑니다. 설명용 재현 화면·예시 데이터."),
+         ("bapl", "구매관리 웹앱", "주문한 물건이 지금 어디쯤인지 보려고 직접 만든 웹앱, 실제 화면 (데이터는 가상)"),
          ("harness", "업무 자동화", "말·메일·전화로 들어오는 일을 메신저 비서 둘이 받아 기록하고, 퇴근 전 일일보고 초안까지 (데이터는 예시). 디자인 5종"),
          ("cad", "도면 검색기", "도면 1만 3천 개를 안의 글자로 찾고, AI 가 근거를 달아 답함 (도면은 예시 그림)"),
          ("forms", "장비 목록 · 제출 서류", "장비 목록을 서류에 매번 다시 적는 일이 많아서 만듦: 목록 한 번 적으면 정부 제출 서류가 채워지고 측정기 검사 기한도 챙김"),
@@ -18,6 +20,9 @@ PAGES = [("bapl", "구매관리 웹앱", "주문한 물건이 지금 어디쯤�
          ("tabrip", "탭 영상 → 악보", "유튜브 기타 탭 영상을 연주할 Guitar Pro 악보로 (개인 프로젝트, 숫자는 실제 산출)"),
          ("ocr", "악보 사진 → 악보 파일", "종이 악보를 손으로 입력하기 힘들어서 만든 프로그램: 폰으로 찍으면 악보 파일이 됨 (개인 프로젝트, 요약 데모)"),
          ("b2b", "현장 IP 관리 앱", "PC 설치·교체·유지보수용 CRM, 코딩 공부 없이 Gemini CLI로 만든 첫 앱의 실제 화면 (데이터는 가상)")]
+VARIANTS = [("harness_b", "전후 비교", "견적서 입력·메일 정리·보고를 전후로 비교합니다."),
+            ("harness_c", "확인과 결재", "사람이 확인하는 지점을 따라갑니다.")]
+FEATURED = ("harness_a", "bapl", "b2b")
 HEAD = '<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n' \
        '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
 
@@ -28,15 +33,25 @@ for f in ("demo.css", "demo.js", "demo-fx.js", "harness-themes.css"):
     shutil.copy(HERE / f, DOCS / f)
 shutil.copytree(HERE / "vendor", DOCS / "vendor")
 shutil.copytree(HERE / "img", DOCS / "img", ignore=shutil.ignore_patterns("*.json"))
-for page, *_ in PAGES:
+for page, *_ in PAGES + VARIANTS:
     src = (HERE / f"{page}.html").read_text(encoding="utf-8")
     body = src.index('<div class="phone"')  # 그 앞(제목·글꼴·스타일)은 머리로
     (DOCS / f"{page}.html").write_text(HEAD + src[:body] + "</head>\n<body>\n" + src[body:] + "\n</body>\n</html>\n",
                                        encoding="utf-8")
     shutil.copy(HERE / "out" / "video" / f"{page}.mp4", DOCS / "video" / f"{page}.mp4")
 
+for page in FEATURED:
+    with Image.open(HERE / "out" / "cards" / f"{page}_1.png") as im:
+        im.resize((360, 640), Image.Resampling.LANCZOS).convert("RGB").save(DOCS / "img" / f"preview_{page}.jpg", quality=88)
+
+featured = "\n".join(f'''    <li>
+      <a class="preview" href="{page}.html" aria-label="{name} 데모 보기"><img src="img/preview_{page}.jpg" width="360" height="640" alt="{name} 첫 장면"></a>
+      <b>{name}</b><span>{desc}</span>
+      <p><a href="{page}.html">데모 보기</a><a href="video/{page}.mp4">영상 (MP4)</a></p></li>'''
+    for key in FEATURED for page, name, desc in PAGES if page == key)
 cards = "\n".join(f'''    <li><b>{name}</b><span>{desc}</span>
-      <p><a href="{page}.html">데모 보기</a><a href="video/{page}.mp4">영상 (MP4)</a></p></li>''' for page, name, desc in PAGES)
+      <p><a href="{page}.html">데모 보기</a><a href="video/{page}.mp4">영상 (MP4)</a></p></li>''' for page, name, desc in PAGES if page not in FEATURED)
+variants = " · ".join(f'<a href="{page}.html">{name}</a> (<a href="video/{page}.mp4">MP4</a>)' for page, name, _ in VARIANTS)
 (DOCS / "index.html").write_text(HEAD + f'''<title>업무 자동화 포트폴리오</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;700&display=swap">
 <style>
@@ -44,11 +59,20 @@ cards = "\n".join(f'''    <li><b>{name}</b><span>{desc}</span>
 @media (prefers-color-scheme: dark) {{ :root {{ --bg: #12171C; --fg: #E3E7E0; --sub: #98A2AA; --line: #2E3740; --card: #1C232A; color-scheme: dark }} }}
 body {{ margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.6 "IBM Plex Sans KR", "Malgun Gothic", sans-serif;
   padding: 48px max(16px, env(safe-area-inset-left)) 48px max(16px, env(safe-area-inset-right)) }}
-main {{ max-width: 640px; margin: 0 auto }}
+main {{ max-width: 1080px; margin: 0 auto }}
 h1 {{ font: 400 34px/1.2 "Black Han Sans", sans-serif; margin: 0 0 8px }}
 h1 mark {{ background: linear-gradient(transparent 58%, var(--marker) 58%); color: inherit }}
 .lead {{ color: var(--sub); margin: 0 0 28px }}
 ul {{ list-style: none; padding: 0; margin: 0; display: grid; gap: 12px }}
+h2 {{ font-size: 21px; margin: 32px 0 14px }}
+.featured {{ grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px }}
+.featured li {{ align-content: start; gap: 8px }}
+.featured .preview {{ display: block; padding: 0; border: 0; background: var(--bg); border-radius: 8px; overflow: hidden }}
+.preview img {{ display: block; width: 100%; height: 320px; object-fit: contain }}
+.more {{ grid-template-columns: repeat(2, minmax(0, 1fr)) }}
+.variants {{ margin: 20px 0 0; color: var(--sub); font-size: 14px }}
+.variants a {{ color: var(--fg) }}
+@media (max-width: 720px) {{ .featured, .more {{ grid-template-columns: 1fr }} .preview img {{ height: 300px }} }}
 li {{ background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 2px }}
 li b {{ font-size: 17px }} li span {{ color: var(--sub); font-size: 14px }}
 li p {{ margin: 8px 0 0; display: flex; gap: 8px; flex-wrap: wrap }}
@@ -61,8 +85,14 @@ footer {{ margin-top: 28px; color: var(--sub); font-size: 13px }}
 <body>
 <main>
   <h1>반복 업무를<br><mark>자동으로</mark></h1>
-  <p class="lead">폰 화면 크기 데모 열 편. 업무 데모 화면의 회사·거래처·품목·금액은 모두 예시입니다.</p>
-  <ul>
+  <p class="lead">실제 앱과 설명용 데모로 보는 업무 자동화. 업무 화면의 회사·거래처·품목·금액은 예시입니다.</p>
+  <h2>먼저 볼 데모</h2>
+  <ul class="featured">
+{featured}
+  </ul>
+  <p class="variants">업무 자동화의 다른 구성: {variants}</p>
+  <h2>더 살펴보기</h2>
+  <ul class="more">
 {cards}
   </ul>
   <footer>소스: <a href="https://github.com/Ellencia/portfolio-demo" style="color:inherit">github.com/Ellencia/portfolio-demo</a></footer>
