@@ -24,8 +24,9 @@ HEAD = '<!doctype html>\n<html lang="ko">\n<head>\n<meta charset="utf-8">\n' \
 if DOCS.exists():
     shutil.rmtree(DOCS)
 (DOCS / "video").mkdir(parents=True)
-for f in ("demo.css", "demo.js", "harness-themes.css"):
+for f in ("demo.css", "demo.js", "demo-fx.js", "harness-themes.css"):
     shutil.copy(HERE / f, DOCS / f)
+shutil.copytree(HERE / "vendor", DOCS / "vendor")
 shutil.copytree(HERE / "img", DOCS / "img", ignore=shutil.ignore_patterns("*.json"))
 for page, *_ in PAGES:
     src = (HERE / f"{page}.html").read_text(encoding="utf-8")

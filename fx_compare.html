@@ -1,0 +1,270 @@
+<title>효과 부품 비교</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* 배치: 같은 장면을 만든 폰 세 대를 나란히, 위에 조작 막대 하나, 폰 아래에 부품 사실 */
+:root {
+  --bg: #F3F1EC; --fg: #1F2328; --sub: #5F6670; --line: #D9D4C8; --card: #FFFFFF; --accent: #5E2D8C; --good: #1E8A4C; --bad: #B3362B; --warn: #9A6A00;
+  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; --f-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #17181B; --fg: #E8E6E1; --sub: #A3A7AE; --line: #34363B; --card: #212327; --accent: #B793E0; --good: #5CC98A; --bad: #F08A7E; --warn: #E2B85A; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #17181B; --fg: #E8E6E1; --sub: #A3A7AE; --line: #34363B; --card: #212327; --accent: #B793E0; --good: #5CC98A; --bad: #F08A7E; --warn: #E2B85A; color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); padding-block: 24px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)) }
+main { max-width: 1040px; margin: 0 auto; display: grid; gap: 18px }
+h1 { margin: 0; font-size: 22px; text-wrap: balance }
+.lead { margin: 4px 0 0; color: var(--sub); line-height: 1.6; max-width: 68ch }
+.bar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 10px }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg) }
+button { font: 700 13px var(--f-body); padding: 8px 12px; border-radius: 7px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer }
+button.main { background: var(--accent); border-color: var(--accent); color: var(--card) }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.scrub { display: flex; align-items: center; gap: 8px; flex: 1 1 220px; min-width: 0 }
+.scrub label { font-size: 12px; color: var(--sub); white-space: nowrap }
+.scrub input { flex: 1; min-width: 0; accent-color: var(--accent) }
+.scrub output { font: 500 13px var(--f-mono); font-variant-numeric: tabular-nums; width: 4.5em; text-align: right }
+.help { margin: 0; font-size: 12.5px; color: var(--sub); line-height: 1.6 }
+.help b { color: var(--fg) }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px }
+.col { display: grid; gap: 10px; align-content: start; min-width: 0 }
+.col h2 { margin: 0; font-size: 15px }
+.col h2 small { display: block; font-size: 12px; font-weight: 400; color: var(--sub); margin-top: 2px }
+.facts { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 4px 10px; font-size: 12.5px; line-height: 1.5 }
+.facts dt { color: var(--sub) }
+.facts dd { margin: 0 }
+.ok-t { color: var(--good); font-weight: 700 } .no-t { color: var(--bad); font-weight: 700 } .mid-t { color: var(--warn); font-weight: 700 }
+
+/* ── 폰 안: 하네스 A 타임카드 세계 그대로(한 세계로 고정, 테마 안 탐) ── */
+.ph { --paper: #EDE5D1; --ink: #17212B; --psub: #6B6455; width: 100%; max-width: 300px; aspect-ratio: 300 / 470; margin: 0 auto; padding: 18px 14px; box-sizing: border-box; background: var(--paper); color: var(--ink);
+  border-radius: 26px; border: 6px solid #22252A; display: flex; flex-direction: column; gap: 10px; overflow: hidden }
+.ph .cap { margin: 0; font: 700 19px/1.25 var(--f-body); letter-spacing: -.02em }
+.ph .cap mark { background: linear-gradient(transparent 62%, #FFD43B 62%); color: inherit }
+.chat { flex: 1; background: #E3D8C0; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 7px; font-size: 11.5px }
+.msg { max-width: 88%; padding: 7px 9px; border-radius: 12px; background: #fff; line-height: 1.45 }
+.me { align-self: flex-end; background: #1D2A3A; color: #fff; width: 132px }
+.photo { position: relative; overflow: hidden; height: 62px; margin-bottom: 5px; border-radius: 6px; background: #fff; padding: 8px; box-sizing: border-box; display: grid; gap: 5px; align-content: start }
+.photo i { display: block; height: 3px; background: #C9CDD3; border-radius: 2px } .photo i:first-child { width: 45%; height: 4px; background: #8E959E }
+.scan { position: absolute; left: 0; right: 0; top: 0; height: 12px; background: linear-gradient(transparent, rgba(47,111,219,.45)); border-bottom: 2px solid #2F6FDB; opacity: 0 }
+.say { display: inline-block; min-height: 1.45em; white-space: nowrap }
+.cur { font-style: normal; margin-left: 1px }
+.who { display: block; font-size: 9.5px; color: var(--psub); margin-bottom: 3px }
+.erp { display: grid; gap: 2px; font-size: 10.5px }
+.row { display: flex; justify-content: space-between; gap: 10px; padding: 2px 6px; background: #F4F1E8; border-radius: 4px }
+.row span:last-child { font-family: var(--f-mono); font-variant-numeric: tabular-nums }
+.row.sum { background: #FFE98A; font-weight: 700 }
+.btns { display: flex; gap: 5px; margin-top: 5px } .btns span { flex: 1; text-align: center; padding: 3px 0; border-radius: 5px; border: 1px solid #CFC6B2; font-size: 10.5px }
+.btns .go { background: #FFD43B; border-color: #E5B800; font-weight: 700 }
+.done { display: flex; align-items: center; gap: 6px }
+.okm { width: 18px; height: 18px; flex: none } .okm circle { fill: #22A559 } .okm path { fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 14 }
+
+/* 1열: CSS (지금 방식). .run 이 붙으면 시작, 시각 맞추기는 getAnimations 로 */
+@keyframes up { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@keyframes scanK { 0% { opacity: 1; transform: translateY(-12px) } 90% { opacity: 1; transform: translateY(58px) } 100% { opacity: 0; transform: translateY(58px) } }
+@keyframes typeK { from { clip-path: inset(0 100% 0 0) } to { clip-path: inset(0) } }
+@keyframes press { 50% { transform: scale(.9); filter: brightness(.9) } }
+@keyframes popK { from { transform: scale(0) } 70% { transform: scale(1.15) } to { transform: none } }
+@keyframes drawK { from { stroke-dashoffset: 14 } to { stroke-dashoffset: 0 } }
+.css.run .me { animation: up .35s .2s both }
+.css.run .scan { animation: scanK .8s .6s both }
+.css.run .say { animation: typeK .8s 1s steps(10) both }
+.css.run .bot1 { animation: up .35s 2.3s both }
+.css.run .row:nth-child(1) { animation: up .3s 2.7s both } .css.run .row:nth-child(2) { animation: up .3s 3.1s both }
+.css.run .row:nth-child(3) { animation: up .3s 3.5s both } .css.run .row.sum { animation: up .3s 3.9s both }
+.css.run .go { animation: press .3s 5.4s both }
+.css.run .done { animation: up .35s 5.9s both }
+.css.run .okm { animation: popK .3s 6s both } .css.run .okm path { animation: drawK .3s 6.2s both }
+/* 2·3열: 라이브러리가 움직이기 전 처음 모습 */
+.js .me, .js .bot1, .js .row, .js .done { opacity: 0 }
+.js .okm { transform: scale(0) } .js .okm path { stroke-dashoffset: 14 }
+</style>
+
+<main>
+  <header>
+    <h1>효과 부품 비교 · 견적서 장면</h1>
+    <p class="lead">하네스 A 3장면을 네 방식으로 똑같이 만들었습니다. 시각표는 넷이 같습니다. 같은 순간에 네 화면이 같은 모습이어야 정상입니다(4열은 타자 방식만 다름).</p>
+  </header>
+
+  <div class="bar" role="group" aria-label="재생 조작">
+    <button class="main" id="play" type="button">처음부터 재생</button>
+    <button id="video" type="button">영상처럼 찍기</button>
+    <div class="scrub"><label for="t">시각 옮기기</label><input id="t" type="range" min="0" max="7.2" step="0.05" value="7.2"><output id="tv" for="t">7.20초</output></div>
+  </div>
+  <p class="help"><b>영상처럼 찍기</b>: 영상 렌더는 장면을 한 장씩 천천히 찍습니다(여기선 3배 느리게 흉내). 시각을 맞출 수 없는 부품은 자기 속도로 먼저 움직여 버립니다.
+    <b>시각 옮기기</b>: 막대를 끌면 그 순간의 화면으로 이동합니다. 막대를 따라오지 않는 부분이 영상에서 틀어지는 부분입니다.</p>
+
+  <div class="cols">
+    <section class="col">
+      <h2>CSS만 (지금 방식)<small>추가 부품 없음</small></h2>
+      <div class="ph css" id="c-css"></div>
+      <dl class="facts">
+        <dt>추가 용량</dt><dd>0 KB</dd>
+        <dt>영상 시각</dt><dd><span class="ok-t">맞음</span></dd>
+        <dt>타자</dt><dd>가림막을 열어 흉내(글자가 반쯤 보이는 순간이 있음)</dd>
+        <dt>숫자 세기</dt><dd><span class="no-t">못 함</span>, 합계가 그냥 나타남</dd>
+      </dl>
+    </section>
+    <section class="col">
+      <h2>anime.js + Typed.js + CountUp.js<small>움직임 · 타자 · 숫자를 부품 셋이 나눠 맡음</small></h2>
+      <div class="ph js" id="c-trio"></div>
+      <dl class="facts">
+        <dt>추가 용량</dt><dd>92 KB (77 + 10 + 6)</dd>
+        <dt>영상 시각</dt><dd><span class="mid-t">일부만</span>: anime.js는 맞고, Typed·CountUp은 자기 시계</dd>
+        <dt>타자</dt><dd>Typed.js, 사람 손처럼 속도가 들쭉날쭉 + 깜빡이는 커서</dd>
+        <dt>숫자 세기</dt><dd>CountUp.js</dd>
+      </dl>
+    </section>
+    <section class="col">
+      <h2>GSAP 하나<small>글자 플러그인 포함</small></h2>
+      <div class="ph js" id="c-gsap"></div>
+      <dl class="facts">
+        <dt>추가 용량</dt><dd>83 KB (72 + 11)</dd>
+        <dt>영상 시각</dt><dd><span class="ok-t">맞음</span> (타자·숫자까지 한 시계)</dd>
+        <dt>타자</dt><dd>글자 플러그인, 한 글자씩 일정하게</dd>
+        <dt>숫자 세기</dt><dd>같은 엔진으로 0 → 1,284,000</dd>
+      </dl>
+    </section>
+    <section class="col">
+      <h2>GSAP + 한글 자모 타자<small>3열과 같고, 타자만 자음·모음 한 타씩</small></h2>
+      <div class="ph js" id="c-jamo"></div>
+      <dl class="facts">
+        <dt>추가 용량</dt><dd>3열과 같음 (자모 계산은 직접 쓴 30줄, 부품 추가 없음)</dd>
+        <dt>영상 시각</dt><dd><span class="ok-t">맞음</span> (타자 간격의 들쭉날쭉도 고정 난수라 매번 같음)</dd>
+        <dt>타자</dt><dd>ㅇ→이, ㄱ→겨→견, 받침이 다음 글자로 넘어가는 것까지(견+ㅈ→겭→견저)</dd>
+        <dt>커서</dt><dd>같은 시계로 깜빡임</dd>
+      </dl>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/TextPlugin.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/animejs@4.0.2/lib/anime.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0/dist/typed.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/countup.js@2.8.0/dist/countUp.umd.js"></script>
+<script>
+const SAY = '이 견적서 입력해줘', END = 7.2;
+// 시각표(초) — 세 열 공통
+const T = { me: .2, scan: .6, type: 1.0, bot: 2.3, rows: [2.7, 3.1, 3.5], sum: 3.9, press: 5.4, done: 5.9, ok: 6.0, draw: 6.2 };
+const sceneHTML = (cssCol) => `
+  <p class="cap">견적서는<br><mark>사진 한 장이면 끝</mark></p>
+  <div class="chat">
+    <div class="msg me"><div class="photo"><i></i><i></i><i></i><i></i><i></i><b class="scan"></b></div><span class="say">${cssCol ? SAY : ''}</span></div>
+    <div class="msg bot1"><span class="who">입력 비서 · 발주서 작성 중</span>
+      <div class="erp">
+        <div class="row"><span>케이블 A · 200m</span><span>412,000</span></div>
+        <div class="row"><span>케이블 B · 150m</span><span>528,000</span></div>
+        <div class="row"><span>케이블 C · 80m</span><span>344,000</span></div>
+        <div class="row sum"><span>합계</span><span class="num">${cssCol ? '1,284,000원' : '0원'}</span></div>
+      </div>
+      <div class="btns"><span class="go">등록</span><span>수정</span></div></div>
+    <div class="msg done"><svg class="okm" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10"/><path d="M5.5 10.3l3 3 6-6.3"/></svg>발주서 #1043 등록 완료.</div>
+  </div>`;
+const cCss = document.getElementById('c-css'), cTrio = document.getElementById('c-trio'), cGsap = document.getElementById('c-gsap'), cJamo = document.getElementById('c-jamo');
+cCss.innerHTML = sceneHTML(true); cTrio.innerHTML = sceneHTML(false); cGsap.innerHTML = sceneHTML(false); cJamo.innerHTML = sceneHTML(false);
+cJamo.querySelector('.say').insertAdjacentHTML('afterend', '<i class="cur">|</i>');
+const q = (c, s) => c.querySelector(s), qa = (c, s) => [...c.querySelectorAll(s)];
+const won = v => Math.round(v).toLocaleString('ko-KR') + '원';
+
+/* ── 1열 CSS ── */
+function cssRestart() { cCss.classList.remove('run'); void cCss.offsetWidth; cCss.classList.add('run') }
+function cssSeek(t) { cCss.getAnimations({ subtree: true }).forEach(a => { a.pause(); a.currentTime = t * 1000 }) }
+
+/* ── 2열 anime.js(움직임) + Typed.js(타자) + CountUp.js(숫자) ── */
+const A = anime;
+const tlA = A.createTimeline({ autoplay: false, defaults: { ease: 'outQuad' } });
+const upA = { opacity: { from: 0, to: 1 }, translateY: { from: 8, to: 0 } };
+tlA.add(q(cTrio, '.me'), { ...upA, duration: 350 }, T.me * 1000)
+   .add(q(cTrio, '.scan'), { translateY: { from: -12, to: 58 }, opacity: [{ to: 1, duration: 1 }, { to: 1, duration: 719 }, { to: 0, duration: 80 }], duration: 800, ease: 'inOutQuad' }, T.scan * 1000)
+   .add(q(cTrio, '.bot1'), { ...upA, duration: 350 }, T.bot * 1000);
+qa(cTrio, '.row').forEach((r, i) => tlA.add(r, { ...upA, duration: 300 }, (i < 3 ? T.rows[i] : T.sum) * 1000));
+tlA.add(q(cTrio, '.go'), { scale: [{ to: .9, duration: 150 }, { to: 1, duration: 150 }] }, T.press * 1000)
+   .add(q(cTrio, '.done'), { ...upA, duration: 350 }, T.done * 1000)
+   .add(q(cTrio, '.okm'), { scale: { from: 0, to: 1 }, duration: 300, ease: 'outBack' }, T.ok * 1000)
+   .add(q(cTrio, '.okm path'), { strokeDashoffset: { from: 14, to: 0 }, duration: 300 }, T.draw * 1000);
+let typed = null, timers = [];
+const cu = new countUp.CountUp(q(cTrio, '.num'), 1284000, { duration: 1.1, separator: ',', suffix: '원' });
+function trioRestart() {
+  timers.forEach(clearTimeout); timers = [];
+  if (typed) typed.destroy(); typed = null; q(cTrio, '.say').textContent = ''; cu.reset();
+  tlA.restart();
+  // Typed·CountUp 은 "지금부터 몇 ms 뒤"로만 출발시킬 수 있음 → 자기 시계(실제 시간)로 돎
+  timers.push(setTimeout(() => { typed = new Typed(q(cTrio, '.say'), { strings: [SAY], typeSpeed: 70, showCursor: true, cursorChar: '|' }) }, T.type * 1000));
+  timers.push(setTimeout(() => cu.start(), T.sum * 1000));
+}
+function trioSeek(t) { tlA.pause(); tlA.seek(t * 1000) }   // Typed·CountUp 은 시각을 옮길 방법이 없음
+
+/* ── 3열 GSAP 하나 / 4열 같은 GSAP + 자모 타자 ── */
+gsap.registerPlugin(TextPlugin);
+function gsapTl(c, typing) {
+  const tl = gsap.timeline({ paused: true, defaults: { ease: 'power2.out' } }), num = { v: 0 };
+  const fromUp = { opacity: 0, y: 8 }, toUp = { opacity: 1, y: 0 };
+  tl.fromTo(q(c, '.me'), fromUp, { ...toUp, duration: .35 }, T.me)
+    .fromTo(q(c, '.scan'), { y: -12, opacity: 1 }, { y: 58, duration: .72, ease: 'power1.inOut' }, T.scan)
+    .to(q(c, '.scan'), { opacity: 0, duration: .08 }, T.scan + .72)
+    .fromTo(q(c, '.bot1'), fromUp, { ...toUp, duration: .35 }, T.bot);
+  typing(tl, q(c, '.say'));
+  qa(c, '.row').forEach((r, i) => tl.fromTo(r, fromUp, { ...toUp, duration: .3 }, i < 3 ? T.rows[i] : T.sum));
+  tl.fromTo(num, { v: 0 }, { v: 1284000, duration: 1.1, ease: 'power2.out', onUpdate: () => { q(c, '.num').textContent = won(num.v) } }, T.sum)
+    .to(q(c, '.go'), { scale: .9, duration: .15, yoyo: true, repeat: 1, ease: 'power1.inOut' }, T.press)
+    .fromTo(q(c, '.done'), fromUp, { ...toUp, duration: .35 }, T.done)
+    .fromTo(q(c, '.okm'), { scale: 0 }, { scale: 1, duration: .3, ease: 'back.out(2)', transformOrigin: '50% 50%' }, T.ok)
+    .fromTo(q(c, '.okm path'), { strokeDashoffset: 14 }, { strokeDashoffset: 0, duration: .3 }, T.draw);
+  return tl;
+}
+const tlG = gsapTl(cGsap, (tl, say) => tl.to(say, { text: { value: SAY }, duration: .8, ease: 'none' }, T.type));
+
+// 한글 자모 타자: 글자를 자판 누르는 순서대로 쪼갠 화면 목록(FR)을 만들고, 시각 t에 맞는 한 장을 보여 줌
+const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', JUNG = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ', JONG = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+const PAIR = { 'ㅘ': 'ㅗㅏ', 'ㅙ': 'ㅗㅐ', 'ㅚ': 'ㅗㅣ', 'ㅝ': 'ㅜㅓ', 'ㅞ': 'ㅜㅔ', 'ㅟ': 'ㅜㅣ', 'ㅢ': 'ㅡㅣ', 'ㄳ': 'ㄱㅅ', 'ㄵ': 'ㄴㅈ', 'ㄶ': 'ㄴㅎ', 'ㄺ': 'ㄹㄱ', 'ㄻ': 'ㄹㅁ', 'ㄼ': 'ㄹㅂ', 'ㄽ': 'ㄹㅅ', 'ㄾ': 'ㄹㅌ', 'ㄿ': 'ㄹㅍ', 'ㅀ': 'ㄹㅎ', 'ㅄ': 'ㅂㅅ' };
+const syl = (c, v, j) => String.fromCharCode(0xAC00 + (c * 21 + v) * 28 + j);
+const split = ch => { const n = (ch || ' ').charCodeAt(0) - 0xAC00; return n >= 0 && n < 11172 ? [Math.floor(n / 588), Math.floor(n / 28) % 21, n % 28] : null };
+const addJong = (j, k) => j ? JONG.indexOf(Object.keys(PAIR).find(x => PAIR[x] === JONG[j] + k) || '?') : JONG.indexOf(k);   // 받침 j 에 자음 k 를 얹은 받침 번호, 안 되면 -1
+function jamoFrames(s) {
+  const out = []; let pre = '';
+  for (const ch of s) {
+    const p = split(ch);
+    if (!p) { pre += ch; out.push(pre); continue }
+    const [c, v, j] = p, last = split(pre.slice(-1)), k = last ? addJong(last[2], CHO[c]) : -1;
+    out.push(k > 0 ? pre.slice(0, -1) + syl(last[0], last[1], k) : pre + CHO[c]);   // 첫 자음은 앞 글자 받침에 먼저 붙음(도깨비불)
+    const vs = PAIR[JUNG[v]] || JUNG[v];
+    out.push(pre + syl(c, JUNG.indexOf(vs[0]), 0)); if (vs.length > 1) out.push(pre + syl(c, v, 0));
+    if (j) { const js = PAIR[JONG[j]] || JONG[j]; out.push(pre + syl(c, v, JONG.indexOf(js[0]))); if (js.length > 1) out.push(pre + syl(c, v, j)) }
+    pre += ch;
+  }
+  return out;
+}
+const FR = jamoFrames(SAY), TYPE_DUR = 1.1;
+const rnd = (seed => () => (seed = seed * 16807 % 2147483647) / 2147483647)(7);   // 고정 난수: 매번 같은 들쭉날쭉
+let acc = 0; const AT = FR.map(f => { const t = acc; acc += .6 + rnd() + (f.endsWith(' ') ? 1.5 : 0); return t });
+AT.forEach((t, i) => AT[i] = t * TYPE_DUR / AT[AT.length - 1]);
+const tlJ = gsapTl(cJamo, (tl, say) => {
+  const cur = q(cJamo, '.cur');
+  tl.eventCallback('onUpdate', () => {
+    const t = tl.time() - T.type; let i = -1; while (i + 1 < FR.length && AT[i + 1] <= t) i++;
+    say.textContent = i < 0 ? '' : FR[i];
+    cur.style.opacity = t < 0 || t > TYPE_DUR ? (Math.floor(tl.time() / .5) % 2 ? 0 : 1) : 1;   // 치는 동안은 켜 두고, 나머진 깜빡
+  });
+  tl.set({}, {}, END);   // 커서 깜빡임이 끝까지 가도록 시계 길이를 END 까지
+});
+function gsapRestart() { tlG.restart(); tlJ.restart() }
+function gsapSeek(t) { tlG.pause(); tlG.seek(t, false); tlJ.pause(); tlJ.seek(t, false) }   // false: 숫자·자모 갱신(onUpdate)도 같이 돌게
+
+/* ── 조작 ── */
+const tIn = document.getElementById('t'), tOut = document.getElementById('tv');
+let raf = 0, clockStart = 0;
+const show = t => { tIn.value = t; tOut.textContent = t.toFixed(2) + '초' };
+function stopLoop() { cancelAnimationFrame(raf); raf = 0 }
+function restartAll() { stopLoop(); cssRestart(); trioRestart(); gsapRestart(); clockStart = performance.now(); tickReal() }
+function tickReal() { const t = (performance.now() - clockStart) / 1000; show(Math.min(t, END)); if (t < END) raf = requestAnimationFrame(tickReal) }
+function seekAll(t) { cssSeek(t); trioSeek(t); gsapSeek(t); show(t) }
+document.getElementById('play').addEventListener('click', restartAll);
+// 영상 흉내: 화면 시각은 3배 느리게 seek 으로만 진행, Typed·CountUp 은 출발만 시켜 두면 실제 시간대로 돎
+document.getElementById('video').addEventListener('click', () => {
+  stopLoop(); cssRestart(); trioRestart(); gsapRestart(); seekAll(0);
+  const t0 = performance.now();
+  const step = () => { const t = (performance.now() - t0) / 3000; seekAll(Math.min(t, END)); if (t < END) raf = requestAnimationFrame(step) };
+  raf = requestAnimationFrame(step);
+});
+tIn.addEventListener('input', () => { stopLoop(); seekAll(+tIn.value) });
+restartAll();
+</script>

@@ -1,0 +1,67 @@
+<title>효과 부품 시계 시험</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="demo.css">
+<style>
+/* 시험 페이지(FX_DESIGN.md 0단계): CSS 부품과 GSAP 부품이 한 장면에 섞여도 재생 = 영상 = 카드 인지 fx_check.py 가 대조 */
+.cur { font-style: normal; margin-left: 1px }
+.say { white-space: nowrap }
+.sum { display: flex; justify-content: space-between; padding: 8px 12px; font: 500 15px var(--f-mono); font-variant-numeric: tabular-nums }
+.dot { width: 18px; height: 18px; border-radius: 50%; background: var(--fail) }
+.track { position: relative; height: 18px; background: var(--line); border-radius: 9px }
+</style>
+
+<div class="phone" id="phone">
+<div class="stage" id="stage" data-hold="1200">
+  <div class="bars" id="bars"></div>
+
+  <!-- 1 CSS(.in) + GSAP(말풍선·숫자) + 자모 타자 -->
+  <section class="scene" id="s1">
+    <div class="eyebrow in" style="--d:.1s"><span>시계 시험</span><span>섞임</span></div>
+    <h1 class="cap in" style="--d:.2s">CSS와 GSAP<br>한 장면에</h1>
+    <div class="chat fit">
+      <div class="msg me in" style="--d:.5s"><span class="say">이 견적서 입력해줘</span><i class="cur">|</i></div>
+      <div class="msg bot" id="b1" data-sfx-at="2.2:pop"><span class="who">입력 비서</span>케이블 3종 읽었어요.</div>
+    </div>
+    <div class="card sum" id="sum1"><span>합계</span><span class="num">0원</span></div>
+    <p class="in" id="bad" style="--d:3s">CSS 글</p>
+    <div class="foot"><span>시험 페이지</span><span class="pg"></span></div>
+  </section>
+
+  <!-- 2 GSAP 이 CSS 보다 늦게 끝남 → 장면 길이가 GSAP 끝을 따라야 함 -->
+  <section class="scene" id="s2">
+    <div class="eyebrow in" style="--d:.1s"><span>시계 시험</span><span>길이</span></div>
+    <h2 class="cap pop" style="--d:.3s">GSAP이<br>더 늦게 끝남</h2>
+    <div class="track"><div class="dot" id="dot"></div></div>
+    <div class="foot"><span>점이 4.5초까지 움직임</span><span class="pg"></span></div>
+  </section>
+</div>
+</div>
+
+<div class="controls">
+  <button id="prev" type="button">이전</button>
+  <button id="play" type="button">일시정지</button>
+  <button id="next" type="button">다음</button>
+  <button id="rec" type="button">녹화 화면</button>
+  <div class="chips" id="chips"></div>
+</div>
+<p class="hint">영상·카드와 같은 모습인지는 fx_check.py 가 확인합니다.</p>
+
+<script src="vendor/gsap-3.13.0.min.js"></script>
+<script src="demo-fx.js"></script>
+<script>
+const $ = s => document.querySelector(s), won = v => Math.round(v).toLocaleString('ko-KR') + '원';
+demoFx.gsap($('#s1'), tl => {
+  demoFx.type(tl, $('#s1 .say'), '이 견적서 입력해줘', .9, 1.1);
+  tl.fromTo('#b1', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: .35, ease: 'power2.out' }, 2.2);
+  const n = { v: 0 };
+  tl.fromTo(n, { v: 0 }, { v: 1284000, duration: 1.1, ease: 'power2.out', onUpdate: () => { $('#sum1 .num').textContent = won(n.v) } }, 2.7);
+});
+demoFx.gsap($('#s2'), tl => tl.fromTo('#dot', { x: 0 }, { x: 260, duration: 3.5, ease: 'power1.inOut' }, 1));
+// ?bad=1: 자기 시계 부품 흉내(Typed.js 처럼 "지금부터 0.8초 뒤") → fx_check.py 가 잡아내야 정상
+if (new URLSearchParams(location.search).has('bad'))
+  new MutationObserver(() => { if ($('#s1').classList.contains('on')) setTimeout(() => $('#bad').textContent = '자기 시계 글', 800) })
+    .observe($('#s1'), { attributes: true, attributeFilter: ['class'] });
+</script>
+<script src="demo.js"></script>

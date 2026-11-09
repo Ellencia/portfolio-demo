@@ -6,6 +6,7 @@ const RATE = 1.15, HOLD = +stage.dataset.hold || 3500;
 const scenes = [...stage.querySelectorAll('.scene')];
 const bars = document.getElementById('bars'), chips = document.getElementById('chips');
 const params = new URLSearchParams(location.search);
+const FX = window.demoFx;   // demo-fx.js 를 넣은 페이지만(GSAP 등 자기 시계 부품). 없으면 예전과 같음
 let cur = 0, timer = null, playing = true;
 
 scenes.forEach((s, i) => {
@@ -34,7 +35,7 @@ function show(i) {
   scenes.forEach(s => s.classList.remove('on'));
   void stage.offsetWidth; // 애니메이션 처음부터 다시
   scenes[cur].classList.add('on');
-  const dur = speedUp(scenes[cur]) + HOLD;
+  const dur = Math.max(speedUp(scenes[cur]), FX ? FX.show(scenes[cur], RATE) : 0) + HOLD;
   [...bars.children].forEach((b, j) => {
     b.className = j < cur ? 'done' : '';
     if (j === cur) { b.style.setProperty('--dur', dur + 'ms'); void b.offsetWidth; b.className = 'now'; }
@@ -77,6 +78,7 @@ if (params.has('video')) {
   window.demoFrame = t => {
     document.getAnimations().forEach(a => { a.pause(); a.currentTime = t * a.playbackRate; });
     document.querySelectorAll('svg').forEach(s => { s.pauseAnimations(); s.setCurrentTime(t / 1000 + 2); });  // +2초: 늦게 출발하는 동그라미가 구석에 서 있지 않게
+    if (FX) FX.frame(scenes[cur], t, RATE);
   };
   // 효과음(make_video.py --sfx): 지금 장면의 [ms, 소리] 목록. 소리는 요소의 첫 애니메이션이 시작하는 순간에 남
   // 클래스별 기본 소리 + 요소의 data-sfx="소리"(덮어쓰기, "none" 이면 끔) + data-sfx-at="초:소리 ..."(CSS 지연과 같은 단위)
@@ -104,6 +106,7 @@ if (params.has('video')) {
   stage.classList.add('still');
   playing = false;
   show(+params.get('shot') - 1);
+  if (FX) FX.end(scenes[cur]);
 } else {
   show(0);
 }

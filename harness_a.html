@@ -85,7 +85,6 @@
 <div class="phone" id="phone">
 <div class="stage" id="stage">
   <div class="bars" id="bars"></div>
-  <div class="statusbar"><span>9:41</span><span class="icons">5G <b class="batt"></b></span></div><div class="island"></div><div class="homebar"></div>
 
   <!-- 1 표지: 결과 먼저 (보고 칸만 찍힘, 앞 칸은 이제 돌려 볼 하루) -->
   <section class="scene">
@@ -120,7 +119,7 @@
       <div style="--lv:0">사업</div>
       <div style="--lv:1">강변점 리모델링</div>
       <div style="--lv:2">견적</div>
-      <div style="--lv:3"><span class="hl" style="--d:5.9s">견적서_OO상사_1023.pdf</span></div>
+      <div style="--lv:3"><span class="rn" style="--d:5.9s">견적서_OO상사_1023.pdf</span></div>
     </div>
     <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
   </section>
@@ -148,10 +147,10 @@
     <div class="card wave in" style="--d:1.2s"><div><b>통화 녹음</b>04:12 · OO상사</div><div class="wbars" id="wbars"></div></div>
     <div class="card talk in" style="--d:2.2s">
       <h4>통화 내용 · 글로 바꿈</h4>
-      <div class="pop" style="--d:2.95s"><span class="sp">OO상사</span><span><span class="hl" style="--d:8.6s">납품일을 11/5로</span> 미뤄야 할 것 같아요.</span></div>
-      <div class="pop" style="--d:4.35s"><span class="sp">나</span><span>확인하고 <span class="hl" style="--d:9s">오늘 중으로 회신</span>드릴게요.</span></div>
-      <div class="pop" style="--d:5.75s"><span class="sp">OO상사</span><span><span class="hl" style="--d:11s">앵커 볼트도 추가 견적</span> 부탁드려요.</span></div>
-      <div class="pop" style="--d:7.15s"><span class="sp">나</span><span>네, <span class="hl" style="--d:11.4s">11/1까지</span> 보내드릴게요.</span></div>
+      <div class="pop" style="--d:2.95s"><span class="sp">OO상사</span><span><span class="rn" style="--d:8.6s">납품일을 11/5로</span> 미뤄야 할 것 같아요.</span></div>
+      <div class="pop" style="--d:4.35s"><span class="sp">나</span><span>확인하고 <span class="rn" style="--d:9s">오늘 중으로 회신</span>드릴게요.</span></div>
+      <div class="pop" style="--d:5.75s"><span class="sp">OO상사</span><span><span class="rn" style="--d:11s">앵커 볼트도 추가 견적</span> 부탁드려요.</span></div>
+      <div class="pop" style="--d:7.15s"><span class="sp">나</span><span>네, <span class="rn" style="--d:11.4s">11/1까지</span> 보내드릴게요.</span></div>
     </div>
     <i class="flow in" style="--d:9.6s">↓</i>
     <div class="card todo pop" style="--d:9.8s">
@@ -172,7 +171,7 @@
       <h4>오늘 일일보고</h4>
       · 강변점 집기 발주 (#1043)<br>
       · 강변점 견적 검토 · 앵커 볼트 추가 견적 요청
-      <div class="pop" style="--d:4.3s;transform-origin:left center">· <span class="hl" style="--d:4.9s">OO상사 통화: 납품일 11/5로 변경</span></div>
+      <div class="pop" style="--d:4.3s;transform-origin:left center">· <span class="rn" style="--d:4.9s">OO상사 통화: 납품일 11/5로 변경</span></div>
     </div>
     <div class="chat fit">
       <div class="msg bot in" style="--d:2.4s;max-width:94%"><span class="who">접수 비서</span>보고에 추가할 사항이 하나 더 있어요.
@@ -211,7 +210,11 @@
 </div>
 <p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
 
+<script src="vendor/rough-notation-0.5.1.min.js"></script>
+<script src="demo-fx.js"></script>
 <script>
+// 형광펜: 손으로 한 번 그은 모양, 덜 삐뚤게, 끝은 형광펜 촉처럼 사선(FX_DESIGN.md 2단계). 시작 시각은 요소의 --d
+document.querySelectorAll('.rn').forEach(e => demoFx.rough(e, parseFloat(e.style.getPropertyValue('--d')), { type: 'highlight', iterations: 1, soft: true, cap: 'slant' }));
 const hs = [30, 55, 40, 80, 62, 35, 90, 70, 45, 25, 60, 85, 50, 30, 75, 95, 55, 40, 65, 35, 50, 80, 45, 30];
 // 파형 구간 k(막대 6개씩)를 읽는 시각. 화살표가 +0.2초부터 그 줄로 그려지고, 줄은 +0.45초에 튀어나와 화살촉 도착(+0.76초)과 맞물리고, 화살표는 +1.2초에 사라짐
 const R = [2.5, 3.9, 5.3, 6.7];
