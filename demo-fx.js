@@ -74,7 +74,8 @@ window.demoFx = (() => {
       if (t.length) { p.style.transformBox = 'fill-box'; p.style.transformOrigin = cfg.len ? 'left' : 'center'; p.style.transform = t.join(' ') }
     });
   }
-  // ponytail: 글꼴 로드 뒤 한 번 다시 그림. 지금 켜진 장면의 그림이면 배속이 다음 장면 전환부터 걸림(현재 쓰는 곳은 첫 장면 아님)
+  // ponytail: 글꼴 로드 뒤 한 번 다시 그림. 지금 켜진 장면(웹에서 바로 재생하는 첫 장면)의 그림은 글꼴 로드 시점부터 1배속으로 그려짐
+  //   (하네스 A 1장면 제목: 0.1–0.3초 늦게 시작하는 정도). 영상·카드는 글꼴 뒤에 장면을 켜서 영향 없음(fx_check). 거슬리면 다시 그린 뒤 그 장면 show 재호출
   document.fonts.ready.then(() => roughs.forEach(drawRough));
 
   return {
