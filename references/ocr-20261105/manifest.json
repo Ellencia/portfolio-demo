@@ -1,0 +1,69 @@
+{
+  "commit": "0b219fdf797a238c2333eb816b29cc8c27e512f7",
+  "files": {
+    "ocr.html": {
+      "source": "ocr.html",
+      "sha256": "781db80196408f0b952e9faca6d08389c65cada2d246ec1a235231138c99a4ec"
+    },
+    "demo.css": {
+      "source": "demo.css",
+      "sha256": "605e1c73c9fc481a458426e4d72ad528bf398080be989d75406ddf744855e2c9"
+    },
+    "demo.js": {
+      "source": "demo.js",
+      "sha256": "df8d93f8b56c4cb68515d1d31645eeca9871ab9117f14666ba658938a3ba824f"
+    },
+    "original.mp4": {
+      "source": "out/video/ocr.mp4",
+      "sha256": "2599942750dbe55a041715878eefeb1d936196e0630d735f6de0cf1b90f4c85f"
+    },
+    "img/ocr_bar_1.png": {
+      "source": "img/ocr_bar_1.png",
+      "sha256": "112afd7ce510f6a2d8ab2fe8ea514dd8cba15ee9a88a99bb3ee8578da2599bb5"
+    },
+    "img/ocr_bar_2.png": {
+      "source": "img/ocr_bar_2.png",
+      "sha256": "cdfeb222dce4c5e32713fa2dcd61c6bb252fc98eff97a928d666e6f0e94af270"
+    },
+    "img/ocr_bar_3.png": {
+      "source": "img/ocr_bar_3.png",
+      "sha256": "118590fc5f535393d1a7b27d1a9e75b3af01830c660e4d0812a03fbfac733c99"
+    },
+    "img/ocr_bar_paper.jpg": {
+      "source": "img/ocr_bar_paper.jpg",
+      "sha256": "080389e0bcb0137d60025cebc2405af43432dbae6b8589f9b4e51e392d3f6faa"
+    },
+    "img/ocr_page_paper.jpg": {
+      "source": "img/ocr_page_paper.jpg",
+      "sha256": "1a0436d0dd8f4e8d780d4fbf91b65f0a8aebb167c168d6db4412ae0bdab7f756"
+    },
+    "img/ocr_page_raw.png": {
+      "source": "img/ocr_page_raw.png",
+      "sha256": "4a03abea0d6ed4c3c7d4dd828804dea6265e913af9ab689ceb6e2ea25d2ff88a"
+    },
+    "img/ocr_read_1.jpg": {
+      "source": "img/ocr_read_1.jpg",
+      "sha256": "fc596e9e71016a38c7667b1d2f6e240fa904e88b2f94d52aa6580bdea65c9ee5"
+    },
+    "img/ocr_read_2.jpg": {
+      "source": "img/ocr_read_2.jpg",
+      "sha256": "7116d352e914d2226560daba127c2f50f06719aba93740dfcb75269240319a9e"
+    },
+    "img/ocr_read_3.jpg": {
+      "source": "img/ocr_read_3.jpg",
+      "sha256": "1d5122ef6bb926a364fb3cbd6d3aa4cb1765e8d95a1ba24d848bf648085bfe89"
+    },
+    "img/ocr_read_4.jpg": {
+      "source": "img/ocr_read_4.jpg",
+      "sha256": "fc931d2a291be325a2eefc2cec93852f3fe8c8e02ade5c6b5b6a9350845b9f4a"
+    },
+    "img/ocr_read_5.jpg": {
+      "source": "img/ocr_read_5.jpg",
+      "sha256": "acf64bb47dded45ffbd9c6153156a9dc84521fb453fab982dcde949854944034"
+    },
+    "img/ocr_read_6.jpg": {
+      "source": "img/ocr_read_6.jpg",
+      "sha256": "37d7f5bae488fa9aa25f90d3e0432d8ee50fd63d9d248103c70bd7797566638c"
+    }
+  }
+}

@@ -1,0 +1,270 @@
+/* 레이아웃: 9:16 폰 화면(360x640 무대) 하나를 가운데, 아래에 재생 조작. 무대 안은 장부 종이 + 형광펜 한 가지 세계로 고정 */
+:root {
+  --page: #E9ECE6; --page-fg: #1C2630; --page-sub: #5E6872; --ctl: #FFFFFF; --ctl-line: #CBD1C7;
+  /* 무대(폰 화면) — 테마와 무관하게 고정 */
+  --paper: #F4F5F0; --ink: #17212B; --sub: #5B6670; --line: #D3D8CE; --cell: #FFFFFF;
+  --marker: #FFD84A; --pass: #1E8551; --fail: #C2402C; --navy: #22364F;
+  --f-display: "Black Han Sans", "IBM Plex Sans KR", "Malgun Gothic", sans-serif;
+  --f-body: "IBM Plex Sans KR", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  --f-mono: "IBM Plex Mono", "IBM Plex Sans KR", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --page: #12171C; --page-fg: #E3E7E0; --page-sub: #98A2AA; --ctl: #1C232A; --ctl-line: #2E3740; color-scheme: dark } }
+:root[data-theme="dark"] { --page: #12171C; --page-fg: #E3E7E0; --page-sub: #98A2AA; --ctl: #1C232A; --ctl-line: #2E3740; color-scheme: dark }
+
+html, body { height: 100% }
+body { background: var(--page); color: var(--page-fg); font-family: var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding-block: 16px; box-sizing: border-box }
+
+.phone { height: min(78vh, 780px); aspect-ratio: 9 / 16; max-width: 100%; position: relative; border-radius: 26px; overflow: hidden;
+  box-shadow: 0 0 0 7px #0E1318, 0 18px 50px rgba(0,0,0,.28) }
+.stage { width: 360px; height: 640px; position: absolute; left: 0; top: 0; transform-origin: 0 0; background: var(--paper); color: var(--ink); overflow: hidden }
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; max-width: 520px }
+.controls button { font: 500 13px var(--f-body); color: var(--page-fg); background: var(--ctl); border: 1px solid var(--ctl-line); border-radius: 8px; padding: 7px 12px; cursor: pointer }
+.controls button:focus-visible { outline: 2px solid var(--marker); outline-offset: 2px }
+.controls .chips { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; width: 100% }
+.controls .chips button { padding: 4px 9px; font-size: 12px }
+.controls .chips button[aria-current="true"] { background: var(--page-fg); color: var(--page) }
+.hint { font-size: 12px; color: var(--page-sub); text-align: center; max-width: 520px; margin: 0 }
+
+/* 녹화 모드: 조작 숨기고 폰만 크게 */
+body.rec { gap: 0 } body.rec .controls, body.rec .hint { display: none } body.rec .phone { height: min(96vh, 100%); box-shadow: none; border-radius: 0 }
+/* 카드 렌더 모드(?shot=N): 무대만 360x640 그대로 */
+body.shot { padding: 0; display: block; background: var(--paper) } body.shot .controls, body.shot .hint { display: none }
+body.shot .phone { height: 640px; width: 360px; border-radius: 0; box-shadow: none }
+.still *, .still *::before, .still *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition: none !important }
+
+/* ---------- 무대 공통 ---------- */
+.bars { position: absolute; top: 10px; left: 12px; right: 12px; display: flex; gap: 3px; z-index: 5 }
+.bars i { flex: 1; height: 3px; border-radius: 2px; background: rgba(23,33,43,.15); overflow: hidden }
+.bars i b { display: block; height: 100%; width: 0; background: var(--ink) }
+.bars i.done b { width: 100% }
+.bars i.now b { animation: fill var(--dur) linear both }
+@keyframes fill { to { width: 100% } }
+.shot .bars { display: none }
+
+.scene { position: absolute; inset: 0; padding: 30px 22px 18px; display: flex; flex-direction: column; gap: 14px; visibility: hidden }
+.scene.on { visibility: visible }
+.eyebrow { font: 500 11px var(--f-body); letter-spacing: .02em; color: var(--sub); text-transform: uppercase; display: flex; justify-content: space-between }
+.cap { font: 400 31px/1.22 var(--f-display); letter-spacing: -.01em; margin: 0; text-wrap: balance }
+.cap mark { color: inherit; background: linear-gradient(transparent 58%, var(--marker) 58%) no-repeat 0 0 / 0% 100%; padding: 0 2px }
+.on .cap mark { animation: sweep .6s .5s ease-out both }
+@keyframes sweep { to { background-size: 100% 100% } }
+.sub { font-size: 13.5px; line-height: 1.5; color: var(--sub); margin: -4px 0 0 }
+.foot { margin-top: auto; font-size: 10px; color: var(--sub); display: flex; justify-content: space-between }
+
+.in { opacity: 0 }
+.on .in { animation: rise .45s cubic-bezier(.2,.7,.3,1) var(--d, 0s) both }
+@keyframes rise { from { opacity: 0; transform: translateY(10px) } to { opacity: 1; transform: none } }
+.on .pop { animation: pop .35s cubic-bezier(.3,1.6,.5,1) var(--d, 0s) both }
+@keyframes pop { from { opacity: 0; transform: scale(.6) } to { opacity: 1; transform: none } }
+
+.card { background: var(--cell); border: 1px solid var(--line); border-radius: 10px }
+.chip { display: inline-block; font: 600 10.5px var(--f-body); padding: 2px 6px; border-radius: 4px; white-space: nowrap }
+.chip.pass { background: #DDF0E4; color: var(--pass) } .chip.fail { background: #F7E0DA; color: var(--fail) } .chip.ask { background: #FFF1BF; color: #7A5A00 }
+
+/* 1 표지 */
+.pile { position: relative; margin-top: 6px }
+.pile .dash-mini { position: absolute; left: 0; right: 0; top: 18px }
+.files { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px }
+.file { aspect-ratio: 3/4; border: 1px solid var(--line); border-radius: 5px; background: var(--cell); position: relative; font: 500 8px var(--f-mono); color: var(--sub); display: flex; align-items: flex-end; padding: 4px }
+.file::before { content: ""; position: absolute; left: 5px; right: 5px; top: 7px; height: 22px; background: repeating-linear-gradient(var(--line) 0 1px, transparent 1px 5px) }
+.file::after { content: "xlsx"; position: absolute; right: 4px; top: 3px; color: var(--pass); font-size: 7px }
+.on .file.fly { animation: rise .35s var(--d) both, fly .6s calc(var(--d) + 1.7s) cubic-bezier(.6,0,.4,1) both }
+@keyframes fly { to { opacity: 0; transform: translate(var(--tx), 70px) scale(.3) } }
+.dash-mini { padding: 12px; display: grid; gap: 8px }
+.dash-mini .row { display: flex; gap: 6px }
+.dash-mini .k { flex: 1; background: var(--paper); border-radius: 6px; padding: 6px 8px; font-size: 9px; color: var(--sub) }
+.dash-mini .k b { display: block; font: 500 15px var(--f-mono); color: var(--ink) }
+.minibars { display: flex; align-items: flex-end; gap: 5px; height: 54px; padding: 0 2px; border-bottom: 1px solid var(--line) }
+.merged { position: absolute; left: 0; right: 0; top: 178px; padding: 10px 12px }
+.merged h4 { margin: 0 0 6px; font-size: 11px; display: flex; justify-content: space-between }
+.merged h4 small { font-weight: 400; color: var(--sub) }
+.merged ul { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 10.5px }
+.merged li { display: flex; justify-content: space-between; align-items: center }
+.minibars i { flex: 1; background: var(--navy); border-radius: 2px 2px 0 0; height: var(--h); transform-origin: bottom }
+.on .minibars i { animation: grow .5s var(--d) both }
+@keyframes grow { from { transform: scaleY(0) } }
+
+/* 2 문제 */
+.sheets { position: relative; height: 330px }
+.sheet { position: absolute; left: 0; right: 0; padding: 8px; box-shadow: 0 6px 16px rgba(23,33,43,.08) }
+.sheet h4 { margin: 0 0 6px; font: 500 10.5px var(--f-mono); color: var(--sub); display: flex; justify-content: space-between; align-items: center }
+.grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); font: 500 8.5px var(--f-body) }
+.grid span { background: var(--cell); padding: 3px 3px; white-space: nowrap; overflow: hidden }
+.grid .h { background: #E6EAE2; font-weight: 700 }
+.grid .bad { box-shadow: inset 0 0 0 1.5px var(--fail) }
+
+/* 3 실행 */
+.drop { display: flex; align-items: center; gap: 10px; padding: 10px 12px }
+.drop .ico { width: 34px; height: 28px; background: var(--marker); border-radius: 3px 7px 4px 4px; position: relative; flex: none }
+.drop .ico::before { content: ""; position: absolute; left: 0; top: -5px; width: 15px; height: 7px; background: var(--marker); border-radius: 3px 3px 0 0 }
+.drop b { font-size: 13px } .drop small { display: block; color: var(--sub); font-size: 11px }
+.bat { margin-left: auto; font: 500 10px var(--f-mono); border: 1px solid var(--ink); border-radius: 5px; padding: 4px 7px }
+.on .bat { animation: click .5s 1s both }
+@keyframes click { 40% { transform: scale(.88); background: var(--marker) } 100% { background: var(--marker) } }
+.log { padding: 12px; font: 500 11px/1.7 var(--f-body); color: var(--ink); font-variant-numeric: tabular-nums }
+.log div { display: flex; justify-content: space-between; gap: 8px }
+.log .f { font-weight: 700 } .log .t { color: var(--sub); padding-left: 12px }
+.log .sum { border-top: 1px dashed var(--line); margin-top: 6px; padding-top: 6px }
+
+/* 4 검증 */
+.steps { display: grid; gap: 7px; list-style: none; margin: 0; padding: 0; counter-reset: s }
+.steps li { display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: center; padding: 9px 11px; counter-increment: s }
+.steps li::before { content: counter(s); font: 400 18px var(--f-display); color: var(--navy) }
+.steps b { font-size: 13px; display: block } .steps small { font-size: 11px; color: var(--sub) }
+.alert { border: 1.5px solid var(--fail); padding: 11px 12px; display: grid; gap: 7px }
+.alert b { font-size: 13px; color: var(--fail) } .alert p { margin: 0; font-size: 11.5px; line-height: 1.5 }
+.alert .btns { display: flex; gap: 6px; justify-content: flex-end }
+.alert .btns span { font-size: 11px; padding: 4px 10px; border-radius: 5px; border: 1px solid var(--line) }
+.alert .btns span:last-child { background: var(--ink); color: var(--paper); border-color: var(--ink) }
+
+/* 5 결과 */
+.kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px }
+.kpis div { padding: 8px 9px; font-size: 10px; color: var(--sub) }
+.kpis b { display: block; font: 500 17px var(--f-mono); color: var(--ink); margin-top: 2px; font-variant-numeric: tabular-nums }
+.chart { padding: 10px 12px 8px }
+.chart h4, .top h4 { margin: 0 0 8px; font-size: 11px; font-weight: 700; display: flex; justify-content: space-between }
+.chart h4 small, .top h4 small { font-weight: 400; color: var(--sub) }
+.cbars { display: flex; align-items: flex-end; gap: 7px; height: 92px; padding-top: 14px; border-bottom: 1px solid var(--line); position: relative;
+  background: repeating-linear-gradient(to top, transparent 0 22px, rgba(23,33,43,.06) 22px 23px) }
+.cbars i { flex: 1; height: var(--h); background: var(--navy); border-radius: 2px 2px 0 0; transform-origin: bottom; position: relative }
+.cbars i.hi { background: var(--fail) }
+.cbars i::after { content: attr(data-v); position: absolute; top: -14px; left: 50%; transform: translateX(-50%); font: 500 8.5px var(--f-mono); color: var(--sub) }
+.on .cbars i { animation: grow .55s var(--d) both }
+.months { display: flex; gap: 7px; font: 500 9px var(--f-mono); color: var(--sub); margin-top: 4px } .months span { flex: 1; text-align: center }
+.top { padding: 10px 12px }
+.top ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px }
+.top li { display: grid; grid-template-columns: 1fr 110px 44px; gap: 8px; align-items: center; font-size: 11px }
+.top li i { height: 7px; background: var(--marker); border-radius: 4px; width: var(--w); transform-origin: left }
+.on .top li i { animation: growx .5s var(--d) both }
+@keyframes growx { from { transform: scaleX(0) } }
+.top li em { font: 500 10px var(--f-mono); font-style: normal; text-align: right; color: var(--sub) }
+
+/* 6 구조도 */
+.map { width: 100%; height: auto; display: block }
+.map .n rect { fill: var(--cell); stroke: var(--line) } .map .n.hub rect { fill: var(--navy); stroke: var(--navy) }
+.map .n text { font: 700 11px var(--f-body); fill: var(--ink); text-anchor: middle } .map .n.hub text { fill: #fff }
+.map .n text.s { font: 400 8.5px var(--f-body); fill: var(--sub) } .map .n.hub text.s { fill: #C5D0DC }
+.map .e { fill: none; stroke: var(--sub); stroke-width: 1.2; stroke-dasharray: 3 3 }
+.map .lbl { font: 500 8px var(--f-mono); fill: var(--sub); text-anchor: middle }
+.map .dot { fill: var(--fail) }
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; font-size: 11px; line-height: 1.4 }
+.legend b { display: block; font-size: 11.5px }
+.kpis-run { display: grid; grid-template-columns: repeat(3, 1fr); padding: 10px 4px; background: var(--navy); border-color: var(--navy) }
+.kpis-run div { text-align: center; font-size: 10px; color: #C5D0DC }
+.kpis-run div + div { border-left: 1px solid rgba(255,255,255,.15) }
+.kpis-run b { display: block; font: 500 15px var(--f-mono); color: #fff; margin-top: 2px }
+
+/* 7 채팅 */
+.chat { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #E7EBE3; border-radius: 12px; flex: 1; min-height: 0 }
+.msg { max-width: 82%; padding: 8px 10px; border-radius: 12px; font-size: 12px; line-height: 1.45 }
+.msg.me { align-self: flex-end; background: var(--navy); color: #fff; border-bottom-right-radius: 3px }
+.msg.bot { align-self: flex-start; background: var(--cell); border-bottom-left-radius: 3px }
+.msg .who { display: block; font-size: 9.5px; color: var(--sub); margin-bottom: 2px }
+.photo { width: 120px; height: 78px; margin-bottom: 4px; border-radius: 6px; background: #fff; padding: 7px; box-sizing: border-box; display: grid; gap: 3px; align-content: start }
+.photo i { height: 3px; background: #C9CFC4; border-radius: 2px } .photo i:first-child { width: 50%; height: 5px; background: #8A949C }
+.qbtns { display: flex; gap: 6px; margin-top: 6px }
+.qbtns span { flex: 1; text-align: center; font-size: 11px; padding: 5px; border: 1px solid var(--line); border-radius: 6px }
+.on .qbtns .go { animation: click .5s 3.6s both }
+.daily { padding: 9px 11px; font-size: 11px; line-height: 1.6 }
+.daily h4 { margin: 0 0 3px; font: 500 10px var(--f-body); color: var(--sub) }
+.daily .new { background: linear-gradient(transparent 55%, var(--marker) 55%) no-repeat 0 0 / 0% 100% }
+.on .daily .new { animation: sweep .6s 5.6s ease-out both }
+
+/* 8 점검 */
+.checks { padding: 10px 12px; display: grid; gap: 0; font-size: 11.5px }
+.checks div { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #ECEEE8 }
+.checks div:last-child { border: 0 }
+.result { padding: 12px; display: flex; justify-content: space-between; align-items: center; background: var(--ink); color: var(--paper); border-color: var(--ink) }
+.result b { font: 500 13px var(--f-mono) } .result span { font: 400 22px var(--f-display); color: var(--marker) }
+
+/* 9 문의 */
+.offers { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px }
+.offers li { padding: 11px 13px; display: grid; gap: 2px }
+.offers b { font-size: 13.5px } .offers small { font-size: 11px; color: var(--sub); line-height: 1.45 }
+.cta { background: var(--marker); border-radius: 10px; padding: 14px; text-align: center; font: 400 20px var(--f-display) }
+.cta small { display: block; font: 500 11px var(--f-body); margin-top: 3px }
+
+@media (prefers-reduced-motion: reduce) { .stage *, .stage *::before, .stage *::after { animation-duration: 0s !important; animation-delay: 0s !important } }
+
+/* 공용: 형광펜 한 줄 (지연은 --d) */
+.hl { background: linear-gradient(transparent 55%, var(--marker) 55%) no-repeat 0 0 / 0% 100% }
+.on .hl { animation: sweep .6s var(--d, 0s) ease-out both }
+.down { text-align: center; font-size: 11px; color: var(--sub); margin: -6px 0 }
+
+/* 엑셀: 일일보고 → 주간회의록 */
+.days { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px }
+.day { padding: 6px 5px; font-size: 8.5px; line-height: 1.45 }
+.day b { display: block; font-size: 10.5px; margin-bottom: 2px }
+.report { padding: 10px 12px }
+.report h4, .paper h4, .xlw h4 { margin: 0 0 8px; font-size: 11px; display: flex; justify-content: space-between; align-items: center; gap: 6px }
+.rtable { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); font-size: 10.5px }
+.rtable span { background: var(--cell); padding: 6px 7px; line-height: 1.4 }
+.rtable .h { background: #E6EAE2; font-weight: 700 }
+
+/* 엑셀: 영수증 → 증빙 */
+.receipts { display: flex; gap: 7px }
+.rcpt { flex: 1; padding: 8px 8px 7px; font-size: 9.5px; line-height: 1.45; color: var(--sub); border-style: dashed }
+.rcpt b { display: block; font-size: 11px; color: var(--ink) }
+.rcpt em { display: block; font: 500 12px var(--f-mono); font-style: normal; color: var(--ink); margin-top: 3px }
+.paper { padding: 10px 12px }
+.thumbs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 8px }
+.thumbs i { height: 52px; border: 1px solid var(--line); border-radius: 3px; background: repeating-linear-gradient(#FFFFFF 0 6px, #E6E9E2 6px 7px) }
+.ltable { display: grid; grid-template-columns: 44px 1fr auto; gap: 1px; background: var(--line); border: 1px solid var(--line); font-size: 10.5px; font-variant-numeric: tabular-nums }
+.ltable span { background: var(--cell); padding: 4px 6px }
+.ltable .h { background: #E6EAE2; font-weight: 700 }
+.ltable .r { text-align: right }
+.ltable .t { font-weight: 700; background: #FFF6CC }
+
+/* 엑셀: 사람이 고친 칸 보호 */
+.xlw { padding: 10px 12px }
+.xl { display: grid; grid-template-columns: 22px 1.7fr .8fr 1.1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); font-size: 10.5px }
+.xl span { background: var(--cell); padding: 4px 6px; white-space: nowrap; overflow: hidden }
+.xl .h { background: #E6EAE2; font-weight: 700; text-align: center }
+.xl .n { background: #E6EAE2; color: var(--sub); text-align: center }
+.xl .mine { background: #FFF1BF; box-shadow: inset 0 0 0 1.5px #C9A000 }
+.on .xl .auto { animation: flash .6s var(--d, 0s) both }
+@keyframes flash { 0% { background: var(--cell) } 40% { background: #BFE5CD } 100% { background: #E4F3EA } }
+.tags { display: flex; gap: 6px; flex-wrap: wrap }
+
+/* 하네스: 하루 타임라인 */
+.timeline { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; position: relative }
+.timeline::before { content: ""; position: absolute; left: 47px; top: 8px; bottom: 8px; width: 1px; background: var(--line) }
+.timeline li { display: grid; grid-template-columns: 40px 1fr; gap: 14px; align-items: start }
+.timeline time { font: 500 11px var(--f-mono); color: var(--sub); padding-top: 9px; text-align: right }
+.timeline li div { padding: 7px 10px; font-size: 11px; color: var(--sub); line-height: 1.4 }
+.timeline b { display: block; font-size: 12.5px; color: var(--ink) }
+
+/* 하네스: 메일 */
+.mail { padding: 9px 12px; font-size: 11px; line-height: 1.7 }
+.mail div { display: flex; gap: 8px }
+.mail .k { color: var(--sub); width: 40px; flex: none }
+.chat.fit { flex: none }
+.tree { padding: 9px 12px; font-size: 11px; line-height: 1.75 }
+.tree div { padding-left: calc(var(--lv) * 14px) }
+.tree div::before { content: "└ "; color: var(--sub) }
+.tree div:first-child::before { content: "" }
+
+/* 하네스: 통화 */
+.wave { padding: 9px 12px; display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--sub) }
+.wave b { display: block; font-size: 12px; color: var(--ink) }
+.wbars { flex: 1; display: flex; align-items: center; gap: 2px; height: 30px }
+.wbars i { flex: 1; height: var(--h); background: var(--navy); border-radius: 1px; transform-origin: center }
+.on .wbars i { animation: grow .4s var(--d) both }
+.summary, .todo { padding: 9px 12px; font-size: 11.5px; line-height: 1.6 }
+.summary h4, .todo h4 { margin: 0 0 3px; font-size: 10.5px; color: var(--sub); font-weight: 500 }
+.todo div { display: flex; align-items: center; gap: 8px; padding: 3px 0 }
+.todo .box { width: 11px; height: 11px; border: 1.5px solid var(--ink); border-radius: 2px; flex: none }
+.todo .chip { margin-left: auto }
+
+/* 하네스: 일일보고 초안 */
+.dline { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 4px 0; border-bottom: 1px solid #EEF0EA; font-size: 11px }
+.dline:last-of-type { border: 0 }
+.mini { display: flex; gap: 4px; flex: none }
+.mini span { font-size: 10px; padding: 2px 7px; border: 1px solid var(--line); border-radius: 5px }
+.on .mini .go { animation: click .5s var(--d, 0s) both }
+
+/* 영상 렌더(?video)는 위쪽 진행 막대를 보여 줌 */
+body.video .bars { display: flex }

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>첼로 OMR · 클로드 원본 비교</title>
+<style>
+body{margin:0;background:#f4f5f0;color:#17212b;font:16px/1.6 system-ui,sans-serif;padding:24px}main{max-width:1100px;margin:auto}h1{font-size:26px;margin:0 0 8px}p{margin:8px 0 16px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}section{min-width:0}h2{font-size:18px}video{display:block;width:100%;height:66vh;background:#e8ebe4;object-fit:contain;border-radius:12px}button,a{font:inherit}button{padding:8px 16px;cursor:pointer}a{color:#194b6e}.note{color:#54616b;font-size:14px}@media(max-width:650px){.grid{grid-template-columns:1fr}video{height:60vh}}
+</style><main>
+<h1>첼로 OMR · 클로드 원본 비교</h1>
+<p>11월 5일 원본 영상과 현재 공개본입니다. 회전뿐 아니라 단계 이름, 결과 등장, 장면 사이의 간격을 함께 비교합니다.</p>
+<button id="replay" type="button">둘 다 처음부터 재생</button>
+<p class="note">비교 재생은 음소거로 시작합니다. 각 영상의 조작부에서 소리를 켜거나 멈출 수 있습니다.</p>
+<div class="grid">
+<section><h2>클로드 작업 원본 · 0b219fd</h2><video controls playsinline muted preload="metadata" src="original.mp4"></video><p><a href="player.html">원본 웹 데모 재생</a> · <a href="original.mp4">원본 MP4</a></p></section>
+<section><h2>현재 공개본</h2><video controls playsinline muted preload="metadata" src="../../video/ocr.mp4"></video><p><a href="../../ocr.html">현재 웹 데모 재생</a></p></section>
+</div>
+<p class="note">원본은 움직임을 비교하기 위한 과거 자료입니다. 문구와 검증 범위는 현재 본편을 기준으로 봐 주세요. 원본 HTML·CSS·JS·이미지·MP4는 같은 커밋에서 복사했으며, 재생 속도와 대기 시간을 변경하지 않았습니다.</p>
+</main><script>
+document.getElementById('replay').onclick=async()=>{
+ const videos=[...document.querySelectorAll('video')];
+ videos.forEach(v=>{v.pause();v.currentTime=0;v.muted=true});
+ await Promise.allSettled(videos.map(v=>v.play()));
+};
+</script></html>

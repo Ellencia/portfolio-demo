@@ -33,6 +33,8 @@ for f in ("demo.css", "demo.js", "demo-fx.js", "harness-themes.css"):
     shutil.copy(HERE / f, DOCS / f)
 shutil.copytree(HERE / "vendor", DOCS / "vendor")
 shutil.copytree(HERE / "img", DOCS / "img", ignore=shutil.ignore_patterns("*.json"))
+# Motion reference: preserve the historical assets and clock together.
+shutil.copytree(HERE / "references" / "ocr-20261105", DOCS / "references" / "ocr-20261105")
 for page, *_ in PAGES + VARIANTS:
     src = (HERE / f"{page}.html").read_text(encoding="utf-8")
     body = src.index('<div class="phone"')  # 그 앞(제목·글꼴·스타일)은 머리로
