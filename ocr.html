@@ -17,9 +17,18 @@ body { margin: 0 }
 .cam:before { content: '종이 악보 사진'; position: absolute; top: 5px; left: 10px; color: white; font-size: 10px }
 .cam img { display: block; width: 100%; border-radius: 3px }
 .proc { display: flex; justify-content: center; align-items: center; gap: 9px; height: 25px; font-size: 12px; font-weight: 700 }
-.loader { width: 16px; height: 16px; border: 3px solid var(--line); border-top-color: var(--navy); border-radius: 50%; transform: rotate(-45deg) }
-.on .loader { animation: loadturn 1.4s var(--d) cubic-bezier(.6,.08,.4,.92) 1 both }
-@keyframes loadturn { to { transform: rotate(675deg) } }
+/* Restore the approved donut from 8094167: fixed arc, 12 o'clock start,
+   one turn per 1.4s with the original acceleration/deceleration curve. */
+.spin { position: relative; width: 22px; height: 22px; flex: none }
+.spin i { position: absolute; inset: 0; opacity: 0 }
+.spin svg { display: block; width: 100%; height: 100% }
+.spin circle { fill: none; stroke: var(--line); stroke-width: 3.5 }
+.spin circle.arc { stroke: var(--navy); stroke-linecap: round; stroke-dasharray: 14 60 }
+.on .spin i { animation: ringshow var(--t) var(--d) linear both }
+.on .spin svg { animation: ringturn 1.4s var(--d) cubic-bezier(.6,.08,.4,.92) var(--n) both }
+@keyframes ringshow { 0%, 99% { opacity: 1 } 100% { opacity: 0 } }
+@keyframes ringturn { from { transform: rotate(-135deg) } to { transform: rotate(225deg) } }
+.spin .done { position: absolute; inset: 2px; border-radius: 50%; background: var(--pass); color: #fff; display: grid; place-items: center; font-size: 11px; opacity: 0 }
 .edit-stack { position: relative; height: 113px; overflow: hidden; background: white }
 .edit-stack img { position: absolute; width: 100%; height: 100%; object-fit: contain; inset: 0 }
 .on .edit-stack .before { animation: hide .01s 7s both }
@@ -62,10 +71,6 @@ body { margin: 0 }
 .photo-strip img { width: calc((100% - 25px) / 6); height: 29px; object-fit: cover; border: 1px solid var(--line); box-sizing: border-box }
 .note { font-size: 11px; line-height: 1.6; margin: 0; word-break: keep-all }
 .check-needed { background: #fff3d7; border-radius: 8px; padding: 8px; font-size: 11px; line-height: 1.5 }
-.on .loader { animation: loadturn 1.4s var(--d) cubic-bezier(.6,.08,.4,.92) 1 both, loaderdone .01s calc(var(--d) + 1.4s) forwards }
-@keyframes loaderdone { to { border-color: transparent; transform: none } }
-.loader::after { content: '✓'; display: block; margin-top: -4px; color: var(--pass); opacity: 0; font-size: 20px }
-.on .loader::after { animation: reveal .2s calc(var(--d) + 1.4s) both }
 .scope { background: var(--navy); color: white; padding: 12px; border-radius: 9px; font-size: 12px; line-height: 1.7 }
 .scope strong { display: block; font-size: 15px }
 .metrics { display: grid; grid-template-columns: 1fr 25px 1fr; align-items: center; text-align: center; gap: 6px; padding: 17px 12px !important }
@@ -121,7 +126,7 @@ body.shot .appendix, body.rec .appendix { display: none }
     <div class="eyebrow"><span>종이 악보 → 악보 파일</span><span>개인 프로젝트</span></div>
     <h1 class="cap">손으로 입력하던 악보를<br><mark>사진에서 가져옵니다</mark></h1>
     <div class="cam in" style="--d:.5s"><img src="img/ocr_page_paper.jpg" alt="하바네라 원판 스캔에 사진 효과를 입힌 예시"></div>
-    <div class="proc in" style="--d:1.4s"><i class="loader" style="--d:1.5s" aria-hidden="true"></i><span>사진에서 음표 읽기 → 악보 파일</span></div>
+    <div class="proc in" style="--d:1.4s"><div class="spin" aria-hidden="true"><i style="--d:1.5s;--t:1.4s;--n:1"></i><b class="done pop" style="--d:2.9s" data-sfx="none">✓</b></div><span>사진에서 음표 읽기 → 악보 파일</span></div>
     <div class="card in" style="--d:3s">
       <div class="label">컴퓨터에서 고칠 수 있는 악보<span class="badge">실제 파일 편집 예시</span></div>
       <div class="edit-stack">
@@ -149,7 +154,7 @@ body.shot .appendix, body.rec .appendix { display: none }
         <div class="in" style="--d:3.4s"><b>AI가 읽은 마지막 자리</b><div class="crop raw"><img src="img/ocr_bar_1.png" alt="실제 판독에서 빠진 마지막 음표 자리"><span class="empty-spot pop" style="--d:4.3s" aria-hidden="true"></span></div><p>이 음표가 빠졌습니다.</p></div>
       </div>
       <div class="repair in" style="--d:6.2s">
-        <div class="proc"><i class="loader" style="--d:6.3s" aria-hidden="true"></i><span>빠진 음표 보완</span><span class="badge">설명용 재현</span></div>
+        <div class="proc"><div class="spin" aria-hidden="true"><i style="--d:6.3s;--t:1.6s;--n:1.1428571428571428"></i><b class="done pop" style="--d:7.9s" data-sfx="none">✓</b></div><span>빠진 음표 보완</span><span class="badge">설명용 재현</span></div>
         <div class="in" style="--d:8s"><img src="img/ocr_repair_example.svg" alt="마지막 F4 음표만 추가한 보정 설명용 악보"><p>마지막 음표를 채운 모습입니다.<br>다른 음·리듬 오류는 별도로 확인해야 합니다.</p></div>
       </div>
     </div>
@@ -210,6 +215,7 @@ body.shot .appendix, body.rec .appendix { display: none }
   </div>
 </details>
 <script>
+document.querySelectorAll('.spin i').forEach(i => i.innerHTML = '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9"/><circle class="arc" cx="11" cy="11" r="9"/></svg>');
 (() => {
   let raised = false, ctx;
   const before = document.getElementById('pitch-before'), after = document.getElementById('pitch-after');
