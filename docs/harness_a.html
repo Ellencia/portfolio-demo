@@ -13,9 +13,24 @@
 :root { --paper: #EDE5D1; --punch: #5E2D8C; --punch-out: #B3362B; --stock: #F7F1E2; --rule: #CDBF9F; --rule-ink: #8C7A5B }
 .chat { background: #E3D8C0 }
 .cap { word-break: keep-all }
-.result.check-result { display: block }
-.result.check-result b { display: block; font: 700 18px/1.4 var(--f-body); color: var(--marker) }
-.result.check-result span { display: block; margin-top: 5px; font: 400 11px/1.5 var(--f-body); color: var(--stock) }
+/* 구성 설명은 본편 밖에서 필요한 사람만 펼쳐 읽는다. */
+body:not(.shot):not(.rec) { height: auto; min-height: 100%; justify-content: flex-start }
+.phone { flex-shrink: 0 }
+body:not(.shot):not(.rec) .phone { height: min(78vh, 780px, calc((100vw - 46px) * 16 / 9)) }
+.appendix { width: 100%; max-width: 520px; box-sizing: border-box; border: 1px solid var(--ctl-line); border-radius: 12px; background: var(--ctl); font-size: 14px; line-height: 1.65; overflow-wrap: anywhere }
+.appendix summary { padding: 13px 16px; cursor: pointer; font-weight: 700 }
+.appendix summary:focus-visible { outline: 2px solid var(--marker); outline-offset: 3px; border-radius: 12px }
+.appendix-body { padding: 0 16px 16px }
+.appendix-body > p { margin: 0 0 16px; color: var(--page-sub) }
+.appendix dl { margin: 0; display: grid; grid-template-columns: 76px 1fr; gap: 10px 12px }
+.appendix dt { font-weight: 700 }
+.appendix dd { margin: 0 }
+.appendix .schedule { margin: 16px 0; padding-top: 14px; border-top: 1px solid var(--ctl-line) }
+.appendix .check-record { padding: 12px; border: 1px solid var(--ctl-line); border-radius: 8px }
+.check-record h3 { margin: 0 0 6px; font-size: 14px }
+.check-record p { margin: 0 }
+.check-record small { display: block; margin-top: 6px; color: var(--page-sub); font-size: 12px }
+body.shot .appendix, body.rec .appendix { display: none }
 .tc { display: grid; grid-template-columns: 20px repeat(4, 1fr); background: var(--stock); border: 1.5px solid var(--rule-ink); border-radius: 3px; flex: none }
 .tc > * { border-left: 1px solid var(--rule); padding: 4px 6px 5px; min-height: 42px; display: flex; flex-direction: column; justify-content: space-between }
 .tc > i { border: 0; padding: 0; writing-mode: vertical-rl; font: 500 7.5px var(--f-mono); font-style: normal; letter-spacing: .12em; color: var(--rule-ink); align-items: center; justify-content: center; background: repeating-linear-gradient(var(--rule) 0 1px, transparent 1px 4px) }
@@ -43,7 +58,6 @@
 .on .tc .again .punch { animation: none }
 .on .tc .again { animation: again .7s var(--d) ease-in-out }
 @keyframes again { 50% { background: #FFE98A; box-shadow: inset 0 0 0 2px var(--punch-out) } }
-.clock { margin: -2px 0 -6px } .clock .punch { font-size: 40px }
 .noti { padding: 9px 12px; font-size: 11.5px; line-height: 1.5; box-shadow: 0 8px 20px rgba(60,45,20,.14) }
 .noti b { display: block; font-size: 10px; color: var(--sub); font-weight: 500 }
 /* 2장면: 메일 카드가 옆에서 밀려 들어오고, 카드 사이 화살표로 다음 단계로 넘어감을 보임 */
@@ -192,22 +206,6 @@
     <div class="foot"><span>예시 데이터</span><span class="pg"></span></div>
   </section>
 
-  <!-- 6 다음 날 아침 + 정체 -->
-  <section class="scene">
-    <div class="eyebrow"><span>업무 자동화 · 하네스</span><span>다음 날</span></div>
-    <div class="clock in" style="--d:.2s"><span class="punch">아침</span></div>
-    <h2 class="cap">아침에 확인하는<br><mark>자동 점검 결과</mark></h2>
-    <div class="card result check-result pop" style="--d:1.2s"><b>자동 점검 17개 항목 통과</b><span>정해진 점검 항목에 한한 결과입니다.</span></div>
-    <div class="legend">
-      <div class="in" style="--d:2.6s"><b>접수 비서</b>말·메일·전화를 할 일로 붙잡아 둡니다</div>
-      <div class="in" style="--d:3.2s"><b>입력 비서</b>시키면 ERP와 기록에 대신 입력합니다</div>
-      <div class="in" style="--d:3.8s"><b>기록 DB</b>발주·구매·재고가 모이는 사내 웹</div>
-      <div class="in" style="--d:4.4s"><b>일일보고</b>퇴근 전 비서가 초안을 써 둡니다</div>
-    </div>
-    <div class="card kpis-run in" style="--d:5.4s"><div>ERP 수집<b>30분마다</b></div><div>스스로 점검<b>매일 아침</b></div><div>조작은<b>폰에서</b></div></div>
-    <div class="foot"><span>이 묶음을 '하네스'라 부릅니다 · 점검 결과는 실제 (2026-10-25)</span><span class="pg"></span></div>
-  </section>
-
 </div>
 </div>
 
@@ -219,6 +217,25 @@
   <div class="chips" id="chips"></div>
 </div>
 <p class="hint">녹화 화면을 누르면 조작 버튼이 사라지고 폰 화면만 남습니다. 화면을 누르면 다시 나옵니다.</p>
+
+<details class="appendix">
+  <summary>구성과 자동 점검 기록 보기</summary>
+  <div class="appendix-body">
+    <p>데모에 나온 비서와 기록 도구를 묶어 ‘하네스’라고 부릅니다.</p>
+    <dl>
+      <dt>접수 비서</dt><dd>말·메일·전화를 할 일로 정리합니다.</dd>
+      <dt>입력 비서</dt><dd>요청받은 내용을 ERP와 기록에 입력합니다.</dd>
+      <dt>기록 DB</dt><dd>발주·구매·재고를 모아 보는 사내 웹입니다.</dd>
+      <dt>일일보고</dt><dd>퇴근 전 초안을 보내고, 사람이 추가할 내용을 고릅니다.</dd>
+    </dl>
+    <p class="schedule">ERP 자료는 30분마다 수집하고, 자동 점검은 매일 아침 실행합니다. 요청과 확인은 휴대폰에서 합니다.</p>
+    <div class="check-record">
+      <h3>자동 점검 기록 · <time datetime="2026-10-25">2026-10-25</time></h3>
+      <p>정해진 점검 항목 17개 통과</p>
+      <small>해당 날짜의 지정 항목 점검 결과입니다. 현재 상태나 모든 업무의 정상 처리를 뜻하지 않습니다.</small>
+    </div>
+  </div>
+</details>
 
 <script src="vendor/rough-notation-0.5.1.min.js"></script>
 <script src="demo-fx.js"></script>
