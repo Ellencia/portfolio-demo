@@ -1,0 +1,10 @@
+{
+  "source": "ocr/habanera_omr.mxl",
+  "part": "P10",
+  "measure": 7,
+  "before_midi": 65,
+  "after_midi": 67,
+  "renderer": "6.0.0-9dac18a",
+  "edit": "First note F4 to G4; all other musical content unchanged.",
+  "repair": "Missing final F4 added manually for illustration; other recognition errors remain."
+}

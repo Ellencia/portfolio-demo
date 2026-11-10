@@ -36,6 +36,18 @@ SOUNDS = {
     "whoosh": 1.2 * _noise(0.35, 60) * np.sin(np.pi * _t(0.35) / 0.35) ** 3,  # 장면 넘김
 }
 
+# OMR: actual first-note pitches from the MusicXML edit example (F4 -> G4).
+# The envelope matches the browser's short pitch-comparison preview.
+def score_note(midi):
+    t = _t(.85)
+    f = 440 * 2 ** ((midi - 69) / 12)
+    wave = sum((-1) ** ((k - 1) // 2) * np.sin(2 * np.pi * f * k * t) / k**2
+               for k in range(1, 16, 2)) * (8 / np.pi**2)
+    envelope = np.where(t < .025, t / .025, np.exp(-np.log(160) * (t - .025) / .775))
+    return .3 * wave * envelope
+
+SOUNDS.update(note_f4=score_note(65), note_g4=score_note(67))
+
 
 def pluck(midi, dur=1.4, decay=0.996, ring=0.9):
     """Karplus-Strong: 잡음 한 주기를 평균 내며 되풀이 → 줄 뜯는 소리. 한 주기씩 묶어 numpy 로."""
@@ -113,7 +125,18 @@ def mix(events, seconds, frame=1024, music=None, sfx_db=0):
     if peak > 0:
         out *= 0.8 / peak * 10 ** (sfx_db / 20)
     if music is not None:
-        out += _bed(bgm(n / SR, music) if isinstance(music, str) else np.asarray(music, dtype=float), n)
+        bed = _bed(bgm(n / SR, music) if isinstance(music, str) else np.asarray(music, dtype=float), n)
+        # Let the two OMR pitch previews be heard without the quartet masking them.
+        for t, name in events:
+            if name.startswith('note_'):
+                lo, hi = max(0, int((t-.1)*SR)), min(n, int((t+.95)*SR))
+                gain = np.full(hi-lo, .15)
+                edge = min(int(.1*SR), len(gain)//2)
+                if edge:
+                    gain[:edge] = np.linspace(1, .15, edge)
+                    gain[-edge:] = np.linspace(.15, 1, edge)
+                bed[lo:hi] *= gain
+        out += bed
         out /= max(1.0, np.abs(out).max() / 0.95)
     return np.repeat(out[None, :], 2, axis=0).astype(np.float32)
 

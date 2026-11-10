@@ -151,8 +151,7 @@ def read_variants(src):
 
 
 if __name__ == "__main__":
-    for old in IMG.glob("ocr_*"):
-        old.unlink()
+    # Do not delete independently generated MusicXML/SVG edit examples.
     scan = Image.open(SCAN).convert("RGB")
     page = photo(scan, "page")
     page.resize((1400, round(1400 * page.height / page.width)), Image.LANCZOS).save(IMG / "ocr_page_paper.jpg", quality=86)
