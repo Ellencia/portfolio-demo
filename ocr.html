@@ -17,23 +17,24 @@ body { margin: 0 }
 .cam:before { content: '종이 악보 사진'; position: absolute; top: 5px; left: 10px; color: white; font-size: 10px }
 .cam img { display: block; width: 100%; border-radius: 3px }
 .proc { display: flex; justify-content: center; align-items: center; gap: 9px; height: 25px; font-size: 12px; font-weight: 700 }
-/* Fixed track and center. Only the arc turns, once in 3s / RATE (2.61s).
-   Smooth acceleration; no repeated snap or moving parent during processing. */
+/* Rotation speed is independent of the processing interval (--t).
+   Fractional iterations stop at the completion time, not at a full turn.
+   Finite iterations keep the frame-by-frame video renderer deterministic. */
 .spin { position:relative; width:22px; height:22px; flex:none }
 .spin i { position:absolute; inset:0; opacity:0 }
 .spin svg { display:block; width:100%; height:100% }
 .spin circle { fill:none; stroke:var(--line); stroke-width:3.5 }
 .spin circle.arc { stroke:var(--navy); stroke-linecap:round; stroke-dasharray:14 60; transform-origin:50% 50%; transform-box:view-box }
 .on .spin i { animation:ringshow var(--t) var(--d) linear both }
-.on .spin .arc { animation:ringturn 3s var(--d) cubic-bezier(.42,0,.58,1) 1 both }
+.on .spin .arc { animation:ringturn var(--turn) var(--d) cubic-bezier(.42,0,.58,1) var(--turns) both }
 .on .proc.in, .on .repair.in { animation:reveal .3s var(--d) both }
 @keyframes ringshow { 0%,99% {opacity:1} 100% {opacity:0} }
 @keyframes ringturn { from {transform:rotate(-135deg)} to {transform:rotate(225deg)} }
 .spin .done { position:absolute; inset:2px; border-radius:50%; background:var(--pass); color:#fff; display:grid; place-items:center; font-size:11px; opacity:0 }
 .edit-stack { position: relative; height: 113px; overflow: hidden; background: white }
 .edit-stack img { position: absolute; width: 100%; height: 100%; object-fit: contain; inset: 0 }
-.on .edit-stack .before { animation: hide .01s 8.6s both }
-.on .edit-stack .after { animation: reveal .35s 8.6s both }
+.on .edit-stack .before { animation: hide .01s 7s both }
+.on .edit-stack .after { animation: reveal .35s 7s both }
 @keyframes hide { to { opacity: 0 } }
 @keyframes reveal { from { opacity: 0 } to { opacity: 1 } }
 .edit-steps { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; font-size: 10px }
@@ -127,21 +128,21 @@ body.shot .appendix, body.rec .appendix { display: none }
     <div class="eyebrow"><span>종이 악보 → 악보 파일</span><span>개인 프로젝트</span></div>
     <h1 class="cap">손으로 입력하던 악보를<br><mark>사진에서 가져옵니다</mark></h1>
     <div class="cam in" style="--d:.5s"><img src="img/ocr_page_paper.jpg" alt="하바네라 원판 스캔에 사진 효과를 입힌 예시"></div>
-    <div class="proc in" style="--d:1.4s"><div class="spin" aria-hidden="true"><i style="--d:1.5s;--t:3s"></i><b class="done pop" style="--d:4.5s" data-sfx="none">✓</b></div><span>사진에서 음표 읽기 → 악보 파일</span></div>
-    <div class="card in" style="--d:4.6s">
+    <div class="proc in" style="--d:1.4s"><div class="spin" aria-hidden="true"><i style="--d:1.5s;--t:1.4s"></i><b class="done pop" style="--d:2.9s" data-sfx="none">✓</b></div><span>사진에서 음표 읽기 → 악보 파일</span></div>
+    <div class="card in" style="--d:3s">
       <div class="label">컴퓨터에서 고칠 수 있는 악보<span class="badge">실제 파일 편집 예시</span></div>
       <div class="edit-stack">
         <img class="before" src="img/ocr_edit_before.svg" alt="실제 판독 파일의 첫 음 F4">
         <img class="after" src="img/ocr_edit_after.svg" alt="첫 음을 G4로 높인 같은 악보 파일">
       </div>
       <div class="edit-steps">
-        <span class="pop" style="--d:6s" data-sfx="note_f4">① 파란 음표 듣기 ♪</span>
-        <span class="pop" style="--d:8.6s" data-sfx="click">② 한 칸 위로</span>
-        <span class="playback pop" style="--d:10.6s" data-sfx="note_g4">③ 바뀐 음 듣기 ♪</span>
+        <span class="pop" style="--d:4.4s" data-sfx="note_f4">① 파란 음표 듣기 ♪</span>
+        <span class="pop" style="--d:7s" data-sfx="click">② 한 칸 위로</span>
+        <span class="playback pop" style="--d:9s" data-sfx="note_g4">③ 바뀐 음 듣기 ♪</span>
       </div>
-      <p class="edit-result in" style="--d:11.1s">음표를 바꾸면 재생되는 소리도 바뀝니다.</p>
+      <p class="edit-result in" style="--d:9.5s">음표를 바꾸면 재생되는 소리도 바뀝니다.</p>
     </div>
-    <p class="note in" style="--d:11.8s">아래 ‘음표 바꿔 보기’에서 직접 비교할 수 있어요.</p>
+    <p class="note in" style="--d:10.2s">아래 ‘음표 바꿔 보기’에서 직접 비교할 수 있어요.</p>
     <div class="foot"><span>하바네라 원판 · 사진 효과는 설명용<br>판독 MusicXML의 첫 음만 편집 · 인식 오류는 남아 있음</span><span class="pg"></span></div>
   </section>
 
@@ -155,8 +156,8 @@ body.shot .appendix, body.rec .appendix { display: none }
         <div class="in" style="--d:3.4s"><b>AI가 읽은 마지막 자리</b><div class="crop raw"><img src="img/ocr_bar_1.png" alt="실제 판독에서 빠진 마지막 음표 자리"><span class="empty-spot pop" style="--d:4.3s" aria-hidden="true"></span></div><p>이 음표가 빠졌습니다.</p></div>
       </div>
       <div class="repair in" style="--d:6.2s">
-        <div class="proc"><div class="spin" aria-hidden="true"><i style="--d:6.3s;--t:3s"></i><b class="done pop" style="--d:9.3s" data-sfx="none">✓</b></div><span>빠진 음표 보완</span><span class="badge">설명용 재현</span></div>
-        <div class="in" style="--d:9.4s"><img src="img/ocr_repair_example.svg" alt="마지막 F4 음표만 추가한 보정 설명용 악보"><p>마지막 음표를 채운 모습입니다.<br>다른 음·리듬 오류는 별도로 확인해야 합니다.</p></div>
+        <div class="proc"><div class="spin" aria-hidden="true"><i style="--d:6.3s;--t:1.6s"></i><b class="done pop" style="--d:7.9s" data-sfx="none">✓</b></div><span>빠진 음표 보완</span><span class="badge">설명용 재현</span></div>
+        <div class="in" style="--d:8s"><img src="img/ocr_repair_example.svg" alt="마지막 F4 음표만 추가한 보정 설명용 악보"><p>마지막 음표를 채운 모습입니다.<br>다른 음·리듬 오류는 별도로 확인해야 합니다.</p></div>
       </div>
     </div>
     <div class="foot"><span>하바네라 7마디 · 위는 실제 판독<br>아래는 빠진 음 하나를 직접 추가한 설명용 예시</span><span class="pg"></span></div>
@@ -216,7 +217,12 @@ body.shot .appendix, body.rec .appendix { display: none }
   </div>
 </details>
 <script>
-document.querySelectorAll('.spin i').forEach(i => i.innerHTML = '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9"/><circle class="arc" cx="11" cy="11" r="9"/></svg>');
+document.querySelectorAll('.spin i').forEach(i => {
+  const turn = 1.8, processing = parseFloat(i.style.getPropertyValue('--t'));
+  i.style.setProperty('--turn', `${turn}s`);
+  i.style.setProperty('--turns', processing / turn);
+  i.innerHTML = '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9"/><circle class="arc" cx="11" cy="11" r="9"/></svg>';
+});
 (() => {
   let raised = false, ctx;
   const before = document.getElementById('pitch-before'), after = document.getElementById('pitch-after');
