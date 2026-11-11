@@ -68,13 +68,23 @@
 
 /* 3 투표 */
 .vote { padding: 10px 11px; display: grid; gap: 3px }
+.vote::before { content: ""; display: block; height: 78px }
+.vote .vrow:not(.sum) { min-height: 28px }
+.vote .vrow.head { min-height: 16px }
 .vrow { display: grid; grid-template-columns: 30px 77px 1fr; gap: 6px; align-items: center; font: 500 10.5px var(--f-body); color: var(--sub) }
 .vrow.head { font-size: 9.5px }
 .ph { position: relative; z-index: 3; height: 26px; overflow: hidden; border: 1px solid var(--line); border-radius: 2px; transform-origin: left center }
 .ph img { display: block; width: 100%; height: 100% }
 .ph::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--marker); opacity: 0 }
-.on .ph { animation: popread .7s var(--d) both }
-.on .ph::after { animation: readbeam .7s var(--d) both }
+.on .ph { animation: readslot .8s var(--d) both }
+.on .ph::after { animation: readbeam .8s var(--d) both }
+/* Read above the table; shrink there before returning to the photo column. */
+@keyframes readslot {
+  0% { opacity: 0; transform: translateY(var(--lift)) scale(1.4); box-shadow: 0 0 0 transparent }
+  12%, 72% { opacity: 1; transform: translateY(var(--lift)) scale(2.7); box-shadow: 0 3px 8px rgba(0,0,0,.4) }
+  88% { opacity: 1; transform: translateY(var(--lift)); box-shadow: 0 0 0 transparent }
+  100% { opacity: 1; transform: none; box-shadow: 0 0 0 transparent }
+}
 /* 크게 떠서 읽히고 → 제자리로 줄어듦 */
 @keyframes popread {
   0% { opacity: 0; transform: scale(1.4); box-shadow: 0 0 0 transparent }
@@ -241,7 +251,7 @@ body { margin: 0 }
     <div class="eyebrow"><span>종이 악보</span><span>여러 번 읽기</span></div>
     <h2 class="cap">여러 결과에서 골라<br><mark>한 악보로 합칩니다</mark></h2>
     <p class="sub in" style="--d:.8s">음 길이가 맞는 후보부터 추리고, 서로 더 많이 일치하는 결과를 마디마다 골라 합칩니다.</p>
-    <div class="card vote in" id="vote" style="--d:1s" data-sfx-at="7.05:chime"></div>
+    <div class="card vote in" id="vote" style="--d:1s" data-sfx-at="11.83:chime"></div>
     <div class="vkey in" style="--d:1.2s"><span>칸 하나 = 한 마디</span><span><i style="background:var(--pass)"></i>길이 맞음</span><span><i style="background:var(--fail)"></i>길이 부족</span></div>
     <div class="foot"><span>사진·칸·선택은 흐름 설명용 · 실제 판독 결과 아님<br>같이 틀릴 수도 있어 합친 뒤 원본과 대조합니다</span><span class="pg"></span></div>
   </section>
@@ -299,13 +309,13 @@ const picks = Array.from({ length: COLS }, (_, c) => {
   const all = grid.map((_, r) => r), good = all.filter(r => grid[r][c] === 'g'), pool = good.length ? good : all;
   return pool[Math.floor(rnd() * pool.length)];
 });
-const mergeAt = c => 5.6 + c * .14, ROW_H = 31, TO_SUM = 40; // 줄 높이 28 + 간격 3, 마지막 줄 가운데 → 합침 칸 가운데
+const mergeAt = c => 10.25 + c * .14, ROW_H = 31, TO_SUM = 40; // 줄 높이 28 + 간격 3, 마지막 줄 가운데 → 합침 칸 가운데
 const rows = [];
 for (let r = 0; r < RUNS; r++) {
-  const t = 1.3 + r * .7, cells = [];
+  const t = 1.6 + r * 1.35, cells = [];
   for (let c = 0; c < COLS; c++)
-    cells.push(`<i class="${grid[r][c]}${picks[c] === r ? ' pick' : ''}"${c ? '' : ' data-sfx="roll"'} style="--d:${(t + .5 + c * .025).toFixed(3)}s;--m:${mergeAt(c).toFixed(2)}s;--dy:${(RUNS - 1 - r) * ROW_H + TO_SUM}px"></i>`);
-  rows.push(`<div class="vrow"><span>${r + 1}번째</span><div class="ph" data-sfx="pop" style="--d:${t.toFixed(1)}s"><img src="img/ocr_read_${r + 1}.jpg" alt="모양을 바꾼 악보 사진 ${r + 1}"></div><div class="vcells">${cells.join('')}</div></div>`);
+    cells.push(`<i class="${grid[r][c]}${picks[c] === r ? ' pick' : ''}"${c ? '' : ' data-sfx="roll"'} style="--d:${(t + .85 + c * .025).toFixed(3)}s;--m:${mergeAt(c).toFixed(2)}s;--dy:${(RUNS - 1 - r) * ROW_H + TO_SUM}px"></i>`);
+  rows.push(`<div class="vrow"><span>${r + 1}번째</span><div class="ph" data-sfx="pop" style="--d:${t.toFixed(2)}s;--lift:${-75-r*31}px"><img src="img/ocr_read_${r + 1}.jpg" alt="모양을 바꾼 악보 사진 ${r + 1}"></div><div class="vcells">${cells.join('')}</div></div>`);
 }
 const merged = picks.map((r, c) =>
   `<i class="${grid[r][c]}" data-sfx="tick" style="--d:${(mergeAt(c) + .45).toFixed(2)}s"></i>`).join('');
