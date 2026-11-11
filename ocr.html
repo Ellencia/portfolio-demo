@@ -68,29 +68,19 @@
 
 /* 3 투표 */
 .vote { padding: 10px 11px; display: grid; gap: 3px }
-.vote::before { content: ""; display: block; height: 78px }
+.read-preview { position: relative; height: 78px }
+.read-page { position: absolute; left: 36px; top: 2px; width: 208px; height: 70px; overflow: hidden; border-radius: 4px; opacity: 0 }
+.read-page img { display: block; width: 100%; height: 100% }
+.read-page::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--marker); opacity: 0 }
+.on .read-page { animation: reveal .18s var(--d) both }
+.on .read-page::after { animation: readbeam .8s var(--d) both }
 .vote .vrow:not(.sum) { min-height: 28px }
 .vote .vrow.head { min-height: 16px }
 .vrow { display: grid; grid-template-columns: 30px 77px 1fr; gap: 6px; align-items: center; font: 500 10.5px var(--f-body); color: var(--sub) }
 .vrow.head { font-size: 9.5px }
 .ph { position: relative; z-index: 3; height: 26px; overflow: hidden; border: 1px solid var(--line); border-radius: 2px; transform-origin: left center }
 .ph img { display: block; width: 100%; height: 100% }
-.ph::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--marker); opacity: 0 }
-.on .ph { animation: readslot .8s var(--d) both }
-.on .ph::after { animation: readbeam .8s var(--d) both }
-/* Read above the table; shrink there before returning to the photo column. */
-@keyframes readslot {
-  0% { opacity: 0; transform: translateY(var(--lift)) scale(1.4); box-shadow: 0 0 0 transparent }
-  12%, 72% { opacity: 1; transform: translateY(var(--lift)) scale(2.7); box-shadow: 0 3px 8px rgba(0,0,0,.4) }
-  88% { opacity: 1; transform: translateY(var(--lift)); box-shadow: 0 0 0 transparent }
-  100% { opacity: 1; transform: none; box-shadow: 0 0 0 transparent }
-}
-/* 크게 떠서 읽히고 → 제자리로 줄어듦 */
-@keyframes popread {
-  0% { opacity: 0; transform: scale(1.4); box-shadow: 0 0 0 transparent }
-  12%, 72% { opacity: 1; transform: scale(2.7); box-shadow: 0 3px 8px rgba(0,0,0,.4) }
-  100% { opacity: 1; transform: none; box-shadow: 0 0 0 transparent }
-}
+.on .ph { animation: reveal .18s var(--d) both }
 @keyframes readbeam { 0%, 12% { opacity: 0; top: 0 } 13% { opacity: 1; top: 0 } 70% { opacity: 1; top: 100% } 71%, 100% { opacity: 0; top: 100% } }
 .vcells { display: grid; grid-template-columns: repeat(8, 19px); gap: 3px } /* 칸 폭은 정수: 소수면 렌더에서 한 칸만 1px 좁아짐 */
 .vcells i { height: 16px; border-radius: 2px; background: var(--line) }
@@ -102,9 +92,10 @@
 .vcells i.pick { position: relative; z-index: 2 }
 .vcells i.pick::after { content: ""; position: absolute; inset: 0; border-radius: 2px; background: var(--pass); opacity: 0 }
 .vcells i.pick.r::after { background: var(--fail) }
-.on .vcells i.pick::after { animation: dropcell .45s var(--m) cubic-bezier(.5,0,.8,.6) both }
+.on .vcells i.pick::after { animation: dropcell var(--travel) var(--m) linear forwards }
 /* 닿는 순간 사라지고 밑 칸 색이 그 자리를 이음. 남겨 두면 축소 화면에서 위 칸과 어긋나 칸 크기가 달라 보임 */
-@keyframes dropcell { 0% { opacity: 0 } 1%, 30% { opacity: 1; transform: scale(1.25) } 99% { opacity: 1; transform: translateY(var(--dy)) } 100% { opacity: 0; transform: translateY(var(--dy)) } }
+@keyframes dropcell { 0% { opacity: 1; transform: translateY(0) } 99.999% { opacity: 1 } 100% { opacity: 0; transform: translateY(var(--dy)) } }
+.on .vrow.sum .vcells i { animation-duration: .001s }
 .on .vrow:not(.sum) .vcells i.g:not(.pick) { animation: goodcell .15s var(--d) both, dimcell .2s var(--m) both }
 .on .vrow:not(.sum) .vcells i.r:not(.pick) { animation: badcell .15s var(--d) both, dimcell .2s var(--m) both }
 @keyframes dimcell { to { opacity: .25 } }
@@ -251,7 +242,7 @@ body { margin: 0 }
     <div class="eyebrow"><span>종이 악보</span><span>여러 번 읽기</span></div>
     <h2 class="cap">여러 결과에서 골라<br><mark>한 악보로 합칩니다</mark></h2>
     <p class="sub in" style="--d:.8s">음 길이가 맞는 후보부터 추리고, 서로 더 많이 일치하는 결과를 마디마다 골라 합칩니다.</p>
-    <div class="card vote in" id="vote" style="--d:1s" data-sfx-at="11.83:chime"></div>
+    <div class="card vote in" id="vote" style="--d:1s" data-sfx-at="12.17:chime"></div>
     <div class="vkey in" style="--d:1.2s"><span>칸 하나 = 한 마디</span><span><i style="background:var(--pass)"></i>길이 맞음</span><span><i style="background:var(--fail)"></i>길이 부족</span></div>
     <div class="foot"><span>사진·칸·선택은 흐름 설명용 · 실제 판독 결과 아님<br>같이 틀릴 수도 있어 합친 뒤 원본과 대조합니다</span><span class="pg"></span></div>
   </section>
@@ -309,17 +300,22 @@ const picks = Array.from({ length: COLS }, (_, c) => {
   const all = grid.map((_, r) => r), good = all.filter(r => grid[r][c] === 'g'), pool = good.length ? good : all;
   return pool[Math.floor(rnd() * pool.length)];
 });
-const mergeAt = c => 10.25 + c * .14, ROW_H = 31, TO_SUM = 40; // 줄 높이 28 + 간격 3, 마지막 줄 가운데 → 합침 칸 가운데
-const rows = [];
+const ROW_H = 31, TO_SUM = 40;
+const distance = r => (RUNS - 1 - r) * ROW_H + TO_SUM;
+const travel = r => distance(r) / 300; // same speed for every source row
+const landAt = c => 10.9 + c * .18;
+const mergeAt = c => landAt(c) - travel(picks[c]); // 줄 높이 28 + 간격 3, 마지막 줄 가운데 → 합침 칸 가운데
+const rows = [], previews = [];
 for (let r = 0; r < RUNS; r++) {
   const t = 1.6 + r * 1.35, cells = [];
   for (let c = 0; c < COLS; c++)
-    cells.push(`<i class="${grid[r][c]}${picks[c] === r ? ' pick' : ''}"${c ? '' : ' data-sfx="roll"'} style="--d:${(t + .85 + c * .025).toFixed(3)}s;--m:${mergeAt(c).toFixed(2)}s;--dy:${(RUNS - 1 - r) * ROW_H + TO_SUM}px"></i>`);
-  rows.push(`<div class="vrow"><span>${r + 1}번째</span><div class="ph" data-sfx="pop" style="--d:${t.toFixed(2)}s;--lift:${-75-r*31}px"><img src="img/ocr_read_${r + 1}.jpg" alt="모양을 바꾼 악보 사진 ${r + 1}"></div><div class="vcells">${cells.join('')}</div></div>`);
+    cells.push(`<i class="${grid[r][c]}${picks[c] === r ? ' pick' : ''}"${c ? '' : ' data-sfx="roll"'} style="--d:${(t + .85 + c * .025).toFixed(3)}s;--m:${mergeAt(c).toFixed(6)}s;--dy:${distance(r)}px;--travel:${travel(r).toFixed(6)}s"></i>`);
+  previews.push(`<div class="read-page" data-sfx="pop" style="--d:${t.toFixed(2)}s"><img src="img/ocr_read_${r + 1}.jpg" alt="" aria-hidden="true"></div>`);
+  rows.push(`<div class="vrow"><span>${r + 1}번째</span><div class="ph" style="--d:${(t+.8).toFixed(2)}s"><img src="img/ocr_read_${r + 1}.jpg" alt="모양을 바꾼 악보 사진 ${r + 1}"></div><div class="vcells">${cells.join('')}</div></div>`);
 }
 const merged = picks.map((r, c) =>
-  `<i class="${grid[r][c]}" data-sfx="tick" style="--d:${(mergeAt(c) + .45).toFixed(2)}s"></i>`).join('');
-document.getElementById('vote').innerHTML = `<div class="vrow head"><span></span><span>읽힌 사진</span><span>읽은 결과</span></div>` + rows.join('') + `<div class="vrow sum"><span>골라 합침</span><div class="vcells">${merged}</div></div>`;
+  `<i class="${grid[r][c]}" data-sfx="tick" style="--d:${landAt(c).toFixed(6)}s"></i>`).join('');
+document.getElementById('vote').innerHTML = `<div class="read-preview">${previews.join('')}</div><div class="vrow head"><span></span><span>읽힌 사진</span><span>읽은 결과</span></div>` + rows.join('') + `<div class="vrow sum"><span>골라 합침</span><div class="vcells">${merged}</div></div>`;
 
 (() => {
   let raised = false, ctx;
