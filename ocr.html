@@ -118,8 +118,8 @@
 
 .edit-stack { position: relative; height: 113px; overflow: hidden; background: white }
 .edit-stack img { position: absolute; width: 100%; height: 100%; object-fit: contain; inset: 0 }
-.on .edit-stack .before { animation: hide .01s 7.8s both }
-.on .edit-stack .after { animation: reveal .35s 7.8s both }
+.on .edit-stack .before { animation: hide .01s 8.5s both }
+.on .edit-stack .after { animation: reveal .35s 8.5s both }
 @keyframes hide { to { opacity: 0 } }
 @keyframes reveal { from { opacity: 0 } to { opacity: 1 } }
 .edit-steps { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; font-size: 10px }
@@ -155,9 +155,12 @@ body { margin: 0 }
 /* Original label entrance/exit; hold each label for the action it describes. */
 .on .steps span { animation-duration:var(--span,.8s) }
 .on .steps span.last { animation-duration:.25s }
+.on .steps.quiet span { animation: lastin .25s var(--d) both }
+.on .steps.quiet .conversion { animation: lastin .25s var(--d) both, hide .01s 6.3s forwards }
+.on .steps.quiet .editing { animation: lastin .25s var(--d) both, hide .01s 10.7s forwards }
 .foot { font-size:8.5px }
 .repair-note { padding:4px 9px 8px; font-size:10px; line-height:1.5; margin:0 }
-.onebar img[src="img/ocr_repair_example.svg"] { height:110px; object-fit:contain }
+.onebar.comparison img { height:90px; object-fit:contain }
 </style>
 <div class="phone" id="phone">
 <div class="stage" id="stage" data-hold="3000">
@@ -181,17 +184,11 @@ body { margin: 0 }
     <h1 class="cap">손으로 입력하던 악보를<br><mark>사진에서 가져옵니다</mark></h1>
     <div class="cam in" style="--d:1.6s"><img src="img/ocr_page_paper.jpg" alt="하바네라 원판 스캔에 사진 효과를 입힌 예시"><span class="beam"></span></div>
     <div class="proc in" style="--d:2s" role="status">
-      <div class="spin" aria-hidden="true"><i style="--d:2.2s;--t:7.3s;--n:5.214285714285714"></i><b class="done pop" style="--d:9.5s" data-sfx="none">✓</b></div>
-      <div class="steps">
-        <span data-sfx="tick" style="--d:2.2s">사진 인식 중</span>
-        <span data-sfx="tick" style="--d:3s">마디 인식 중</span>
-        <span data-sfx="tick" style="--d:3.8s">박자 인식 중</span>
-        <span data-sfx="tick" style="--d:4.6s">음표 인식 중</span>
-        <span data-sfx="tick" style="--d:5.4s;--span:.9s">악보 파일 만드는 중</span>
-        <span style="--d:6.3s;--span:1.5s">원래 음 확인 중</span>
-        <span style="--d:7.8s">음표 편집 예시</span>
-        <span style="--d:8.6s;--span:.9s">바뀐 소리 확인 중</span>
-        <span class="last" style="--d:9.5s">예시 확인 완료</span>
+      <div class="spin" aria-hidden="true"><i style="--d:2.2s;--t:8.5s;--n:6.071428571428571"></i><b class="done pop" style="--d:10.7s" data-sfx="none">✓</b></div>
+      <div class="steps quiet">
+        <span class="conversion" style="--d:2.2s">악보로 변환 중</span>
+        <span class="editing" style="--d:6.3s">편집 예시 진행 중</span>
+        <span class="last" style="--d:10.7s">예시 확인 완료</span>
       </div>
     </div>
     <div class="card edit-card in" style="--d:6.4s">
@@ -202,12 +199,12 @@ body { margin: 0 }
       </div>
       <div class="edit-steps">
         <span class="pop" style="--d:6.9s" data-sfx="note_f4">① 원래 음 듣기 ♪</span>
-        <span class="pop" style="--d:7.8s" data-sfx="click">② 한 칸 위로</span>
-        <span class="playback pop" style="--d:8.6s" data-sfx="note_g4">③ 바뀐 음 듣기 ♪</span>
+        <span class="pop" style="--d:8.5s" data-sfx="click">② 한 칸 위로</span>
+        <span class="playback pop" style="--d:9.5s" data-sfx="note_g4">③ 바뀐 음 듣기 ♪</span>
       </div>
-      <p class="edit-result in" style="--d:9.5s">음표를 바꾸면 재생되는 소리도 바뀝니다.</p>
+      <p class="edit-result in" style="--d:10.7s">음표를 바꾸면 재생되는 소리도 바뀝니다.</p>
     </div>
-    <p class="note in" style="--d:9.5s">아래 ‘음표 바꿔 보기’에서 직접 비교할 수 있어요.</p>
+    <p class="note in" style="--d:10.7s">아래 ‘음표 바꿔 보기’에서 직접 비교할 수 있어요.</p>
     <div class="foot"><span>하바네라 원판 · 사진 효과와 처리 단계는 설명용<br>판독 파일의 첫 음만 편집 · 인식 오류는 남아 있음</span><span class="pg"></span></div>
   </section>
 
@@ -229,15 +226,15 @@ body { margin: 0 }
       </div>
       <div class="bar in" style="--d:3.6s">
         <div class="lab"><span>AI가 읽은 결과</span><span class="chip fail pop" style="--d:4s">마지막 음 빠짐</span></div>
-        <div class="onebar"><img src="img/ocr_bar_1.png" alt="실제 판독에서 빠진 마지막 음표"><span class="ring" style="left:280px;top:22px;--d:4.6s;width:22px;height:30px;margin:-15px 0 0 -11px"></span><span class="beam" style="--d:5.2s"></span></div>
+        <div class="onebar comparison"><img src="img/ocr_compare_before.svg" alt="실제 판독 내용 그대로, 비교를 위해 음표 간격을 맞춘 악보. 마지막 음표가 빠져 있음"><span class="ring" style="left:267px;top:45px;--d:4.6s;width:32px;height:60px;margin:-30px 0 0 -16px"></span><span class="beam" style="--d:5.2s"></span></div>
       </div>
       <div class="bar in" style="--d:7.1s">
         <div class="lab"><span>마지막 음 하나를 채운 모습</span><span class="chip pass pop" style="--d:7.5s">설명용 편집</span></div>
-        <div class="onebar"><img src="img/ocr_repair_example.svg" alt="빠진 F4 음표 하나만 직접 추가한 악보"></div>
+        <div class="onebar comparison"><img src="img/ocr_compare_after.svg" alt="같은 크기와 간격의 악보에 빠진 F4 음표 하나만 파란색으로 추가한 모습"></div>
         <p class="repair-note">다른 음·리듬 오류는 별도로 확인해야 합니다.</p>
       </div>
     </div>
-    <div class="foot"><span>하바네라 7마디 · 위는 실제 판독<br>아래는 빠진 음 하나를 직접 편집한 설명용 예시</span><span class="pg"></span></div>
+    <div class="foot"><span>위는 실제 판독 · 비교를 위해 두 악보의 간격 통일<br>아래는 빠진 음 하나를 직접 편집한 설명용 예시</span><span class="pg"></span></div>
   </section>
 
   <section class="scene">

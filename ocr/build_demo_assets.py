@@ -91,3 +91,5 @@ with tempfile.TemporaryDirectory() as folder, sync_playwright() as pw:
     'repair': 'Missing final F4 added manually for illustration; other recognition errors remain.'
 }, ensure_ascii=False, indent=2), encoding='utf-8')
 print('Built two real MusicXML edit states and a labelled repair illustration.')
+from build_comparison_assets import build as build_comparison
+build_comparison()
