@@ -4,94 +4,129 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
 <link rel="stylesheet" href="demo.css">
 <style>
-
-body { margin: 0 }
-.scene { gap: 10px }
+/* 악보 사진 장면용 추가분. 색·글꼴은 demo.css 무대 토큰을 그대로 씀 */
 .scene > * { flex-shrink: 0 }
-.cap { font-size: 29px; word-break: keep-all }
-.sub { word-break: keep-all; font-size: 13px; line-height: 1.6 }
-.scene .card { padding: 12px }
-.label { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; margin-bottom: 8px }
-.badge { font-size: 9px; font-weight: 500; color: var(--sub); background: #eef0eb; padding: 2px 5px; border-radius: 4px }
-.cam { position: relative; padding: 23px 9px 9px; background: #17212b; border-radius: 9px; overflow: hidden }
-.cam:before { content: '종이 악보 사진'; position: absolute; top: 5px; left: 10px; color: white; font-size: 10px }
-.cam img { display: block; width: 100%; border-radius: 3px }
-.proc { display: flex; justify-content: center; align-items: center; gap: 9px; height: 25px; font-size: 12px; font-weight: 700 }
-/* Rotation speed is independent of the processing interval (--t).
-   Fractional iterations stop at the completion time, not at a full turn.
-   Finite iterations keep the frame-by-frame video renderer deterministic. */
-.spin { position:relative; width:22px; height:22px; flex:none }
-.spin i { position:absolute; inset:0; opacity:0 }
-.spin svg { display:block; width:100%; height:100% }
-.spin circle { fill:none; stroke:var(--line); stroke-width:3.5 }
-.spin circle.arc { stroke:var(--navy); stroke-linecap:round; stroke-dasharray:14 60; transform-origin:50% 50%; transform-box:view-box }
-.on .spin i { animation:ringshow var(--t) var(--d) linear both }
-.on .spin .arc { animation:ringturn var(--turn) var(--d) cubic-bezier(.42,0,.58,1) var(--turns) both }
-.on .proc.in, .on .repair.in { animation:reveal .3s var(--d) both }
-@keyframes ringshow { 0%,99% {opacity:1} 100% {opacity:0} }
-@keyframes ringturn { from {transform:rotate(-135deg)} to {transform:rotate(225deg)} }
-.spin .done { position:absolute; inset:2px; border-radius:50%; background:var(--pass); color:#fff; display:grid; place-items:center; font-size:11px; opacity:0 }
-.edit-stack { position: relative; height: 113px; overflow: hidden; background: white }
-.edit-stack img { position: absolute; width: 100%; height: 100%; object-fit: contain; inset: 0 }
-.on .edit-stack .before { animation: hide .01s 7s both }
-.on .edit-stack .after { animation: reveal .35s 7s both }
-@keyframes hide { to { opacity: 0 } }
-@keyframes reveal { from { opacity: 0 } to { opacity: 1 } }
-.edit-steps { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; font-size: 10px }
-.edit-steps span { padding: 4px 7px; border-radius: 5px; background: #edf3fa; color: #194d80 }
-.edit-steps .playback { background: #e4f1e9; color: #176d43 }
-.edit-result { margin: 8px 0 0; font-size: 12px; font-weight: 700 }
-.foot { font-size: 8.5px }
-.reference { position: relative; margin: 0; padding: 8px; background: #f4f0e4; border-radius: 7px }
-.reference img { display: block; width: 230px; height: auto; margin: 0 auto }
-.reference figcaption { margin-bottom: 6px; font-size: 10px }
-.reference .focus { position: absolute; right: 31px; top: 28px; bottom: 7px; width: 35px; border: 2px solid #2563a8; border-radius: 6px }
-.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px }
-.compare b { font-size: 11px }
-.crop { position: relative; height: 75px; margin-top: 6px; overflow: hidden; background: #fff; border-radius: 7px; border: 1px solid var(--line) }
-.crop img { position: absolute; max-width: none; width: 520px; height: auto; top: -67px; right: 0 }
-.crop.raw img { width: 660px; top: 8px; right: -2px }
-.empty-spot { position: absolute; right: 8px; top: 14px; width: 35px; height: 52px; border: 2px dashed var(--fail); border-radius: 9px }
-.compare p { margin: 5px 0 0; font-size: 11px; color: var(--sub) }
-.repair { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line) }
-.repair img { width: 100%; height: 78px; object-fit: contain; display: block }
-.repair p { font-size: 11px; margin: 5px 0 0 }
-.candidates { padding: 10px !important; display: grid; gap: 6px }
-.candidate { display: grid; grid-template-columns: 30px 1fr 78px; gap: 7px; align-items: center; padding: 4px 5px; border: 1px solid var(--line); border-radius: 7px; font-size: 10px }
-.candidate svg { width: 100%; height: 30px }
-.candidate .reason { line-height: 1.6 }
-.candidate.reject { border-color: #dbaca5; background: #fff5f2 }
-.candidate.agree { border-color: #a8cdb8 }
-.on .candidate.reject { animation: rise .35s 1.4s both, reject .4s 5.7s forwards }
-@keyframes reject { to { opacity: .55 } }
-.merge-arrow { font-size: 12px; font-weight: 700; text-align: center; color: var(--navy); padding: 3px 0 }
-.chosen { border: 2px solid var(--pass); background: #edf7f0; padding: 7px; border-radius: 8px }
-.on .chosen svg { animation: choose .6s 7.2s ease-in-out both }
-@keyframes choose { from { transform: translateY(-104px); opacity: 0 } 20% { opacity: 1 } to { transform: none; opacity: 1 } }
-.chosen .candidate { border: 0; padding: 0; grid-template-columns: 42px 1fr 78px }
-.photo-strip { display: flex; gap: 5px; margin: 3px 0 5px }
-.photo-strip img { width: calc((100% - 25px) / 6); height: 29px; object-fit: cover; border: 1px solid var(--line); box-sizing: border-box }
-.note { font-size: 11px; line-height: 1.6; margin: 0; word-break: keep-all }
-.check-needed { background: #fff3d7; border-radius: 8px; padding: 8px; font-size: 11px; line-height: 1.5 }
-.scope { background: var(--navy); color: white; padding: 12px; border-radius: 9px; font-size: 12px; line-height: 1.7 }
-.scope strong { display: block; font-size: 15px }
-.metrics { display: grid; grid-template-columns: 1fr 25px 1fr; align-items: center; text-align: center; gap: 6px; padding: 17px 12px !important }
-.metrics b { display: block; font: 500 48px/1.2 var(--f-mono); color: var(--fail) }
-.metrics .now b { color: var(--pass) }
-.metrics span { font-size: 11px }
-.metrics small { display: block; font-size: 11px; margin-top: 5px }
-.limits { font-size: 12px; line-height: 1.65 }
-.limits p { margin: 0 }
-.limits p + p { margin-top: 8px }
+.sub { word-break: keep-all }
+.cap { font-size: 29px }
+.lab { font: 500 9.5px var(--f-body); color: var(--sub); padding: 5px 9px 0; display: flex; justify-content: space-between; align-items: center }
+.pic { display: block; width: 100%; object-fit: cover }
+.ring { position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border: 2px solid var(--fail); border-radius: 50%; box-sizing: border-box; opacity: 0 }
+.duo { overflow: hidden; position: relative }
+.duo .bar { position: relative }
+.duo .bar + .bar { border-top: 1px dashed var(--line) }
+
+/* 영상 표지: 페이지에선 숨김, make_video.py 가 첫 프레임들로 찍음 */
 #cover { display: none; position: absolute; inset: 0; z-index: 6; background: var(--paper); padding: 30px 22px 18px; flex-direction: column; justify-content: center; gap: 12px }
 .cover-on #cover { display: flex }
 #cover .eyebrow { position: absolute; top: 30px; left: 22px; right: 22px }
 #cover .foot { position: absolute; bottom: 18px; left: 22px; right: 22px }
 #cover .cap { font-size: 38px; margin-bottom: 4px }
 #cover .cap mark { background-size: 100% 100% }
-#cover .arrow { text-align: center; font-size: 22px }
+#cover .arrow { text-align: center; font: 700 22px/1 var(--f-body); color: var(--navy); margin: -2px 0 }
+
+/* 1 표지 */
+.cam { position: relative; overflow: hidden; border-radius: 10px; background: #1A2027; padding: 22px 8px 8px }
+.cam::before { content: "사진"; position: absolute; left: 10px; top: 5px; font: 500 9.5px var(--f-body); color: #C5D0DC }
+.cam img { display: block; width: 100%; border-radius: 3px }
+.cam .beam { position: absolute; left: 0; right: 0; top: 0; height: 2px; background: var(--marker); opacity: 0 }
+.on .cam .beam { animation: beam 3.8s 2.2s linear both }
+@keyframes beam { 0% { opacity: 1; top: 22px } 99% { opacity: 1; top: 100% } 100% { opacity: 0; top: 100% } }
+/* 처리 중: 도는 도넛 + 지금 하는 일. 12시에서 느리고 내려가며 빨라지는 롤러코스터(한 바퀴 1.4초를 --n 번, --t 뒤 사라짐). 장면 길이를 재야 해서 무한 반복 금지 */
+.proc { display: flex; align-items: center; justify-content: center; gap: 10px; height: 26px; margin: -3px 0; font: 700 13px var(--f-body) }
+.spin { position: relative; width: 22px; height: 22px; flex: none }
+.spin i { position: absolute; inset: 0; opacity: 0 }
+.spin svg { display: block; width: 100%; height: 100% }
+.spin circle { fill: none; stroke: var(--line); stroke-width: 3.5 }
+.spin circle.arc { stroke: var(--navy); stroke-linecap: round; stroke-dasharray: 14 60 }
+.on .spin i { animation: ringshow var(--t) var(--d) linear both }
+.on .spin svg { animation: ringturn 1.4s var(--d) cubic-bezier(.6,.08,.4,.92) var(--n) both }
+@keyframes ringshow { 0%, 99% { opacity: 1 } 100% { opacity: 0 } }
+/* 호(3시에서 시계 방향 89도)의 가운데가 12시에 오는 각도에서 시작 */
+@keyframes ringturn { from { transform: rotate(-135deg) } to { transform: rotate(225deg) } }
+.spin .done { position: absolute; inset: 2px; border-radius: 50%; background: var(--pass); color: #fff; display: grid; place-items: center; font-size: 11px; opacity: 0 }
+.steps { position: relative; width: 92px; height: 18px }
+.steps span { position: absolute; left: 0; top: 0; white-space: nowrap; opacity: 0 }
+.on .steps span { animation: stepin .8s var(--d) both }
+@keyframes stepin { 0% { opacity: 0; transform: translateY(6px) } 15%, 85% { opacity: 1; transform: none } 100% { opacity: 0; transform: translateY(-6px) } }
+.on .steps span.last { animation: lastin .25s var(--d) both; color: var(--pass) }
+@keyframes lastin { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+.outcome { padding: 2px 8px 8px }
 .outcome img { display: block; width: 100% }
-.lab { font-size: 11px }
+
+/* 2 단계별로 고치기: 그림 좌표는 폭 300px 기준 */
+.onebar { position: relative; width: 300px; margin: 0 auto 6px }
+.onebar img { display: block; width: 100% }
+.onebar .beam { position: absolute; left: 0; right: 0; height: 2px; background: var(--marker); opacity: 0 }
+.on .onebar .beam { animation: scanbar 1.8s var(--d) linear both }
+@keyframes scanbar { 0%, 99% { opacity: 1 } 0% { top: 0 } 100% { opacity: 0; top: 100% } }
+.duo > .proc { margin: 4px 0 }
+.proc .say { font: 700 12px var(--f-body) }
+.on .ring { animation: pop .35s cubic-bezier(.3,1.6,.5,1) var(--d, 0s) both }
+.ring.good { border-color: var(--pass) }
+.ring.added { border-color: #D9A400 }
+.tag { position: absolute; padding: 0 4px; border-radius: 3px; background: var(--marker); font: 700 10px/14px var(--f-body); white-space: nowrap }
+
+/* 3 투표 */
+.vote { padding: 10px 11px; display: grid; gap: 3px }
+.vrow { display: grid; grid-template-columns: 30px 77px 1fr; gap: 6px; align-items: center; font: 500 10.5px var(--f-body); color: var(--sub) }
+.vrow.head { font-size: 9.5px }
+.ph { position: relative; z-index: 3; height: 26px; overflow: hidden; border: 1px solid var(--line); border-radius: 2px; transform-origin: left center }
+.ph img { display: block; width: 100%; height: 100% }
+.ph::after { content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--marker); opacity: 0 }
+.on .ph { animation: popread .7s var(--d) both }
+.on .ph::after { animation: readbeam .7s var(--d) both }
+/* 크게 떠서 읽히고 → 제자리로 줄어듦 */
+@keyframes popread {
+  0% { opacity: 0; transform: scale(1.4); box-shadow: 0 0 0 transparent }
+  12%, 72% { opacity: 1; transform: scale(2.7); box-shadow: 0 3px 8px rgba(0,0,0,.4) }
+  100% { opacity: 1; transform: none; box-shadow: 0 0 0 transparent }
+}
+@keyframes readbeam { 0%, 12% { opacity: 0; top: 0 } 13% { opacity: 1; top: 0 } 70% { opacity: 1; top: 100% } 71%, 100% { opacity: 0; top: 100% } }
+.vcells { display: grid; grid-template-columns: repeat(8, 19px); gap: 3px } /* 칸 폭은 정수: 소수면 렌더에서 한 칸만 1px 좁아짐 */
+.vcells i { height: 16px; border-radius: 2px; background: var(--line) }
+.on .vcells i.g { animation: goodcell .15s var(--d) both }
+.on .vcells i.r { animation: badcell .15s var(--d) both }
+@keyframes goodcell { to { background: var(--pass) } }
+@keyframes badcell { to { background: var(--fail) } }
+/* 합치기: 줄마다 고른 칸이 맨 밑 줄로 떨어지고, 안 고른 칸은 흐려짐 */
+.vcells i.pick { position: relative; z-index: 2 }
+.vcells i.pick::after { content: ""; position: absolute; inset: 0; border-radius: 2px; background: var(--pass); opacity: 0 }
+.vcells i.pick.r::after { background: var(--fail) }
+.on .vcells i.pick::after { animation: dropcell .45s var(--m) cubic-bezier(.5,0,.8,.6) both }
+/* 닿는 순간 사라지고 밑 칸 색이 그 자리를 이음. 남겨 두면 축소 화면에서 위 칸과 어긋나 칸 크기가 달라 보임 */
+@keyframes dropcell { 0% { opacity: 0 } 1%, 30% { opacity: 1; transform: scale(1.25) } 99% { opacity: 1; transform: translateY(var(--dy)) } 100% { opacity: 0; transform: translateY(var(--dy)) } }
+.on .vrow:not(.sum) .vcells i.g:not(.pick) { animation: goodcell .15s var(--d) both, dimcell .2s var(--m) both }
+.on .vrow:not(.sum) .vcells i.r:not(.pick) { animation: badcell .15s var(--d) both, dimcell .2s var(--m) both }
+@keyframes dimcell { to { opacity: .25 } }
+.vrow.sum { margin-top: 7px; padding-top: 7px; border-top: 1px dashed var(--line); color: var(--ink); font-weight: 700 }
+.vrow.sum > span { grid-column: 1 / 3 }
+.vkey { display: flex; gap: 12px; font-size: 10px; color: var(--sub) }
+.vkey i { display: inline-block; width: 8px; height: 8px; border-radius: 1.5px; margin-right: 4px }
+
+/* 4 결과 */
+.dropchart { padding: 12px 12px 10px; display: grid; gap: 7px }
+.dropchart h4 { margin: 0; font-size: 11.5px; display: flex; justify-content: space-between }
+.dropchart h4 small { font-weight: 400; color: var(--sub) }
+.step { display: grid; grid-template-columns: 28px 1fr 22px; gap: 7px; align-items: center; font-size: 11px; min-height: 16px }
+.step i { display: block; height: 10px; border-radius: 3px; background: var(--fail); width: var(--w); transform-origin: left }
+.on .step i { animation: growx .5s var(--d) both }
+.step em { font: 500 13px var(--f-mono); font-style: normal; text-align: right }
+.step:last-child i { background: var(--pass) }
+.limits { padding: 10px 12px; display: grid; gap: 6px; font-size: 12px; line-height: 1.5 }
+.limits p { margin: 0 }
+.limits b { display: inline-block; margin-right: 4px }
+
+.edit-stack { position: relative; height: 113px; overflow: hidden; background: white }
+.edit-stack img { position: absolute; width: 100%; height: 100%; object-fit: contain; inset: 0 }
+.on .edit-stack .before { animation: hide .01s 7.8s both }
+.on .edit-stack .after { animation: reveal .35s 7.8s both }
+@keyframes hide { to { opacity: 0 } }
+@keyframes reveal { from { opacity: 0 } to { opacity: 1 } }
+.edit-steps { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; font-size: 10px }
+.edit-steps span { padding: 4px 7px; border-radius: 5px; background: #edf3fa; color: #194d80 }
+.edit-steps .playback { background: #e4f1e9; color: #176d43 }
+.edit-result { margin: 8px 0 0; font-size: 12px; font-weight: 700 }
+
 body:not(.shot):not(.rec) { height: auto; min-height: 100%; justify-content: flex-start }
 .phone { flex-shrink: 0 }
 body:not(.shot):not(.rec) .phone { height: min(78vh, 780px, calc((100vw - 46px) * 16 / 9)) }
@@ -108,8 +143,26 @@ body:not(.shot):not(.rec) .phone { height: min(78vh, 780px, calc((100vw - 46px) 
 .try-controls button:focus-visible, summary:focus-visible { outline: 2px solid #2469b2; outline-offset: 3px }
 #sound-status { min-height: 1.7em; font-size: 12px; color: var(--page-sub) }
 body.shot .appendix, body.rec .appendix { display: none }
+
+body { margin: 0 }
+.scene { gap: 10px }
+.cap { word-break: keep-all }
+.label { display:flex; justify-content:space-between; align-items:center; gap:6px; font-size:11px; font-weight:700; margin-bottom:6px }
+.badge { font-size:9px; font-weight:500; color:var(--sub); background:#eef0eb; padding:2px 5px; border-radius:4px }
+.edit-card { padding:10px }
+.note { font-size:11px; line-height:1.6; margin:0; word-break:keep-all }
+.steps { width:152px }
+/* Original label entrance/exit; hold each label for the action it describes. */
+.on .steps span { animation-duration:var(--span,.8s) }
+.on .steps span.last { animation-duration:.25s }
+.foot { font-size:8.5px }
+.repair-note { padding:4px 9px 8px; font-size:10px; line-height:1.5; margin:0 }
+.onebar img[src="img/ocr_repair_example.svg"] { height:110px; object-fit:contain }
 </style>
-<div class="phone" id="phone"><div class="stage" id="stage" data-hold="3500"><div class="bars" id="bars"></div>
+<div class="phone" id="phone">
+<div class="stage" id="stage" data-hold="3000">
+  <div class="bars" id="bars"></div>
+
   <!-- 영상 표지: 카톡은 썸네일을 못 고르므로 첫 프레임을 썸네일로 -->
   <div id="cover">
     <div class="eyebrow"><span>포트폴리오 · 종이 악보</span><span>개인 프로젝트</span></div>
@@ -123,73 +176,93 @@ body.shot .appendix, body.rec .appendix { display: none }
     <div class="foot"><span>「하바네라」 1883년 판 · 사진 효과는 설명용 · 아래는 실제 판독</span></div>
   </div>
 
-
   <section class="scene">
     <div class="eyebrow"><span>종이 악보 → 악보 파일</span><span>개인 프로젝트</span></div>
     <h1 class="cap">손으로 입력하던 악보를<br><mark>사진에서 가져옵니다</mark></h1>
-    <div class="cam in" style="--d:.5s"><img src="img/ocr_page_paper.jpg" alt="하바네라 원판 스캔에 사진 효과를 입힌 예시"></div>
-    <div class="proc in" style="--d:1.4s"><div class="spin" aria-hidden="true"><i style="--d:1.5s;--t:1.4s"></i><b class="done pop" style="--d:2.9s" data-sfx="none">✓</b></div><span>사진에서 음표 읽기 → 악보 파일</span></div>
-    <div class="card in" style="--d:3s">
+    <div class="cam in" style="--d:1.6s"><img src="img/ocr_page_paper.jpg" alt="하바네라 원판 스캔에 사진 효과를 입힌 예시"><span class="beam"></span></div>
+    <div class="proc in" style="--d:2s" role="status">
+      <div class="spin" aria-hidden="true"><i style="--d:2.2s;--t:7.3s;--n:5.214285714285714"></i><b class="done pop" style="--d:9.5s" data-sfx="none">✓</b></div>
+      <div class="steps">
+        <span data-sfx="tick" style="--d:2.2s">사진 인식 중</span>
+        <span data-sfx="tick" style="--d:3s">마디 인식 중</span>
+        <span data-sfx="tick" style="--d:3.8s">박자 인식 중</span>
+        <span data-sfx="tick" style="--d:4.6s">음표 인식 중</span>
+        <span data-sfx="tick" style="--d:5.4s;--span:.9s">악보 파일 만드는 중</span>
+        <span style="--d:6.3s;--span:1.5s">원래 음 확인 중</span>
+        <span style="--d:7.8s">음표 편집 예시</span>
+        <span style="--d:8.6s;--span:.9s">바뀐 소리 확인 중</span>
+        <span class="last" style="--d:9.5s">예시 확인 완료</span>
+      </div>
+    </div>
+    <div class="card edit-card in" style="--d:6.4s">
       <div class="label">컴퓨터에서 고칠 수 있는 악보<span class="badge">실제 파일 편집 예시</span></div>
       <div class="edit-stack">
         <img class="before" src="img/ocr_edit_before.svg" alt="실제 판독 파일의 첫 음 F4">
         <img class="after" src="img/ocr_edit_after.svg" alt="첫 음을 G4로 높인 같은 악보 파일">
       </div>
       <div class="edit-steps">
-        <span class="pop" style="--d:4.4s" data-sfx="note_f4">① 파란 음표 듣기 ♪</span>
-        <span class="pop" style="--d:7s" data-sfx="click">② 한 칸 위로</span>
-        <span class="playback pop" style="--d:9s" data-sfx="note_g4">③ 바뀐 음 듣기 ♪</span>
+        <span class="pop" style="--d:6.9s" data-sfx="note_f4">① 원래 음 듣기 ♪</span>
+        <span class="pop" style="--d:7.8s" data-sfx="click">② 한 칸 위로</span>
+        <span class="playback pop" style="--d:8.6s" data-sfx="note_g4">③ 바뀐 음 듣기 ♪</span>
       </div>
       <p class="edit-result in" style="--d:9.5s">음표를 바꾸면 재생되는 소리도 바뀝니다.</p>
     </div>
-    <p class="note in" style="--d:10.2s">아래 ‘음표 바꿔 보기’에서 직접 비교할 수 있어요.</p>
-    <div class="foot"><span>하바네라 원판 · 사진 효과는 설명용<br>판독 MusicXML의 첫 음만 편집 · 인식 오류는 남아 있음</span><span class="pg"></span></div>
+    <p class="note in" style="--d:9.5s">아래 ‘음표 바꿔 보기’에서 직접 비교할 수 있어요.</p>
+    <div class="foot"><span>하바네라 원판 · 사진 효과와 처리 단계는 설명용<br>판독 파일의 첫 음만 편집 · 인식 오류는 남아 있음</span><span class="pg"></span></div>
   </section>
 
   <section class="scene">
     <div class="eyebrow"><span>원본과 결과 비교</span><span>어려웠던 점</span></div>
     <h2 class="cap">사진과 나란히<br><mark>맞춰 봤습니다</mark></h2>
-    <div class="card">
-      <figure class="reference in" style="--d:.5s"><figcaption>사진 속 같은 한 마디</figcaption><img src="img/ocr_bar_paper.jpg" alt="끝에 음표가 있는 원본 한 마디"><span class="focus pop" style="--d:1.8s" aria-hidden="true"></span></figure>
-      <div class="compare">
-        <div class="in" style="--d:2s"><b>사진의 마지막 자리</b><div class="crop"><img src="img/ocr_bar_paper.jpg" alt="원본의 마지막 음표 확대"></div><p>음표가 있습니다.</p></div>
-        <div class="in" style="--d:3.4s"><b>AI가 읽은 마지막 자리</b><div class="crop raw"><img src="img/ocr_bar_1.png" alt="실제 판독에서 빠진 마지막 음표 자리"><span class="empty-spot pop" style="--d:4.3s" aria-hidden="true"></span></div><p>이 음표가 빠졌습니다.</p></div>
+    <p class="sub in" style="--d:.8s">사진의 마지막 음표가 판독 결과에서 빠졌습니다. 그 음 하나를 채우는 예시입니다.</p>
+    <div class="card duo in" style="--d:1.1s">
+      <div class="bar"><div class="lab"><span>사진</span></div><div class="onebar" style="width:230px"><img src="img/ocr_bar_paper.jpg" alt="마지막 음표가 있는 원본"><span class="beam" style="--d:1.7s"></span></div></div>
+      <div class="proc in" style="--d:1.6s" role="status">
+        <div class="spin" aria-hidden="true"><i style="--d:1.7s;--t:6.3s;--n:4.5"></i><b class="done pop" style="--d:8s" data-sfx="none">✓</b></div>
+        <div class="steps">
+          <span style="--d:1.7s;--span:1.8s">AI 사진 인식 중</span>
+          <span style="--d:3.5s;--span:1.7s">판독 결과 확인 중</span>
+          <span style="--d:5.2s;--span:1.9s">빠진 음 보완 예시</span>
+          <span style="--d:7.1s;--span:.9s">보완 결과 확인 중</span>
+          <span class="last" style="--d:8s">예시 확인 완료</span>
+        </div>
       </div>
-      <div class="repair in" style="--d:6.2s">
-        <div class="proc"><div class="spin" aria-hidden="true"><i style="--d:6.3s;--t:1.6s"></i><b class="done pop" style="--d:7.9s" data-sfx="none">✓</b></div><span>빠진 음표 보완</span><span class="badge">설명용 재현</span></div>
-        <div class="in" style="--d:8s"><img src="img/ocr_repair_example.svg" alt="마지막 F4 음표만 추가한 보정 설명용 악보"><p>마지막 음표를 채운 모습입니다.<br>다른 음·리듬 오류는 별도로 확인해야 합니다.</p></div>
+      <div class="bar in" style="--d:3.6s">
+        <div class="lab"><span>AI가 읽은 결과</span><span class="chip fail pop" style="--d:4s">마지막 음 빠짐</span></div>
+        <div class="onebar"><img src="img/ocr_bar_1.png" alt="실제 판독에서 빠진 마지막 음표"><span class="ring" style="left:280px;top:22px;--d:4.6s;width:22px;height:30px;margin:-15px 0 0 -11px"></span><span class="beam" style="--d:5.2s"></span></div>
+      </div>
+      <div class="bar in" style="--d:7.1s">
+        <div class="lab"><span>마지막 음 하나를 채운 모습</span><span class="chip pass pop" style="--d:7.5s">설명용 편집</span></div>
+        <div class="onebar"><img src="img/ocr_repair_example.svg" alt="빠진 F4 음표 하나만 직접 추가한 악보"></div>
+        <p class="repair-note">다른 음·리듬 오류는 별도로 확인해야 합니다.</p>
       </div>
     </div>
-    <div class="foot"><span>하바네라 7마디 · 위는 실제 판독<br>아래는 빠진 음 하나를 직접 추가한 설명용 예시</span><span class="pg"></span></div>
+    <div class="foot"><span>하바네라 7마디 · 위는 실제 판독<br>아래는 빠진 음 하나를 직접 편집한 설명용 예시</span><span class="pg"></span></div>
   </section>
 
   <section class="scene">
-    <div class="eyebrow"><span>여러 번 읽고 합치기</span><span>선택하는 기준</span></div>
-    <h2 class="cap">같은 마디를<br><mark>여러 결과에서 비교합니다</mark></h2>
-    <p class="sub in" style="--d:.5s">음 길이가 맞는 후보부터 추리고,<br>서로 더 많이 일치하는 결과를 고릅니다.</p>
-    <div class="card candidates">
-      <div class="label">같은 마디의 판독 후보<span class="badge">원리 설명용 · 3개 확대</span></div>
-      <div class="candidate reject " style="--d:1.4s"><b>1차</b><svg viewBox="0 0 110 46" aria-hidden="true"><g stroke="currentColor" stroke-width=".7"><path d="M0 10H110"/><path d="M0 16H110"/><path d="M0 22H110"/><path d="M0 28H110"/><path d="M0 34H110"/></g><g stroke="currentColor" stroke-width="1.5"><ellipse cx="20" cy="28" rx="5" ry="3.5" fill="currentColor"/><path d="M24 28v-19"/><ellipse cx="47" cy="22" rx="5" ry="3.5" fill="currentColor"/><path d="M51 22v-19"/></g></svg><span class="reason">음 길이 부족</span></div><div class="candidate agree in" style="--d:2.8s"><b>2차</b><svg viewBox="0 0 110 46" aria-hidden="true"><g stroke="currentColor" stroke-width=".7"><path d="M0 10H110"/><path d="M0 16H110"/><path d="M0 22H110"/><path d="M0 28H110"/><path d="M0 34H110"/></g><g stroke="currentColor" stroke-width="1.5"><ellipse cx="20" cy="28" rx="5" ry="3.5" fill="currentColor"/><path d="M24 28v-19"/><ellipse cx="47" cy="22" rx="5" ry="3.5" fill="currentColor"/><path d="M51 22v-19"/><ellipse cx="74" cy="16" rx="5" ry="3.5" fill="currentColor"/><path d="M78 16v-19"/></g></svg><span class="reason">길이 맞음<br>같은 결과</span></div><div class="candidate agree in" style="--d:4.2s"><b>3차</b><svg viewBox="0 0 110 46" aria-hidden="true"><g stroke="currentColor" stroke-width=".7"><path d="M0 10H110"/><path d="M0 16H110"/><path d="M0 22H110"/><path d="M0 28H110"/><path d="M0 34H110"/></g><g stroke="currentColor" stroke-width="1.5"><ellipse cx="20" cy="28" rx="5" ry="3.5" fill="currentColor"/><path d="M24 28v-19"/><ellipse cx="47" cy="22" rx="5" ry="3.5" fill="currentColor"/><path d="M51 22v-19"/><ellipse cx="74" cy="16" rx="5" ry="3.5" fill="currentColor"/><path d="M78 16v-19"/></g></svg><span class="reason">길이 맞음<br>같은 결과</span></div>
-      <div class="merge-arrow in" style="--d:6.5s">↓ 길이가 맞고, 두 결과가 일치</div>
-      <div class="chosen pop" style="--d:7.2s"><div class="candidate"><b>선택</b><svg viewBox="0 0 110 46" aria-hidden="true"><g stroke="currentColor" stroke-width=".7"><path d="M0 10H110"/><path d="M0 16H110"/><path d="M0 22H110"/><path d="M0 28H110"/><path d="M0 34H110"/></g><g stroke="currentColor" stroke-width="1.5"><ellipse cx="20" cy="28" rx="5" ry="3.5" fill="currentColor"/><path d="M24 28v-19"/><ellipse cx="47" cy="22" rx="5" ry="3.5" fill="currentColor"/><path d="M51 22v-19"/><ellipse cx="74" cy="16" rx="5" ry="3.5" fill="currentColor"/><path d="M78 16v-19"/></g></svg><span class="reason">최종 악보의<br>이 마디로</span></div></div>
-      <div class="in" style="--d:8.2s"><div class="photo-strip"><img src="img/ocr_read_1.jpg" alt="명암을 달리한 설명용 사진 1"><img src="img/ocr_read_2.jpg" alt="명암을 달리한 설명용 사진 2"><img src="img/ocr_read_3.jpg" alt="명암을 달리한 설명용 사진 3"><img src="img/ocr_read_4.jpg" alt="명암을 달리한 설명용 사진 4"><img src="img/ocr_read_5.jpg" alt="명암을 달리한 설명용 사진 5"><img src="img/ocr_read_6.jpg" alt="명암을 달리한 설명용 사진 6"></div><p class="note">사진의 명암을 달리해 읽고, 마디마다 이 기준으로 합칩니다.</p></div>
-    </div>
-    <div class="check-needed in" style="--d:9.6s">같이 틀릴 수도 있습니다.<br>합친 뒤에도 원본과 대조합니다.</div>
-    <div class="foot"><span>실제 선택 규칙을 단순화한 도식<br>음표와 붙임줄 일치도 비교 · 동률이면 입력 순서</span><span class="pg"></span></div>
+    <div class="eyebrow"><span>종이 악보</span><span>여러 번 읽기</span></div>
+    <h2 class="cap">여러 결과에서 골라<br><mark>한 악보로 합칩니다</mark></h2>
+    <p class="sub in" style="--d:.8s">음 길이가 맞는 후보부터 추리고, 서로 더 많이 일치하는 결과를 마디마다 골라 합칩니다.</p>
+    <div class="card vote in" id="vote" style="--d:1s" data-sfx-at="7.05:chime"></div>
+    <div class="vkey in" style="--d:1.2s"><span>칸 하나 = 한 마디</span><span><i style="background:var(--pass)"></i>길이 맞음</span><span><i style="background:var(--fail)"></i>길이 부족</span></div>
+    <div class="foot"><span>사진·칸·선택은 흐름 설명용 · 실제 판독 결과 아님<br>같이 틀릴 수도 있어 합친 뒤 원본과 대조합니다</span><span class="pg"></span></div>
   </section>
-
   <section class="scene">
-    <div class="eyebrow"><span>별도 악보로 검증</span><span>실제 개발 기록</span></div>
+    <div class="eyebrow"><span>첼로 악보</span><span>결과</span></div>
     <h2 class="cap">실제 사진에서도<br><mark>수정할 곳이 줄었습니다</mark></h2>
-    <div class="scope in" style="--d:.6s">검증에 사용한 악보<strong>왈츠 첼로 파트 · 사진 3장 · 219마디</strong>앞의 하바네라 시연과는 다른 악보입니다.</div>
-    <div class="card metrics in" style="--d:1.7s">
-      <div><span>개선 전</span><b>36</b><small>수정 필요 마디</small></div><div aria-hidden="true">→</div><div class="now in" style="--d:3.1s"><span>개선 후</span><b>5</b><small>수정 필요 마디</small></div>
+    <p class="sub in" style="--d:.8s">별도 검증에 사용한 왈츠 첼로 파트입니다.<br>사진 3장 · 219마디 · 앞의 하바네라와 다릅니다.</p>
+    <div class="card dropchart in" style="--d:1.1s" data-sfx-at="3.4:chime">
+      <h4>사람이 손댈 마디<small>219마디 중</small></h4>
+      <div class="step">처음<i style="--w:100%;--d:1.4s"></i><em>36</em></div>
+      <div class="step">지금<i style="--w:14%;--d:3s"></i><em>5</em></div>
     </div>
-    <p class="note in" style="--d:3.8s">정답 악보와 음높이·길이·붙임줄을 비교했습니다.<br>슬러·셈여림 등 연주 표시는 이 수치에 포함하지 않습니다.</p>
-    <div class="card limits in" style="--d:5s"><p><b>남은 5마디</b><br>여러 마디 쉼표 구간 4마디 + 잘못 읽은 붙임줄 1마디</p><p>남은 곳은 원본과 대조해 손질합니다.</p></div>
-    <div class="foot"><span>2026-10-25 개발 기록 · 10-27 재현 기록 확인<br>완성 악보는 연주를 따라 악보를 넘기는 프로그램에 사용</span><span class="pg"></span></div>
+    <div class="card limits in" style="--d:3.8s">
+      <p><b>비교 범위</b>음높이·길이·붙임줄을 비교했습니다. 슬러·셈여림 등 연주 표시는 제외합니다.</p>
+      <p><b>남은 5마디</b>여러 마디 쉼표 4마디 + 잘못 읽은 붙임줄 1마디. 원본과 대조해 손질합니다.</p>
+    </div>
+    <div class="foot"><span>2026-10-25 개발 · 10-27 재현 기록<br>이번 데모 수정에서 전체 인식을 재실행한 수치는 아님</span><span class="pg"></span></div>
   </section>
-
 </div></div>
 <div class="controls">
   <button id="prev" type="button">이전</button><button id="play" type="button">일시정지</button><button id="next" type="button">다음</button><button id="rec" type="button">녹화 화면</button><div class="chips" id="chips"></div>
@@ -217,12 +290,30 @@ body.shot .appendix, body.rec .appendix { display: none }
   </div>
 </details>
 <script>
-document.querySelectorAll('.spin i').forEach(i => {
-  const turn = 1.8, processing = parseFloat(i.style.getPropertyValue('--t'));
-  i.style.setProperty('--turn', `${turn}s`);
-  i.style.setProperty('--turns', processing / turn);
-  i.innerHTML = '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9"/><circle class="arc" cx="11" cy="11" r="9"/></svg>';
+// 로딩 도넛: 회색 고리 + 도는 호
+document.querySelectorAll('.spin i').forEach(i => i.innerHTML = '<svg viewBox="0 0 22 22"><circle cx="11" cy="11" r="9"/><circle class="arc" cx="11" cy="11" r="9"/></svg>');
+// 3번 장면(칸은 설명용): 사진이 크게 떠서 읽히고 제자리로 줄어들면 그 줄 칸이 채워짐. 여섯 판은 절반쯤 틀리고, 모두 틀린 칸만 합친 판에서도 틀림
+// 다 읽은 뒤 마디마다 잘 읽힌 칸 하나가 맨 밑 줄로 떨어짐
+const COLS = 8, RUNS = 6, ALLBAD = new Set([5]);
+let seed = 7;
+const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+const grid = Array.from({ length: RUNS }, () => Array.from({ length: COLS }, (_, c) => ALLBAD.has(c) || rnd() < .45 ? 'r' : 'g'));
+const picks = Array.from({ length: COLS }, (_, c) => {
+  const all = grid.map((_, r) => r), good = all.filter(r => grid[r][c] === 'g'), pool = good.length ? good : all;
+  return pool[Math.floor(rnd() * pool.length)];
 });
+const mergeAt = c => 5.6 + c * .14, ROW_H = 31, TO_SUM = 40; // 줄 높이 28 + 간격 3, 마지막 줄 가운데 → 합침 칸 가운데
+const rows = [];
+for (let r = 0; r < RUNS; r++) {
+  const t = 1.3 + r * .7, cells = [];
+  for (let c = 0; c < COLS; c++)
+    cells.push(`<i class="${grid[r][c]}${picks[c] === r ? ' pick' : ''}"${c ? '' : ' data-sfx="roll"'} style="--d:${(t + .5 + c * .025).toFixed(3)}s;--m:${mergeAt(c).toFixed(2)}s;--dy:${(RUNS - 1 - r) * ROW_H + TO_SUM}px"></i>`);
+  rows.push(`<div class="vrow"><span>${r + 1}번째</span><div class="ph" data-sfx="pop" style="--d:${t.toFixed(1)}s"><img src="img/ocr_read_${r + 1}.jpg" alt="모양을 바꾼 악보 사진 ${r + 1}"></div><div class="vcells">${cells.join('')}</div></div>`);
+}
+const merged = picks.map((r, c) =>
+  `<i class="${grid[r][c]}" data-sfx="tick" style="--d:${(mergeAt(c) + .45).toFixed(2)}s"></i>`).join('');
+document.getElementById('vote').innerHTML = `<div class="vrow head"><span></span><span>읽힌 사진</span><span>읽은 결과</span></div>` + rows.join('') + `<div class="vrow sum"><span>골라 합침</span><div class="vcells">${merged}</div></div>`;
+
 (() => {
   let raised = false, ctx;
   const before = document.getElementById('pitch-before'), after = document.getElementById('pitch-after');
@@ -249,5 +340,6 @@ document.querySelectorAll('.spin i').forEach(i => {
     } catch (e) { status.textContent = '소리를 재생하지 못했습니다. 브라우저의 소리 설정을 확인해 주세요.'; }
   };
 })();
+
 </script>
 <script src="demo.js"></script>
