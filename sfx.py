@@ -33,7 +33,6 @@ SOUNDS = {
     "buzz": 0.16 * np.sign(np.sin(2 * np.pi * 160 * _t(0.16))) * np.exp(-_t(0.16) / 0.08),  # 틀림 ✗
     "swish": 0.5 * (_noise(0.2, 24) - _noise(0.2, 96)) * np.sin(np.pi * _t(0.2) / 0.2) ** 2,  # 선 긋기
     "chime": sum(_tone(f, 0.8, 0.25, v) for f, v in ((880, 0.16), (1320, 0.12), (1760, 0.07))),  # 다 됨
-    "whoosh": 1.2 * _noise(0.35, 60) * np.sin(np.pi * _t(0.35) / 0.35) ** 3,  # 장면 넘김
 }
 
 # OMR: actual first-note pitches from the MusicXML edit example (F4 -> G4).

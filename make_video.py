@@ -63,8 +63,6 @@ try:
             if a.sfx and i >= 0:
                 t0 = frames / a.fps
                 events += [(t0 + ms / 1000, n) for ms, n in page.evaluate("demoSfx()")]
-                if frames:
-                    events.append((t0 - 0.15, "whoosh"))
             for f in range(round(dur / 1000 * a.fps)):
                 page.evaluate(f"demoFrame({f * 1000 / a.fps})")
                 png = page.screenshot(type="png")
