@@ -107,7 +107,7 @@ body.shot .appendix, body.rec .appendix { display: none }
 </head>
 <body>
 <div class="phone" id="phone">
-<div class="stage" id="stage">
+<div class="stage" id="stage" data-hold="1700">
   <div class="bars" id="bars"></div>
 
   <!-- 1 표지: 결과 먼저 (보고 칸만 찍힘, 앞 칸은 이제 돌려 볼 하루) -->
@@ -242,6 +242,8 @@ body.shot .appendix, body.rec .appendix { display: none }
 <script>
 // 형광펜: 손으로 한 번 그은 모양, 덜 삐뚤게, 끝은 형광펜 촉처럼 사선(FX_DESIGN.md 2단계). 시작 시각은 요소의 --d
 document.querySelectorAll('.rn').forEach(e => demoFx.rough(e, parseFloat(e.style.getPropertyValue('--d')), { type: 'highlight', iterations: 1, soft: true, cap: 'slant' }));
+// 제목 밑칠도 같은 손 형광펜(글자 높이 전체, fx_rough.html 장면 6 + 사선 끝). CSS 쓸어 칠하기는 끔, 시작은 CSS 와 같은 .5초
+document.querySelectorAll('.cap mark').forEach(e => { e.style.background = 'none'; e.style.animation = 'none'; demoFx.rough(e, .5, { type: 'highlight', iterations: 1, soft: true, cap: 'slant' }) });
 const hs = [30, 55, 40, 80, 62, 35, 90, 70, 45, 25, 60, 85, 50, 30, 75, 95, 55, 40, 65, 35, 50, 80, 45, 30];
 // 파형 구간 k(막대 6개씩)를 읽는 시각. 화살표가 +0.2초부터 그 줄로 그려지고, 줄은 +0.45초에 튀어나와 화살촉 도착(+0.76초)과 맞물리고, 화살표는 +1.2초에 사라짐
 const R = [2.5, 3.9, 5.3, 6.7];

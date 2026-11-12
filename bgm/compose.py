@@ -203,6 +203,7 @@ COMP = {  # 한 화음 구간(박 off 부터 d 박)에 반주를 놓는 법 → 
     "skank": lambda bar, off, d, v: [(off + o, v, .22, 62) for o in (.5, 1.5, 2.5, 3.5) if o < d],  # 엇박 화음 (칼립소·레게)
     "alberti": lambda bar, off, d, v: [(off + i / 2, [(v[0] - 12, v[-1], v[1], v[-1])[i % 4] + 12], .4, 58 if i % 4 == 0 else 48)
                                        for i in range(int(d * 2))],  # 낮음-높음-가운데-높음
+    "stomp": lambda bar, off, d, v: [(off + o, v, .4, 66 if (off + o) % 2 == 0 else 54) for o in range(int(d))],  # 4분음 화음 (광고 팝)
 }
 BASS = {  # 근음 기준 (박, 반음, 길이)
     "root5": [(0, 0, 1.5), (2, 7, 1.5)],
@@ -210,6 +211,7 @@ BASS = {  # 근음 기준 (박, 반음, 길이)
     "lofi": [(0, 0, 1.2), (2.5, 0, .8), (3.5, 7, .4)],
     "calypso": [(0, 0, .8), (1.5, 7, .4), (2, 12, .8), (3.5, 7, .4)],
     "walk": [(0, 0, .9), (1, 7, .9), (2, 12, .9), (3, 7, .9)],
+    "octave": [(h / 2, 12 * (h % 2), .35) for h in range(8)],
 }
 DRUMS = {  # 마디 하나 (박, GM 드럼 음, 세기)
     "bossa": lambda bar: [(h / 2, 70, 34 + 6 * (h % 2)) for h in range(8)] + [(0, 36, 48), (2, 36, 44)]
@@ -219,6 +221,7 @@ DRUMS = {  # 마디 하나 (박, GM 드럼 음, 세기)
     "pulse": lambda bar: [(b, 36, 46) for b in range(4)] + [(b + .5, 46, 32) for b in range(4)] + [(1, 39, 36), (3, 39, 36)],
     "chip": lambda bar: [(0, 36, 70), (2, 36, 70), (1, 38, 60), (3, 38, 60)] + [(h / 2, 42, 40) for h in range(8)],
     "calypso": lambda bar: [(0, 36, 60), (2, 36, 60), (1.5, 64, 50), (3.5, 64, 50), (2.75, 63, 45)] + [(h / 2, 70, 40 if h % 2 else 30) for h in range(8)],
+    "pop": lambda bar: [(0, 36, 70), (2, 36, 66), (2.5, 36, 54), (1, 39, 64), (3, 39, 64), (1, 38, 46), (3, 38, 46)] + [(h / 2, 54, 40 if h % 2 else 30) for h in range(8)],
 }
 
 
@@ -232,7 +235,7 @@ def groove(name, bpm, mel, end_mel, prog, intro, target, lead, comp, style, bass
     note = lambda prog_, vel, n, s, e: inst(m, prog_).notes.append(pm.Note(max(1, min(127, vel + random.randint(-6, 6))), n, t(s), t(e)))
     m = pm.PrettyMIDI(initial_tempo=bpm)
     body, intro = [b.split(",") for b in prog.split()], [b.split(",") for b in intro.split()]
-    passes = max(1, -(-(target - (len(intro) + 1) * bar_s - 2.5) // (8 * bar_s)))  # 끝 화음 울림까지 target 을 넘는 최소
+    passes = max(1, -(-(target - (len(intro) + 1) * bar_s - 2.5) // (len(body) * bar_s)))  # 끝 화음 울림까지 target 을 넘는 최소
     plan = [(c, None, 0) for c in intro]
     for p in range(int(passes)):
         plan += [(c, mel[i], p) for i, c in enumerate(body)]
@@ -315,6 +318,16 @@ BAROQUE = [[("F#5", 1), ("E5", .5), ("D5", .5), ("E5", 1), ("F#5", 1)], [("E5", 
            [("D5", 1), ("F#5", .5), ("B5", .5), ("A5", 1), ("F#5", 1)], [("C#5", 1.5), ("D5", .5), ("E5", 2)],
            [("D5", .5), ("E5", .5), ("G5", .5), ("B5", .5), ("D6", 1), ("B5", 1)], [("A5", 1), ("F#5", .5), ("A5", .5), ("D6", 2)],
            [("B5", 1), ("A5", .5), ("G5", .5), ("F#5", 1), ("E5", 1)], [("E5", 2), ("C#5", 1), (None, 1)]]
+# 업무 자동화 A(하루 압축·퇴근): 광고 팝 — 실로폰 + 4분음 피아노 + 옥타브 베이스 + 손뼉, A장조
+POP = [[("E5", .5), ("A5", .5), ("C#6", 1), ("B5", .5), ("A5", .5), ("E5", 1)], [("G#5", .5), ("E5", .5), ("C#5", 1), ("E5", 1), ("G#5", 1)],
+       [("F#5", .5), ("A5", .5), ("D6", 1), ("C#6", .5), ("B5", .5), ("A5", 1)], [("B5", 1.5), ("A5", .5), ("G#5", 1), (None, 1)],
+       [("C#6", .5), ("E6", .5), ("C#6", .5), ("A5", .5), ("B5", 1), ("C#6", 1)], [("A5", .5), ("F#5", .5), ("C#5", 1), ("F#5", 1), ("A5", 1)],
+       [("B5", .5), ("A5", .5), ("F#5", .5), ("A5", .5), ("D6", 1), ("C#6", 1)], [("B5", 1), ("G#5", 1), ("E5", 1), (None, 1)],
+       # B 8마디: 긴 음·당김음으로 A 와 다른 결, 한 번만 지나감 (40초 안 반복 없음)
+       [("F#5", 1.5), ("A5", .5), ("D6", 2)], [("E6", 1), ("D6", .5), ("C#6", .5), ("B5", 2)],
+       [("C#6", .5), ("B5", .5), ("G#5", .5), ("E5", .5), ("G#5", 1), ("C#6", 1)], [("A5", 3), (None, 1)],
+       [("D6", .75), ("C#6", .75), ("B5", .5), ("A5", 1), ("F#5", 1)], [("G#5", .5), ("B5", .5), ("D6", .5), ("E6", .5), ("D6", 1), ("B5", 1)],
+       [("C#6", 1), ("A5", 1), ("F#5", 1), ("A5", 1)], [("B5", 1), ("D6", .5), ("C#6", .5), ("B5", 1), ("G#5", 1)]]
 
 SONGS = {
     # 우쿨렐레: 휘파람(GM 은 혼처럼 들림) + 나일론 스트럼 + 베이스 + 셰이커, 짝수 번째에 글로켄슈필 겹침
@@ -336,6 +349,8 @@ SONGS = {
                                     target=41.1, lead=114, comp=25, style="skank", bass=32, bass_style="calypso", drums="calypso", double=12, seed=46),
     "baroque_oboe": lambda: groove("baroque_oboe", 108, BAROQUE, [("F#5", .5), ("E5", .5), ("D5", 3)], "D A Bm F#m G D G A", "D A",
                                    target=41.6, lead=68, comp=6, style="alberti", bass=45, bass_style="walk", drums=None, pad=48, seed=47),
+    "pop_xylo": lambda: groove("pop_xylo", 116, POP, [("E5", .5), ("C#6", .5), ("A5", 3)], "A C#m D E A F#m D E D E C#m F#m Bm7 E7 A,F#m Bm,E", "A D",
+                               target=41.5, lead=13, comp=0, style="stomp", bass=33, bass_style="octave", drums="pop", seed=48),
 }
 
 if __name__ == "__main__":

@@ -60,14 +60,14 @@ python bgm/compose.py                       # bgm/*.mid 다시 만들기 (+ 들�
 
 ```
 python render_cards.py harness_a harness_b harness_c
-python make_video.py harness_a --sfx
+python make_video.py harness_a --sfx --bgm bgm/pop_xylo.mid
 python make_video.py harness_b --sfx
 python make_video.py harness_c --sfx
 python fx_check.py harness_a.html
 python build_site.py
 ```
 
-새 A·B·C MP4는 효과음 포함, 배경음 없음입니다. 기존 본편의 영상·음악은 유지합니다. 홈페이지 대표작은 A·구매관리·현장 IP 관리이며, 나머지 데모와 기존 본편도 계속 열 수 있습니다. 썸네일은 저장된 카드에서 생성합니다.
+A MP4는 효과음 + 배경음 `bgm/pop_xylo.mid`(A장조 광고 팝, 전주·A·B 16마디가 41.5초 동안 한 번만 지나감, 장면 HOLD 1.7초), B·C MP4는 효과음만 있고 배경음 없음입니다. 기존 본편의 영상·음악은 유지합니다. 홈페이지 대표작은 A·구매관리·현장 IP 관리이며, 나머지 데모와 기존 본편도 계속 열 수 있습니다. 썸네일은 저장된 카드에서 생성합니다.
 
 `fx_check.py`는 글자·불투명도·위치와 SVG 선의 그려지는 진행·경로를 비교합니다. 실제 카드·최종 MP4 프레임·공개 페이지 확인과 음향 청취는 별도 검수입니다. `docs/`는 직접 수정하지 않고 `build_site.py`로 만듭니다.
 
